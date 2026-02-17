@@ -1,0 +1,50 @@
+trigger:
+- main 
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  clientAppPath: 'AspNetReactTemplate.Client'
+  serverProjectPath: 'AspNetReactTemplate.Server/AspNetReactTemplate.Server.csproj'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+  displayName: 'Install Node.js'
+
+- script: |
+    cd $(clientAppPath)
+    npm install
+    npm run build
+  displayName: 'NPM Install and Build (Vite)'
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '$(serverProjectPath)'
+    arguments: '--configuration $(buildConfiguration)'
+  displayName: 'DotNet Build'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: '$(serverProjectPath)'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+  displayName: 'DotNet Publish'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  displayName: 'Upload Artifacts'
