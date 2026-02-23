@@ -1,0 +1,43 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  clientAppPath: 'AspNetReactTemplate.Client'
+  serverProjectPath: 'AspNetReactTemplate.Server/AspNetReactTemplate.Server.csproj'
+
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Install Node.js'
+
+  - script: |
+      cd $(clientAppPath)
+      npm install
+      npm run build
+    displayName: 'NPM Install and Build (Vite)'
+
+
+  - task: UseDotNet@2
+    displayName: Use Dotnet 8
+    inputs:
+      version: "8.x" 
+
+  - script: dotnet clean $(serverProjectPath)
+    displayName: 'dotnet clean'
+
+  - script: dotnet build $(serverProjectPath)
+    displayName: "dotnet build"
+
+  - script: dotnet publish $(serverProjectPath) -o publish
+    displayName: "dotnet publish"
+
+  - task: PublishBuildArtifacts@1
+    displayName: "Publish Artifact: drop"
+    inputs:
+      PathtoPublish: "publish"
+      ArtifactName: "application"
