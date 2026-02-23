@@ -23,9 +23,9 @@ steps:
 
 
   - task: UseDotNet@2
-    displayName: Use Dotnet 8
+    displayName: Use Dotnet 10
     inputs:
-      version: "8.x" 
+      version: "10.x" 
 
   - script: dotnet clean $(serverProjectPath)
     displayName: 'dotnet clean'
