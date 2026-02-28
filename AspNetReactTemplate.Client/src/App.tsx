@@ -44,7 +44,7 @@ function App() {
             <img
               alt="Craftsman background"
               className="h-full w-full object-cover opacity-10"
-              src="/landing_page_bg.jpg"
+              src="/landing_page_bg.webp"
             />
             <div className="hero-gradient absolute inset-0"></div>
           </div>

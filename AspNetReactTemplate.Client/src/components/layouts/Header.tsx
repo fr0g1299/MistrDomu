@@ -7,8 +7,9 @@ export default function Header() {
   return (
     <header className="border-accent-foreground/10 dark:border-accent/10 sticky top-0 z-50 bg-background/40 p-5 shadow-xl backdrop-blur-sm md:flex-row md:items-center md:px-14">
       <div className="flex items-center justify-between p-2 mx-auto relative z-10">
+        {/* TODO: Maybe change Font */}
         <a
-          className="flex items-center font-extrabold text-2xl tracking-tight"
+          className="flex items-center font-extrabold text-2xl tracking-tight font-['Stack_Sans_Notch']"
           href="/"
         >
           <span>M</span>
