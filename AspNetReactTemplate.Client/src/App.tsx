@@ -1,4 +1,5 @@
-import { Wrench, Mail, ScanLine, Video } from "lucide-react";
+import { useState } from "react";
+import { Wrench, Mail, ScanLine, Video, Loader2 } from "lucide-react";
 
 import Header from "./components/layouts/Header";
 import Footer from "./components/layouts/Footer";
@@ -32,6 +33,42 @@ const steps = [
 ];
 
 function App() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || status === "loading") return;
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStatus("success");
+        setMessage("Děkujeme! Jste na čekací listině.");
+        setEmail("");
+      } else {
+        const errorData = await response.text();
+        setStatus("error");
+        setMessage(errorData || "Něco se nepovedlo. Zkuste to později.");
+      }
+    } catch (error) {
+      console.error("Error joining waitlist:", error);
+      setStatus("error");
+      setMessage("Chyba připojení k serveru.");
+    }
+  };
+
   return (
     // TODO: Add dark mode toggle and theme provider
     <html className="scroll-smooth dark" lang="cs">
@@ -79,19 +116,40 @@ function App() {
 
             {/* Email Form */}
             <div className="w-full max-w-md flex flex-col items-center">
-              <div className="flex flex-col sm:flex-row w-full gap-2 mb-4 bg-card p-1.5 rounded-xl border border-border shadow-sm">
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col sm:flex-row w-full gap-2 mb-4 bg-card p-1.5 rounded-xl border border-border shadow-sm focus-within:border-primary/50 transition-colors"
+              >
                 <div className="relative flex-1 flex items-center">
                   <Mail className="absolute left-3 text-muted-foreground w-5 h-5" />
                   <Input
                     type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Váš email"
-                    className="pl-10 h-12 border-0 focus-visible:ring-2 focus-visible:ring-primary/20 placeholder:text-muted-foreground/70"
+                    className="pl-10 h-12 border-0 focus-visible:ring-0 placeholder:text-muted-foreground/70"
                   />
                 </div>
-                <Button className="h-12 bg-primary text-primary-foreground hover:bg-primary/90 px-8 rounded-lg font-semibold w-full sm:w-auto">
-                  Připojit se
+                <Button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="h-12 bg-primary text-primary-foreground hover:bg-primary/90 px-8 rounded-lg font-semibold w-full sm:w-auto"
+                >
+                  {status === "loading" ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Připojit se"
+                  )}
                 </Button>
-              </div>
+              </form>
+
+              {message && (
+                <p className={`text-sm mb-4 ${status === "success" ? "text-green-500" : "text-destructive"}`}>
+                  {message}
+                </p>
+              )}
+
               <p className="text-[10px] sm:text-xs text-muted-foreground/60 tracking-[0.15em] uppercase font-semibold">
                 Prvních 500 získá doživotní slevu 20%
               </p>
