@@ -1,0 +1,12 @@
+/* Custom Styles for Glassmorphism and Effects */
+.glass-card {
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.hero-gradient {
+  background: linear-gradient(180deg, rgba(17, 17, 17, 0.6) 0%, rgba(17, 17, 17, 1) 100%);
+}
+.brand-glow {
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
