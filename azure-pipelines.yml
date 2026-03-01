@@ -5,8 +5,11 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  clientAppPath: 'AspNetReactTemplate.Client'
-  serverProjectPath: 'AspNetReactTemplate.Server/AspNetReactTemplate.Server.csproj'
+  - group: ProductionVariables
+  - name: clientAppPath
+    value: 'AspNetReactTemplate.Client'
+  - name: serverProjectPath
+    value: 'AspNetReactTemplate.Server/AspNetReactTemplate.Server.csproj'
 
 
 steps:
