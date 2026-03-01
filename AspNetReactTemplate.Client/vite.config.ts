@@ -5,7 +5,7 @@ import { env } from "process";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-// Cíl pro proxy (tvůj ASP.NET backend)
+// Cíl pro proxy
 const target = env.ASPNETCORE_HTTPS_PORT
   ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}`
   : env.ASPNETCORE_URLS
@@ -25,6 +25,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      "^/api": {
+        target,
+        secure: false,
+      },
       "^/weatherforecast": {
         target,
         secure: false,

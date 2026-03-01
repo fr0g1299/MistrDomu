@@ -16,7 +16,7 @@ export default function Footer() {
             © 2026
           </span>
         </div>
-        <div className="flex items-center gap-5">
+        {/* <div className="flex items-center gap-5">
           <a
             href="#"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -35,7 +35,7 @@ export default function Footer() {
           >
             <Instagram className="w-5 h-5" />
           </a>
-        </div>
+        </div> */}
       </div>
     </footer>
   );

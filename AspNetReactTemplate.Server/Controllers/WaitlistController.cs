@@ -16,6 +16,13 @@ namespace AspNetReactTemplate.Server.Controllers
             _context = context;
         }
 
+        [HttpGet("count")]
+        public async Task<IActionResult> GetWaitlistCount()
+        {
+            var count = await _context.WaitlistEmails.CountAsync();
+            return Ok(new { count });
+        }
+
         [HttpPost]
         public async Task<IActionResult> JoinWaitlist([FromBody] WaitlistEmailRequest request)
         {
