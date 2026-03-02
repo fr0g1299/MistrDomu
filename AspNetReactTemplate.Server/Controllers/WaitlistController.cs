@@ -26,28 +26,39 @@ namespace AspNetReactTemplate.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> JoinWaitlist([FromBody] WaitlistEmailRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request?.Email))
+            try
             {
-                return BadRequest("Email is required.");
+                if (string.IsNullOrWhiteSpace(request?.Email))
+                {
+                    return BadRequest("Email is required.");
+                }
+
+                // Check if email already exists
+                var existing = await _context.WaitlistEmails.AnyAsync(e => e.Email == request.Email);
+                if (existing)
+                {
+                    return Conflict("This email is already on the waitlist.");
+                }
+
+                var waitlistEmail = new WaitlistEmail
+                {
+                    Email = request.Email,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.WaitlistEmails.Add(waitlistEmail);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Successfully joined the waitlist!" });
             }
-
-            // Check if email already exists
-            var existing = await _context.WaitlistEmails.AnyAsync(e => e.Email == request.Email);
-            if (existing)
+            catch (Exception ex)
             {
-                return Conflict("This email is already on the waitlist.");
+                // Diagnostic: Return the actual error message to the client
+                var errorMessage = ex.InnerException != null 
+                    ? $"{ex.Message} -> {ex.InnerException.Message}" 
+                    : ex.Message;
+                return StatusCode(500, errorMessage);
             }
-
-            var waitlistEmail = new WaitlistEmail
-            {
-                Email = request.Email,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.WaitlistEmails.Add(waitlistEmail);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Successfully joined the waitlist!" });
         }
     }
 
