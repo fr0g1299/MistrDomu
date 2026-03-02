@@ -1,4 +1,4 @@
-import { Wrench, Twitter, Linkedin, Instagram } from "lucide-react";
+import { Wrench/*, Twitter, Linkedin, Instagram */ } from "lucide-react";
 
 export default function Footer() {
   return (
