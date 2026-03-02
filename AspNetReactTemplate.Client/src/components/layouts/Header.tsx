@@ -1,7 +1,7 @@
 import { WrenchIcon } from "lucide-react";
 
 // Shadcn Imports
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 
 export default function Header() {
   return (
@@ -23,12 +23,12 @@ export default function Header() {
         </a>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
           <a
-            href="#"
+            href="#jak-to-funguje"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             Jak to funguje
           </a>
-          <a
+          {/* <a
             href="#"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -40,7 +40,7 @@ export default function Header() {
             className="border-border bg-transparent hover:bg-accent rounded-full px-6"
           >
             Přihlásit se
-          </Button>
+          </Button> */}
         </div>
       </div>
     </header>
