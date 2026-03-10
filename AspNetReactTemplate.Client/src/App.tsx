@@ -137,8 +137,7 @@ function App() {
   };
 
   return (
-    // TODO: Add dark mode toggle and theme provider
-    <body className="antialiased">
+    <body className="antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
       <Header />
 
       {/* Hero Section */}
@@ -231,7 +230,7 @@ function App() {
       {/* How it Works Section */}
       <section
         id="jak-to-funguje"
-        className="py-24 bg-[#141414] border-y border-border/40 relative z-10"
+        className="py-24 bg-card border-y border-border/40 relative z-10"
       >
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-20">

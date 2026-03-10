@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="scroll-smooth dark" lang="cs">
+<html class="scroll-smooth" lang="cs">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/wrench.svg" />
@@ -9,6 +9,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mistr Domu</title>
   </head>
+  <script>
+  // This script is here because of FOUC for the theme
+    try {
+      const theme = localStorage.getItem("ui-theme") || "system";
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+
+      const effectiveTheme = theme === "system" ? systemTheme : theme;
+      document.documentElement.classList.add(effectiveTheme);
+    } catch (error) {
+      console.error(error);
+    }
+  </script>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
