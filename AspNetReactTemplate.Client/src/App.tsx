@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "./components/ui/card";
 import { Separator } from "./components/ui/separator";
+import { useDynamicScrollbar } from "./hooks/useDynamicScrollbar";
 
 // Steps for "How it Works" section
 const steps = [
@@ -102,6 +103,7 @@ function App() {
   useEffect(() => {
     fetchWaitlistCount();
   }, []);
+  useDynamicScrollbar();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
