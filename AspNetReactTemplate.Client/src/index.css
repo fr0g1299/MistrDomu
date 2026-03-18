@@ -3,13 +3,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* TODO: zjisti, jake bile pozadi se pouziva, nekde jsem videl #ee */
-  --background: oklch(0.9491 0 0);
+  /* TODO: Try different light background colors, update all variables */
+  /* oklch(0.982 0.0041 91.45) Off White
+  oklch(0.9889 0.0053 17.25) Snow
+  oklch(0.9751 0.0127 244.25) Alice Blue */
+  --background: oklch(0.9751 0.0127 244.25);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(0.9291 0 0);
+  --card: oklch(0.9451 0.0127 244.25);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
+  /* TODO: Format all oklch to be consistent */
   --primary: oklch(76.856% 0.16472 70.113);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
