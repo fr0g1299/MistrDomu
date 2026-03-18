@@ -21,15 +21,16 @@ export default function Header() {
   }, [resolvedTheme, setTheme, startTransition]);
 
   return (
-    <header className="border-accent-foreground/10 dark:border-accent/10 sticky top-0 z-50 bg-background/40 p-6 shadow-xl backdrop-blur-sm md:flex-row md:items-center md:px-14">
+    <header className="border-accent-foreground/10 dark:border-accent/10 sticky top-0 z-50 bg-background/60 dark:bg-background/40 p-6 shadow-xl backdrop-blur-sm md:flex-row md:items-center md:px-14">
       <div className="flex items-center justify-between mx-auto relative z-10">
+        {/* TODO: Logo looks bad in Light theme */}
         <a href="/">
           <img style={{ height: "40px" }} src="logo.svg"></img>
         </a>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
           <a
             href="#jak-to-funguje"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-dark dark:text-muted-foreground hover:text-foreground transition-colors"
           >
             Jak to funguje
           </a>

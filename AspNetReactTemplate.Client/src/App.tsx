@@ -141,16 +141,17 @@ function App() {
   return (
     <body className="antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
       <Header />
+      {/* TODO: Header is gray in light mode with the image underneath */}
 
       {/* Hero Section */}
-      <div className="relative pt-20 pb-32 px-4 flex flex-col items-center text-center">
+      {/* TODO: Light mode fixes needed in the Hero Section */}
+      <div className="pt-40 pb-40 px-4 flex flex-col items-center text-center">
         <div className="absolute inset-0 z-0">
           <img
             alt="Craftsman background"
-            className="h-full w-full object-cover opacity-10"
+            className="h-full w-full object-cover object-[center_65%] brightness-35 dark:brightness-20"
             src="/landing_page_bg.webp"
           />
-          <div className="hero-gradient absolute inset-0"></div>
         </div>
         {/* Glow */}
         <div className="absolute top-[5vh] left-1/2 -translate-x-1/2 w-[75vw] md:w-[30vw] h-[60vw] md:h-[25vw] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
