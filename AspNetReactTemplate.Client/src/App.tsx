@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "./components/ui/card";
 import { Separator } from "./components/ui/separator";
+import { useDynamicScrollbar } from "./hooks/useDynamicScrollbar";
 
 // Steps for "How it Works" section
 const steps = [
@@ -102,6 +103,7 @@ function App() {
   useEffect(() => {
     fetchWaitlistCount();
   }, []);
+  useDynamicScrollbar();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,32 +139,31 @@ function App() {
   };
 
   return (
-    // TODO: Add dark mode toggle and theme provider
-    <body className="antialiased">
+    <body className="antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
       <Header />
+      {/* TODO: Header is gray in light mode with the image underneath */}
 
       {/* Hero Section */}
-      <div className="relative pt-20 pb-32 px-4 flex flex-col items-center text-center">
+      <div className="pt-40 pb-40 px-4 flex flex-col items-center text-center">
         <div className="absolute inset-0 z-0">
           <img
             alt="Craftsman background"
-            className="h-full w-full object-cover opacity-10"
+            className="h-full w-full object-cover object-[center_65%] brightness-35 dark:brightness-20"
             src="/landing_page_bg.webp"
           />
-          <div className="hero-gradient absolute inset-0"></div>
         </div>
         {/* Glow */}
         <div className="absolute top-[5vh] left-1/2 -translate-x-1/2 w-[75vw] md:w-[30vw] h-[60vw] md:h-[25vw] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col items-center mx-auto max-w-[90vw]">
-          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight mb-6 leading-[1.1] animate-[fadeInUp_3s_ease-out]">
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-background dark:text-foreground tracking-tight mb-6 leading-[1.1] animate-[fadeInUp_3s_ease-out]">
             Staň se svým <br />
             <span className="text-primary">
               vlastním <br /> řemeslníkem
             </span>
           </h1>
 
-          <p className="text-muted-foreground text-lg md:text-xl mb-12 max-w-2xl font-light animate-[fadeInUp_2s_ease-out]">
+          <p className="text-muted/90 dark:text-muted-foreground text-lg md:text-xl mb-12 max-w-2xl font-light animate-[fadeInUp_2s_ease-out]">
             Profesionální podpora pro vaše domácí projekty. Od skenování
             problému po videokonzultaci s expertem.
           </p>
@@ -175,7 +176,7 @@ function App() {
             </span>
             <span>
               Na waitlistu {verb} již{" "}
-              <strong className="text-primary font-semibold">
+              <strong className="text-primary-700 dark:text-primary font-semibold">
                 {waitlistCount.toLocaleString("cs-CZ")}
               </strong>{" "}
               {noun}
@@ -184,7 +185,7 @@ function App() {
 
           {/* Email Form */}
           <div className="w-full max-w-md flex flex-col items-center">
-            <p className="text-base md:text-lg font-semibold text-foreground mb-6">
+            <p className="text-base md:text-lg font-semibold text-background dark:text-foreground mb-6">
               Připojte se hned a získejte první videokonzultaci zdarma!
             </p>
             <form
@@ -231,7 +232,7 @@ function App() {
       {/* How it Works Section */}
       <section
         id="jak-to-funguje"
-        className="py-24 bg-[#141414] border-y border-border/40 relative z-10"
+        className="py-24 bg-card border-y border-border/40 relative z-10"
       >
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-20">

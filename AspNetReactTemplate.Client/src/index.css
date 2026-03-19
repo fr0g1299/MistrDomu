@@ -3,12 +3,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
+  /* TODO: Try different light background colors, update all variables */
+  /* oklch(0.982 0.0041 91.45) Off White
+  oklch(0.9889 0.0053 17.25) Snow
+  oklch(0.9751 0.0127 244.25) Alice Blue */
+  --background: oklch(0.9751 0.0127 244.25);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: oklch(0.9451 0.0127 244.25);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
+  /* TODO: Format all oklch to be consistent */
   --primary: oklch(76.856% 0.16472 70.113);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
@@ -61,6 +66,9 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+
+  --scroll-opacity-default: 0.5;
+  --scroll-opacity-default-hover: 0.9;
 }
 
 .dark {
@@ -120,6 +128,9 @@
   --shadow-xl:
     0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+  --scroll-opacity-default: 0.2;
+  --scroll-opacity-default-hover: 0.4;
 }
 
 @theme inline {
@@ -173,6 +184,19 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  /* Primary Color shades */
+  --color-primary-50: oklch(0.9869 0.0214 95.28);
+  --color-primary-100: oklch(0.9619 0.058 95.62);
+  --color-primary-200: oklch(0.9243 0.1151 95.75);
+  --color-primary-300: oklch(0.879 0.1534 91.61);
+  --color-primary-400: oklch(0.8369 0.1644 84.43);
+  --color-primary-500: oklch(0.7686 0.1648 70.12);
+  --color-primary-600: oklch(0.6658 0.1574 58.32);
+  --color-primary-700: oklch(0.5553 0.1455 49);
+  --color-primary-800: oklch(0.4732 0.1247 46.2);
+  --color-primary-900: oklch(0.4137 0.1054 45.9);
+  --color-primary-950: oklch(0.2791 0.0742 45.64);
 }
 
 @layer base {
@@ -192,5 +216,46 @@
   100% {
     transform: translateY(0%);
     opacity: 1;
+  }
+}
+
+/* Scrollbar */
+@media (pointer: fine) {
+  @layer base {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background:
+        linear-gradient(
+          180deg,
+          oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-1, 1)),
+          oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-2, 0.5)),
+          oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-3, 0.1))
+        ),
+        oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-default));
+      border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background:
+        linear-gradient(
+          180deg,
+          oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-1, 1)),
+          oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-2, 0.5)),
+          oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-3, 0.3))
+        ),
+        oklch(76.856% 0.16472 70.113 / var(--scroll-opacity-default-hover));
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
 }
