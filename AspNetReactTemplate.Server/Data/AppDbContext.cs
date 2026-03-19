@@ -10,5 +10,6 @@ namespace AspNetReactTemplate.Server.Data
         }
 
         public DbSet<WaitlistEmail> WaitlistEmails { get; set; }
+        public DbSet<Manual> Manuals { get; set; }
     }
 }
