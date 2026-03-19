@@ -144,7 +144,6 @@ function App() {
       {/* TODO: Header is gray in light mode with the image underneath */}
 
       {/* Hero Section */}
-      {/* TODO: Light mode fixes needed in the Hero Section */}
       <div className="pt-40 pb-40 px-4 flex flex-col items-center text-center">
         <div className="absolute inset-0 z-0">
           <img
@@ -157,14 +156,14 @@ function App() {
         <div className="absolute top-[5vh] left-1/2 -translate-x-1/2 w-[75vw] md:w-[30vw] h-[60vw] md:h-[25vw] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col items-center mx-auto max-w-[90vw]">
-          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight mb-6 leading-[1.1] animate-[fadeInUp_3s_ease-out]">
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-background dark:text-foreground tracking-tight mb-6 leading-[1.1] animate-[fadeInUp_3s_ease-out]">
             Staň se svým <br />
             <span className="text-primary">
               vlastním <br /> řemeslníkem
             </span>
           </h1>
 
-          <p className="text-muted-foreground text-lg md:text-xl mb-12 max-w-2xl font-light animate-[fadeInUp_2s_ease-out]">
+          <p className="text-muted/90 dark:text-muted-foreground text-lg md:text-xl mb-12 max-w-2xl font-light animate-[fadeInUp_2s_ease-out]">
             Profesionální podpora pro vaše domácí projekty. Od skenování
             problému po videokonzultaci s expertem.
           </p>
@@ -177,7 +176,7 @@ function App() {
             </span>
             <span>
               Na waitlistu {verb} již{" "}
-              <strong className="text-primary font-semibold">
+              <strong className="text-primary-700 dark:text-primary font-semibold">
                 {waitlistCount.toLocaleString("cs-CZ")}
               </strong>{" "}
               {noun}
@@ -186,7 +185,7 @@ function App() {
 
           {/* Email Form */}
           <div className="w-full max-w-md flex flex-col items-center">
-            <p className="text-base md:text-lg font-semibold text-foreground mb-6">
+            <p className="text-base md:text-lg font-semibold text-background dark:text-foreground mb-6">
               Připojte se hned a získejte první videokonzultaci zdarma!
             </p>
             <form

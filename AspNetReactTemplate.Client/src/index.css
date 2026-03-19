@@ -186,7 +186,7 @@
   --shadow-2xl: var(--shadow-2xl);
 
   /* Primary Color shades */
-  /* --color-primary-50: oklch(0.9869 0.0214 95.28);
+  --color-primary-50: oklch(0.9869 0.0214 95.28);
   --color-primary-100: oklch(0.9619 0.058 95.62);
   --color-primary-200: oklch(0.9243 0.1151 95.75);
   --color-primary-300: oklch(0.879 0.1534 91.61);
@@ -196,7 +196,7 @@
   --color-primary-700: oklch(0.5553 0.1455 49);
   --color-primary-800: oklch(0.4732 0.1247 46.2);
   --color-primary-900: oklch(0.4137 0.1054 45.9);
-  --color-primary-950: oklch(0.2791 0.0742 45.64); */
+  --color-primary-950: oklch(0.2791 0.0742 45.64);
 }
 
 @layer base {
