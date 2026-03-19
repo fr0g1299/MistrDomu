@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Wrench,
   Mail,
@@ -79,33 +79,18 @@ const getWaitlistText = (count: number) => {
   return mapping[rule as keyof typeof mapping] || mapping.other;
 };
 
-function App() {
+type WaitlistFormProps = {
+  onJoined: () => void;
+};
+
+function WaitlistForm({ onJoined }: WaitlistFormProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [message, setMessage] = useState("");
-  const [waitlistCount, setWaitlistCount] = useState<number>(0);
-  const { verb, noun } = getWaitlistText(waitlistCount);
 
-  const fetchWaitlistCount = async () => {
-    try {
-      const response = await fetch("/api/waitlist/count");
-      if (response.ok) {
-        const data = await response.json();
-        setWaitlistCount(data.count);
-      }
-    } catch (error) {
-      console.error("Error fetching waitlist count:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchWaitlistCount();
-  }, []);
-  useDynamicScrollbar();
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!email || status === "loading") return;
 
@@ -125,7 +110,7 @@ function App() {
         setStatus("success");
         setMessage("Děkujeme! Jste na čekací listině.");
         setEmail("");
-        fetchWaitlistCount();
+        onJoined();
       } else {
         const errorData = await response.text();
         setStatus("error");
@@ -139,7 +124,89 @@ function App() {
   };
 
   return (
-    <body className="antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
+    <div className="w-full max-w-md flex flex-col items-center">
+      <p className="text-base md:text-lg font-semibold text-background dark:text-foreground mb-6">
+        Připojte se hned a získejte první videokonzultaci zdarma!
+      </p>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col sm:flex-row w-full gap-2 mb-4 bg-card p-1.5 rounded-xl border border-border shadow-sm focus-within:border-primary/50 transition-colors"
+      >
+        <div className="relative flex-1 flex items-center">
+          <Mail className="absolute left-3 text-muted-foreground w-5 h-5" />
+          <Input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Váš email"
+            className="pl-10 h-12 border-0 focus-visible:ring-0 placeholder:text-muted-foreground/70"
+          />
+        </div>
+        <Button
+          type="submit"
+          disabled={status === "loading"}
+          className="h-12 bg-primary text-primary-foreground hover:bg-primary/90 px-8 rounded-lg font-semibold w-full sm:w-auto"
+        >
+          {status === "loading" ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            "Připojit se"
+          )}
+        </Button>
+      </form>
+
+      {message && (
+        <p
+          className={`text-sm mb-4 ${status === "success" ? "text-green-500" : "text-destructive"}`}
+        >
+          {message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function FlowArrow() {
+  return (
+    <>
+      <ArrowRight
+        className="hidden md:block text-primary"
+        size={30}
+        strokeWidth={2.5}
+      />
+      <ArrowDown
+        className="block md:hidden text-primary"
+        size={30}
+        strokeWidth={2.5}
+      />
+    </>
+  );
+}
+
+function App() {
+  const [waitlistCount, setWaitlistCount] = useState<number>(0);
+  const { verb, noun } = getWaitlistText(waitlistCount);
+
+  const fetchWaitlistCount = useCallback(async () => {
+    try {
+      const response = await fetch("/api/waitlist/count");
+      if (response.ok) {
+        const data = await response.json();
+        setWaitlistCount(data.count);
+      }
+    } catch (error) {
+      console.error("Error fetching waitlist count:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWaitlistCount();
+  }, [fetchWaitlistCount]);
+  useDynamicScrollbar();
+
+  return (
+    <div className="antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
       <Header />
       {/* TODO: Header is gray in light mode with the image underneath */}
 
@@ -184,46 +251,7 @@ function App() {
           </div>
 
           {/* Email Form */}
-          <div className="w-full max-w-md flex flex-col items-center">
-            <p className="text-base md:text-lg font-semibold text-background dark:text-foreground mb-6">
-              Připojte se hned a získejte první videokonzultaci zdarma!
-            </p>
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col sm:flex-row w-full gap-2 mb-4 bg-card p-1.5 rounded-xl border border-border shadow-sm focus-within:border-primary/50 transition-colors"
-            >
-              <div className="relative flex-1 flex items-center">
-                <Mail className="absolute left-3 text-muted-foreground w-5 h-5" />
-                <Input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Váš email"
-                  className="pl-10 h-12 border-0 focus-visible:ring-0 placeholder:text-muted-foreground/70"
-                />
-              </div>
-              <Button
-                type="submit"
-                disabled={status === "loading"}
-                className="h-12 bg-primary text-primary-foreground hover:bg-primary/90 px-8 rounded-lg font-semibold w-full sm:w-auto"
-              >
-                {status === "loading" ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  "Připojit se"
-                )}
-              </Button>
-            </form>
-
-            {message && (
-              <p
-                className={`text-sm mb-4 ${status === "success" ? "text-green-500" : "text-destructive"}`}
-              >
-                {message}
-              </p>
-            )}
-          </div>
+          <WaitlistForm onJoined={fetchWaitlistCount} />
         </div>
       </div>
 
@@ -255,11 +283,7 @@ function App() {
             </div>
 
             {/* This looks bad, clean it up in the future */}
-            {window.innerWidth >= 768 ? (
-              <ArrowRight size={30} strokeWidth={2.5} color="#f59e0a" />
-            ) : (
-              <ArrowDown size={30} strokeWidth={2.5} color="#f59e0a" />
-            )}
+            <FlowArrow />
 
             {/* Umělá inteligence */}
             <div className="text-center flex-1 max-w-xs">
@@ -271,11 +295,7 @@ function App() {
               </p>
             </div>
 
-            {window.innerWidth >= 768 ? (
-              <ArrowRight size={30} strokeWidth={2.5} color="#f59e0a" />
-            ) : (
-              <ArrowDown size={30} strokeWidth={2.5} color="#f59e0a" />
-            )}
+            <FlowArrow />
 
             {/* Pomoc od odborníka */}
             <div className="text-center flex-1 max-w-xs">
@@ -287,11 +307,7 @@ function App() {
               </p>
             </div>
 
-            {window.innerWidth >= 768 ? (
-              <ArrowRight size={30} strokeWidth={2.5} color="#f59e0a" />
-            ) : (
-              <ArrowDown size={30} strokeWidth={2.5} color="#f59e0a" />
-            )}
+            <FlowArrow />
 
             {/* Vyřešeno */}
             <div className="text-center flex-1 max-w-xs">
@@ -331,7 +347,7 @@ function App() {
       </section>
 
       <Footer />
-    </body>
+    </div>
   );
 }
 
