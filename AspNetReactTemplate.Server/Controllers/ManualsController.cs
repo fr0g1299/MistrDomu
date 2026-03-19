@@ -33,4 +33,13 @@ public class ManualsController : ControllerBase
 
         return manual;
     }
+
+    // GET: api/Manuals/{query}
+    [HttpGet("search/{query}")]
+    public async Task<ActionResult<IEnumerable<Manual>>> SearchManuals(string query)
+    {
+        var manuals = await _context.Manuals.Where(m => m.Title.Contains(query) || m.Description.Contains(query)).ToListAsync();
+        
+        return manuals;
+    }
 }

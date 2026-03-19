@@ -15,5 +15,12 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to fetch manual');
         const manual = await response.json();
         return manual;
+    },
+
+    async searchManuals(keyword: string): Promise<Manual[]> {
+        const response = await fetch(`${API_BASE_URL}/manuals/search/${encodeURIComponent(keyword)}`);
+        if (!response.ok) throw new Error('Failed to search manuals');
+        const manuals = await response.json();
+        return manuals;
     }
 };
