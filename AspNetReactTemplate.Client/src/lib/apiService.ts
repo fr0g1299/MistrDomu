@@ -1,17 +1,9 @@
-export interface Manual {
-    id: number;
-    title: string;
-    imageUrl?: string;
-    description: string;
-    difficulty: number;
-    estimatedTimeMinutes: number;
-    requiredTools: string;
-}
+import { Manual } from '../types/manual';
 
 const API_BASE_URL = '/api';
 
-export const ApiService = {
-    async getManuals(): Promise<Manual[]> {
+export const apiService = {
+    async getAllManuals(): Promise<Manual[]> {
         const response = await fetch(`${API_BASE_URL}/manuals`);
         if (!response.ok) throw new Error('Failed to fetch manuals');
         const manuals = await response.json();
