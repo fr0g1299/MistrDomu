@@ -219,6 +219,21 @@
   }
 }
 
+@keyframes pulse-arrow {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  25% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  75% {
+    opacity: 1;
+  }
+}
+
 /* Scrollbar */
 @media (pointer: fine) {
   @layer base {
