@@ -162,7 +162,7 @@ namespace AspNetReactTemplate.Server.Infrastracture.Identity
             return new IdentityError
             {
                 Code = nameof(DuplicateUserName),
-                Description = $"Uživatelské jméno '{userName}' je již použité"
+                Description = $"Již existuje účet s emailem '{userName}' "
             };
         }
         

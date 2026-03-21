@@ -47,7 +47,7 @@ public static class IdentityExtensions
             options.Lockout.MaxFailedAccessAttempts = 10;
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             
-            options.User.RequireUniqueEmail = true;
+            options.User.RequireUniqueEmail = false;
         });
 
         return services;
