@@ -12,19 +12,10 @@ public static class DatabaseExtensions
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            var host = configuration["DB_HOST"];
-            var dbName = configuration["DB_NAME"];
-            var user = configuration["DB_USER"];
-            var password = configuration["DB_PASSWORD"];
-            var port = configuration["DB_PORT"];
+            var envConnectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
 
-            if (!string.IsNullOrWhiteSpace(host) &&
-                !string.IsNullOrWhiteSpace(dbName) &&
-                !string.IsNullOrWhiteSpace(user) &&
-                !string.IsNullOrWhiteSpace(password) &&
-                !string.IsNullOrWhiteSpace(port))
-            {
-                connectionString = $"Host={host};Port={port};Database={dbName};Username={user};Password={password}";
+            if (!string.IsNullOrWhiteSpace(envConnectionString))            {
+                connectionString = envConnectionString;
             }
             else
             {
@@ -35,7 +26,7 @@ public static class DatabaseExtensions
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(
-                "DefaultConnection is not configured. Set ConnectionStrings__DefaultConnection or DB_* variables.");
+                "DefaultConnection is not configured. Set ConnectionStrings__DefaultConnection or DB_CONNECTION_STRING environment variable.");
         }
 
         services.AddDbContext<AppDbContext>(options =>
