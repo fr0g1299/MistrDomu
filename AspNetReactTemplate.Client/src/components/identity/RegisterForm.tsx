@@ -26,10 +26,27 @@ export function RegisterForm({ onRegisterSuccess }: { onRegisterSuccess: () => v
             const response = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(data),
             });
 
             if (response.ok) {
+                const loginResponse = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        email: data.email,
+                        password: data.password,
+                    }),
+                });
+
+                if (!loginResponse.ok) {
+                    setErrors(["Registrace proběhla, ale automatické přihlášení selhalo. Přihlaste se prosím ručně."]);
+                    return;
+                }
+
+                window.dispatchEvent(new Event("auth-changed"));
                 onRegisterSuccess();
             } else {
                 const errData = await response.json();

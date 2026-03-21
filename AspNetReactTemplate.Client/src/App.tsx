@@ -19,8 +19,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "./components/ui/card";
 import { Separator } from "./components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDynamicScrollbar } from "./hooks/useDynamicScrollbar";
 import { ManualsList } from "./components/manuals/ManualsList";
+import { LoginForm } from "./components/identity/LoginForm";
+import { RegisterForm } from "./components/identity/RegisterForm";
 
 // Steps for "How it Works" section
 const steps = [
@@ -134,7 +143,7 @@ function WaitlistForm({
   };
 
   return (
-    <div className="w-full max-w-[26rem] rounded-3xl border-2 border-primary bg-background/90 dark:bg-zinc-900/85 backdrop-blur-sm p-3.5 md:p-4 shadow-[0_0_24px_rgba(245,158,11,0.35)] dark:shadow-[0_0_20px_rgba(245,158,11,0.28)]">
+    <div className="w-full max-w-[26rem] rounded-3xl border-2 border-primary bg-background/90 dark:bg-zinc-900/85 backdrop-blur-sm p-3.5 md:p-4 shadow-[0_0_24px_rgba(245,158,11,0.35)] dark:shadow-[0_0_20px_rgba(245,158,11,0.28)] transition-shadow duration-300 hover:shadow-[0_0_48px_rgba(245,158,11,0.7)] dark:hover:shadow-[0_0_40px_rgba(245,158,11,0.56)]">
       <div className="mb-3 flex items-center justify-center gap-2 text-sm font-medium text-foreground">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/80 opacity-75"></span>
@@ -253,6 +262,8 @@ function App() {
   const [activeScreen, setActiveScreen] = useState<"home" | "manuals">(
     "home",
   );
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authDialogView, setAuthDialogView] = useState<"login" | "register">("login");
   const { verb, noun } = getWaitlistText(waitlistCount);
 
   const fetchWaitlistCount = useCallback(async () => {
@@ -281,21 +292,76 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  const handleAuthSuccess = useCallback(() => {
+    setAuthDialogOpen(false);
+    navigateToManuals();
+  }, [navigateToManuals]);
+
+  const handleBrowseManualsClick = useCallback(async () => {
+    try {
+      const response = await fetch("/api/auth/me", { credentials: "include" });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.isAuthenticated) {
+          navigateToManuals();
+          return;
+        }
+      }
+    } catch (error) {
+      // On network/server errors keep fallback behavior and show auth dialog.
+    }
+
+    setAuthDialogView("login");
+    setAuthDialogOpen(true);
+  }, [navigateToManuals]);
+
   useDynamicScrollbar();
 
   return (
-    <div className="antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
+    <div className="min-h-screen flex flex-col antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
       <Header
-        activeScreen={activeScreen}
-        onNavigateToManuals={navigateToManuals}
         onNavigateHome={navigateHome}
       />
+
+      <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
+        <DialogContent className="rounded-3xl sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">
+              Nejste přihlášený
+            </DialogTitle>
+          </DialogHeader>
+
+          <p className="text-sm text-muted-foreground text-center">
+            Pro procházení návodů se nejdřív přihlaste nebo zaregistrujte.
+          </p>
+
+          <Tabs
+            value={authDialogView}
+            onValueChange={(v) => setAuthDialogView(v as "login" | "register")}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="login">Přihlášení</TabsTrigger>
+              <TabsTrigger value="register">Registrace</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login">
+              <LoginForm onLoginSuccess={handleAuthSuccess} />
+            </TabsContent>
+
+            <TabsContent value="register">
+              <RegisterForm onRegisterSuccess={handleAuthSuccess} />
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
       {/* TODO: Header is gray in light mode with the image underneath */}
 
+      <main className="flex-1">
       {activeScreen === "home" ? (
         <>
           {/* Hero Section */}
-          <div className="pt-20 md:pt-16 pb-12 md:pb-16 px-4 flex flex-col items-center text-center">
+          <div className="relative min-h-[calc(100vh-76px)] pt-12 md:pt-14 pb-6 md:pb-8 px-4 flex flex-col items-center justify-start text-center">
             <div className="absolute inset-0 z-0">
               <img
                 alt="Craftsman background"
@@ -306,30 +372,34 @@ function App() {
             {/* Glow */}
             <div className="absolute top-[5vh] left-1/2 -translate-x-1/2 w-[75vw] md:w-[30vw] h-[60vw] md:h-[25vw] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-            <div className="relative z-10 flex flex-col items-center mx-auto max-w-[90vw]">
-              <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-background dark:text-foreground tracking-tight mb-6 leading-[1.1] animate-[fadeInUp_3s_ease-out]">
-                Staň se svým <br />
-                <span className="text-primary">
-                  vlastním <br /> řemeslníkem
-                </span>
+            <div className="relative z-10 mt-[7vh] md:mt-[8vh] flex flex-col items-center mx-auto max-w-[90vw]">
+              <h1 className="text-5xl sm:text-6xl md:text-[75px] font-black text-background dark:text-foreground tracking-tight mb-3 leading-[1.02] animate-[fadeInUp_3s_ease-out]">
+                <span className="text-background dark:text-foreground">Staň se </span>
+                <span className="text-primary">mistrem</span>
+                <br />
+                <span className="text-background dark:text-foreground">svého </span>
+                <span className="text-primary">domu</span>
               </h1>
 
-              <p className="text-muted/90 dark:text-muted-foreground text-lg md:text-xl mb-12 max-w-2xl font-light animate-[fadeInUp_2s_ease-out]">
+              <p className="text-2xl md:text-[30px] font-extrabold tracking-tight leading-[1.05] mb-4 animate-[fadeInUp_2.4s_ease-out]">
+                <span className="text-background dark:text-foreground">a oprav si to </span>
+                <span className="text-primary">sám/sama</span>
+              </p>
+
+              <p className="text-muted/90 dark:text-muted-foreground text-base md:text-lg mb-6 max-w-2xl font-light animate-[fadeInUp_2s_ease-out]">
                 Profesionální podpora pro vaše domácí projekty. Od popsání
                 problému po videokonzultaci s expertem.
               </p>
             </div>
-          </div>
 
-          <Separator className="bg-linear-to-r from-border via-primary/30 to-border" />
-
-          <section className="relative z-10 px-4 -mt-6 md:-mt-10 pt-4 md:pt-6 pb-12 md:pb-16">
-            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
+          <section className="relative z-10 w-full mt-[12vh] md:mt-[14vh] px-4 pt-2 md:pt-3 pb-10 md:pb-12">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 items-start">
               <div className="w-full flex flex-col items-center md:items-start text-center md:text-left">
                 <Button
                   type="button"
                   size="lg"
-                  className="w-full max-w-[26rem] h-auto rounded-3xl border-2 border-primary bg-background/90 dark:bg-zinc-900/85 text-zinc-950 dark:text-primary hover:bg-background dark:hover:bg-zinc-900 px-8 py-5 flex flex-col items-center md:items-start gap-1 shadow-[0_0_24px_rgba(245,158,11,0.35)] dark:shadow-[0_0_20px_rgba(245,158,11,0.28)]"
+                  onClick={handleBrowseManualsClick}
+                  className="w-full max-w-[26rem] h-auto rounded-3xl border-2 border-primary bg-background/90 dark:bg-zinc-900/85 text-zinc-950 dark:text-primary hover:bg-background dark:hover:bg-zinc-900 px-8 py-5 flex flex-col items-center md:items-start gap-1 shadow-[0_0_24px_rgba(245,158,11,0.35)] dark:shadow-[0_0_20px_rgba(245,158,11,0.28)] transition-shadow duration-300 hover:shadow-[0_0_48px_rgba(245,158,11,0.7)] dark:hover:shadow-[0_0_40px_rgba(245,158,11,0.56)]"
                 >
                   <span className="text-2xl md:text-3xl font-semibold leading-tight text-zinc-950 dark:text-primary [text-shadow:0_2px_8px_rgba(0,0,0,0.48)] dark:[text-shadow:0_1px_6px_rgba(245,158,11,0.35)]">
                     Procházet návody
@@ -356,11 +426,14 @@ function App() {
                 </div>
 
                 <p className="mt-6 w-full max-w-[26rem] text-right text-base md:text-lg font-semibold text-background dark:text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
-                  Připojte se ihned a získejte první videokonzultaci kompletnězdarma!
+                  Připojte se ihned a získejte první videokonzultaci kompletně zdarma!
                 </p>
               </div>
             </div>
           </section>
+          </div>
+
+          <Separator className="bg-linear-to-r from-border via-primary/30 to-border" />
 
           {/* How it Works Section */}
           <section
@@ -458,6 +531,7 @@ function App() {
       ) : (
         <ManualsSearchScreen />
       )}
+      </main>
 
       <Footer />
     </div>

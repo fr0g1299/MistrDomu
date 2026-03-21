@@ -27,10 +27,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, Loader2 } from "lucide-react"; // Přidána ikona Loader2
 
 type HeaderProps = {
-  activeScreen: "home" | "manuals";
-
-  onNavigateToManuals: () => void;
-
   onNavigateHome: () => void;
 };
 
@@ -41,10 +37,6 @@ interface UserState {
 }
 
 export default function Header({
-  activeScreen,
-
-  onNavigateToManuals,
-
   onNavigateHome,
 }: HeaderProps) {
   const { setTheme, resolvedTheme } = useTheme();
@@ -61,33 +53,43 @@ export default function Header({
 
   const refreshUser = useCallback(async () => {
     try {
-      const response = await fetch("/api/auth/me");
+      const response = await fetch("/api/auth/me", { credentials: "include" });
 
       if (response.ok) {
         const data = await response.json();
 
         setUser(data);
-
-        if (data.isAuthenticated && activeScreen === "home") {
-          onNavigateToManuals();
-        }
       } else {
         setUser({ isAuthenticated: false });
       }
     } catch (error) {
       setUser({ isAuthenticated: false });
     }
-  }, [activeScreen, onNavigateToManuals]);
+  }, []);
 
   useEffect(() => {
     refreshUser();
+  }, [refreshUser]);
+
+  useEffect(() => {
+    const onAuthChanged = () => {
+      refreshUser();
+    };
+
+    window.addEventListener("auth-changed", onAuthChanged);
+    return () => {
+      window.removeEventListener("auth-changed", onAuthChanged);
+    };
   }, [refreshUser]);
 
   const handleLogout = useCallback(async () => {
     setIsLoggingOut(true);
 
     try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
       if (response.ok) {
         setUser({ isAuthenticated: false });
@@ -123,12 +125,7 @@ export default function Header({
           href="/"
           onClick={(e) => {
             e.preventDefault();
-
-            if (user?.isAuthenticated) {
-              onNavigateToManuals();
-            } else {
-                onNavigateHome();
-            }
+            onNavigateHome();
           }}
           className="transition-opacity"
         >
@@ -142,9 +139,12 @@ export default function Header({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-10 w-10 rounded-full focus-visible:ring-0 select-none"
+                    className="relative h-10 rounded-full px-2 md:px-3 focus-visible:ring-0 select-none flex items-center gap-2"
                     disabled={isLoggingOut} // Zablokuje avatar při odhlašování
                   >
+                    <span className="hidden md:inline text-sm font-medium text-foreground max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap">
+                      {user.email || "Uživatel"}
+                    </span>
                     <Avatar className="h-10 w-10 border border-accent/20">
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                         {user.email?.substring(0, 2).toUpperCase() || "U"}

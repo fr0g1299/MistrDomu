@@ -20,10 +20,12 @@ export function LoginForm({ onLoginSuccess }: { onLoginSuccess: () => void }) {
             const response = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(data),
             });
 
             if (response.ok) {
+                window.dispatchEvent(new Event("auth-changed"));
                 onLoginSuccess();
             } else {
                 const errData = await response.json().catch(() => ({}));
