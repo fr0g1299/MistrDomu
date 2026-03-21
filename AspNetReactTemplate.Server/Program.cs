@@ -1,6 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Extensions.ServicesRegistration;
+using DotNetEnv;
+
+var rootEnvPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
+if (File.Exists(rootEnvPath))
+{
+    Env.Load(rootEnvPath);
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
