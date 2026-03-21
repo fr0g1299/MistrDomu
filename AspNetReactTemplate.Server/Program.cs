@@ -1,14 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
+using AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
-
-// Add DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddCustomDatabase(builder.Configuration);
+builder.Services.AddCustomIdentity();
+builder.Services.AddApplicationServices();
 
 // Configure the HTTP request pipeline.
 var app = builder.Build();
@@ -28,7 +27,8 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while migrating the database.");
     }
 }
-
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseHttpsRedirection();

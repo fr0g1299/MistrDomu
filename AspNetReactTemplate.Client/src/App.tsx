@@ -330,7 +330,6 @@ function App() {
                   type="button"
                   size="lg"
                   className="w-full max-w-[26rem] h-auto rounded-3xl border-2 border-primary bg-background/90 dark:bg-zinc-900/85 text-zinc-950 dark:text-primary hover:bg-background dark:hover:bg-zinc-900 px-8 py-5 flex flex-col items-center md:items-start gap-1 shadow-[0_0_24px_rgba(245,158,11,0.35)] dark:shadow-[0_0_20px_rgba(245,158,11,0.28)]"
-                  onClick={navigateToManuals}
                 >
                   <span className="text-2xl md:text-3xl font-semibold leading-tight text-zinc-950 dark:text-primary [text-shadow:0_2px_8px_rgba(0,0,0,0.48)] dark:[text-shadow:0_1px_6px_rgba(245,158,11,0.35)]">
                     Procházet návody

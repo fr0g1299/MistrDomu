@@ -28,7 +28,7 @@ namespace AspNetReactTemplate.Server.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(request?.Email))
+                if (string.IsNullOrWhiteSpace(request.Email))
                 {
                     return BadRequest("Email is required.");
                 }

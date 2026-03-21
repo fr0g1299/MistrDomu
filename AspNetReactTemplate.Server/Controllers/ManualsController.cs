@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AspNetReactTemplate.Server.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class ManualsController : ControllerBase
 {
