@@ -1,18 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using AspNetReactTemplate.Server.Models.Manuals.Enums;
 
-namespace AspNetReactTemplate.Server.Models
-{
-
-    public enum Difficulty
-    {
-        Easy,
-        Medium,
-        Hard
-    }
+namespace AspNetReactTemplate.Server.Models.Manuals
+{ 
 
     public class Manual : Entity<int>
     {
-
         [Required]
         [StringLength(100)] 
         public string Title { get; set; } = string.Empty;

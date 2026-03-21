@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using AspNetReactTemplate.Server.Data;
-using AspNetReactTemplate.Server.Models;
 using Microsoft.AspNetCore.Authorization;
+using AspNetReactTemplate.Server.Services.Abstraction.Manuals;
+using AspNetReactTemplate.Server.Models.DTOs.Manuals;
 
 namespace AspNetReactTemplate.Server.Controllers;
 
@@ -11,37 +10,45 @@ namespace AspNetReactTemplate.Server.Controllers;
 [Route("api/[controller]")]
 public class ManualsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IManualQueryService _manualQueryService;
 
-    public ManualsController(AppDbContext context)
+    public ManualsController(IManualQueryService manualQueryService)
     {
-        _context = context;
+        _manualQueryService = manualQueryService;
     }
 
     // GET: api/Manuals
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Manual>>> GetManuals()
+    public async Task<ActionResult<IEnumerable<ManualReadDto>>> GetManuals()
     {
-        return await _context.Manuals.ToListAsync();
+        var manuals = await _manualQueryService.GetAllManualsAsync();
+        return Ok(manuals);
     }
 
     // GET: api/Manuals/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Manual>> GetManual(int id)
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ManualReadDto>> GetManual(int id)
     {
-        var manual = await _context.Manuals.FindAsync(id);
+        var manual = await _manualQueryService.GetManualByIdAsync(id);
 
-        if (manual == null) return NotFound();
+        if (manual is null)
+        {
+            return NotFound();
+        }
 
-        return manual;
+        return Ok(manual);
     }
 
     // GET: api/Manuals/{query}
     [HttpGet("search/{query}")]
-    public async Task<ActionResult<IEnumerable<Manual>>> SearchManuals(string query)
+    public async Task<ActionResult<IEnumerable<ManualReadDto>>> SearchManuals(string query)
     {
-        var manuals = await _context.Manuals.Where(m => m.Title.Contains(query) || m.Description.Contains(query)).ToListAsync();
-        
-        return manuals;
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest("Search keyword is required.");
+        }
+
+        var manuals = await _manualQueryService.SearchManualsAsync(query);
+        return Ok(manuals);
     }
 }

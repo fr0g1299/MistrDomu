@@ -6,6 +6,7 @@ export interface Manual {
     difficulty: number;
     estimatedTimeMinutes: number;
     requiredTools: string;
+    createdAt: string;
 }
 
 export enum Difficulty {

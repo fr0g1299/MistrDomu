@@ -2,6 +2,7 @@ using AspNetReactTemplate.Server.Data.Seeding;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Models;
+using AspNetReactTemplate.Server.Models.Manuals;
 using AspNetReactTemplate.Server.Models.Identity;
 
 namespace AspNetReactTemplate.Server.Data
