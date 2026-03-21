@@ -9,25 +9,16 @@ export default function Footer() {
             © 2026
           </span>
         </div>
-        {/* <div className="flex items-center gap-5">
-          <a
-            href="#"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Twitter className="w-5 h-5" />
-          </a>
-          <a
-            href="#"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Linkedin className="w-5 h-5" />
-          </a>
-          <a
-            href="#"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Instagram className="w-5 h-5" />
-          </a>
+        {/* <div className="flex flex-wrap gap-6 text-xs uppercase tracking-[0.12em] text-zinc-600">
+          <button className="hover:text-primary" type="button">
+            O nás
+          </button>
+          <button className="hover:text-primary" type="button">
+            Kontakt
+          </button>
+          <button className="hover:text-primary" type="button">
+            Podmínky
+          </button>
         </div> */}
       </div>
     </footer>

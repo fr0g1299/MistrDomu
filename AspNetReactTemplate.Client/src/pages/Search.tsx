@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { ManualsList } from "@/components/manuals/ManualsList";
+import { ManualsList } from "@/components/domains/search/ManualsList";
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");

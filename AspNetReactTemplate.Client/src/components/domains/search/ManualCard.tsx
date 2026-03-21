@@ -1,4 +1,4 @@
-import { Manual, Difficulty } from "../../types/manual";
+import { Manual, Difficulty } from "@/types/manual";
 import {
   Card,
   CardContent,

@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 // import { ClickToEnlargeImage } from "@/components/shared/ClickToEnlargeImage"; // Second version of image zoom
 
-import type { GuideStep } from "../../types/guide";
-import { ImageZoom } from "../shared/ImageZoom";
+import type { GuideStep } from "@/types/guide";
+import { ImageZoom } from "@/components/shared/ImageZoom";
 
 type GuideStepsProps = {
   sectionId?: string;

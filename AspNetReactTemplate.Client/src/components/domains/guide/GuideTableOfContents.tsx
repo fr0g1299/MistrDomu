@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import type { GuideStep, TableOfContentsItem } from "../../types/guide";
+import type { GuideStep, TableOfContentsItem } from "@/types/guide";
 
 type GuideTableOfContentsProps = {
   tableOfContents: TableOfContentsItem[];

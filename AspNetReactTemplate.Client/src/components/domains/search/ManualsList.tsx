@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { apiService } from "../../lib/apiService";
-import { Manual } from "../../types/manual";
+import { apiService } from "@/lib/apiService";
+import { Manual } from "@/types/manual";
 import { ManualCard } from "./ManualCard";
 import { Loader2 } from "lucide-react";
 

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { GuideIntroduction } from "@/components/guide/GuideIntroduction";
-import { GuideSteps } from "@/components/guide/GuideSteps";
-import { GuideTableOfContents } from "@/components/guide/GuideTableOfContents";
+import { GuideIntroduction } from "@/components/domains/guide/GuideIntroduction";
+import { GuideSteps } from "@/components/domains/guide/GuideSteps";
+import { GuideTableOfContents } from "@/components/domains/guide/GuideTableOfContents";
 
 import type { GuideStep, TableOfContentsItem } from "@/types/guide";
 
