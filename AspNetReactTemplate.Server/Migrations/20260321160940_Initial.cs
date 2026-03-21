@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class _11_AddIdentityFields : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -62,16 +62,30 @@ namespace AspNetReactTemplate.Server.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: false),
+                    ImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    Description = table.Column<string>(type: "character varying(10000)", maxLength: 10000, nullable: false),
                     Difficulty = table.Column<int>(type: "integer", nullable: false),
                     EstimatedTimeMinutes = table.Column<int>(type: "integer", nullable: false),
-                    RequiredTools = table.Column<string>(type: "text", nullable: false),
+                    RequiredTools = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Manuals", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WaitlistEmails",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Email = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WaitlistEmails", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -243,6 +257,9 @@ namespace AspNetReactTemplate.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "Manuals");
+
+            migrationBuilder.DropTable(
+                name: "WaitlistEmails");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
