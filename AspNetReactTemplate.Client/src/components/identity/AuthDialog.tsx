@@ -37,7 +37,7 @@ export function AuthDialog({ onLoginSuccess }: AuthDialogProps) {
 
       <DialogContent
         className={`transition-all duration-300 ease-in-out rounded-3xl ${
-          view === "login" ? "sm:max-w-[400px]" : "sm:max-w-[600px]"
+          view === "login" ? "sm:max-w-100" : "sm:max-w-150"
         }`}
       >
         <DialogHeader>

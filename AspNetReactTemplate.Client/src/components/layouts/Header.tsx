@@ -36,9 +36,7 @@ interface UserState {
   email?: string;
 }
 
-export default function Header({
-  onNavigateHome,
-}: HeaderProps) {
+export default function Header({ onNavigateHome }: HeaderProps) {
   const { setTheme, resolvedTheme } = useTheme();
 
   const { startTransition } = useThemeTransition();
@@ -62,7 +60,7 @@ export default function Header({
       } else {
         setUser({ isAuthenticated: false });
       }
-    } catch (error) {
+    } catch {
       setUser({ isAuthenticated: false });
     }
   }, []);
@@ -142,7 +140,7 @@ export default function Header({
                     className="relative h-10 rounded-full px-2 md:px-3 focus-visible:ring-0 select-none flex items-center gap-2"
                     disabled={isLoggingOut} // Zablokuje avatar při odhlašování
                   >
-                    <span className="hidden md:inline text-sm font-medium text-foreground max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap">
+                    <span className="hidden md:inline text-sm font-medium text-foreground max-w-60 overflow-hidden text-ellipsis whitespace-nowrap">
                       {user.email || "Uživatel"}
                     </span>
                     <Avatar className="h-10 w-10 border border-accent/20">
