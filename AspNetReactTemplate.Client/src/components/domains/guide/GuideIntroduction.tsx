@@ -1,4 +1,6 @@
-import { Clock3, Gauge, Wrench } from "lucide-react";
+import { Clock3, Gauge, Wrench, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MouseEvent } from "react";
 
 import { Separator } from "@/components/ui/separator";
 import { Difficulty, Manual } from "@/types/manual";
@@ -29,6 +31,12 @@ export function GuideIntroduction({
   toolsSectionId = "tools-required",
   manual,
 }: GuideIntroductionProps) {
+  const navigate = useNavigate();
+
+  const handleBack = (e: MouseEvent) => {
+    e.preventDefault();
+    navigate(-1);
+  };
   const title = manual?.title || "Detail návodu";
   const description =
     manual?.description ||
@@ -40,19 +48,29 @@ export function GuideIntroduction({
   return (
     <section
       id={sectionId}
-      className="mb-8 grid w-full xl:h-[80vh] 2xl:h-[60vh] lg:grid-cols-12"
+      className="mb-8 grid w-full xl:min-h-[80vh] 2xl:min-h-[60vh] lg:grid-cols-12"
     >
-      <div className="2xl:ml-50 content-center px-4 py-8 sm:px-6 lg:col-span-5 lg:px-10 lg:py-12">
-        {/* Category */}
-        {/* <div className="mb-4 flex items-center gap-2">
-          <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
+      <div className="2xl:ml-50 content-center px-4 py-8 sm:px-6 lg:col-span-5 lg:px-8 lg:py-12">
+        {/* Back button */}
+        <div className="mb-6 flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Go back"
+            onClick={handleBack}
+            className="flex h-14 w-14 mr-4 text-primary hover:text-primary-600 items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-card transition-colors duration-300"
+          >
+            <ArrowLeft className="size-12" />
+          </button>
+
+          {/* Category */}
+          {/* <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
             Instalace
           </span>
           <span className="size-1 rounded-full bg-zinc-600" />
           <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
             Kuchyně
-          </span>
-        </div> */}
+          </span> */}
+        </div>
 
         <h1 className="mb-5 max-w-xl text-4xl font-extrabold leading-tight md:text-6xl">
           {title}

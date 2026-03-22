@@ -1,10 +1,10 @@
-import { ArrowRight, CheckCircle2, Printer, RotateCcw } from "lucide-react";
+import { ArrowRight, CheckCircle2, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import type { GuideStep, TableOfContentsItem } from "@/types/guide";
+import type { GuideStep, TableOfContentsItem } from "@/types/manual";
 
 type GuideTableOfContentsProps = {
   tableOfContents: TableOfContentsItem[];
@@ -120,14 +120,14 @@ export function GuideTableOfContents({
           })}
         </nav>
 
-        <Button
+        {/* <Button
           type="button"
           onClick={() => window.print()}
           className="mt-3 h-11 gap-2 text-sm font-bold"
         >
           <Printer className="size-4" />
           Vytisknout průvodce
-        </Button>
+        </Button> */}
 
         <Button
           type="button"

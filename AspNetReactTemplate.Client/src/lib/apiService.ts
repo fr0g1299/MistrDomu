@@ -1,4 +1,4 @@
-import { Manual, Step } from "../types/manual";
+import { Manual, GuideStep } from "../types/manual";
 
 const API_BASE_URL = "/api";
 
@@ -60,7 +60,7 @@ export const apiService = {
     );
   },
 
-  async getManualSteps(manualId: number) {
-    return requestJson<Step[]>(`/manuals/${manualId}/steps`);
+  async getManualSteps(manualId: number): Promise<GuideStep[]> {
+    return requestJson<GuideStep[]>(`/manuals/${manualId}/steps`);
   },
 };

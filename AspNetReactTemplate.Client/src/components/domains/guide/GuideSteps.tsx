@@ -3,10 +3,10 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ImageZoom } from "@/components/shared/ImageZoom";
 // import { ClickToEnlargeImage } from "@/components/shared/ClickToEnlargeImage"; // Second version of image zoom
 
-import type { GuideStep } from "@/types/guide";
-import { ImageZoom } from "@/components/shared/ImageZoom";
+import type { GuideStep } from "@/types/manual";
 
 type GuideStepsProps = {
   sectionId?: string;
@@ -87,7 +87,7 @@ export function GuideSteps({
                       className="overflow-hidden"
                     >
                       <p className="md:mt-3 text-zinc-700 dark:text-zinc-400 whitespace-normal line-clamp-2">
-                        {step.description}
+                        {step.content}
                       </p>
                     </motion.div>
                   ) : (
@@ -101,11 +101,12 @@ export function GuideSteps({
                       className="overflow-hidden"
                     >
                       <div className="w-full md:mt-3">
+                        {/* TODO: In the future display RICH content (maybe md woudl suffice) */}
                         <p className="text-zinc-700 dark:text-zinc-400 whitespace-normal">
-                          {step.description}
+                          {step.content}
                         </p>
 
-                        {step.image && (
+                        {step.imageUrl && (
                           <>
                             {/* <ClickToEnlargeImage
                               src={step.image}
@@ -114,7 +115,7 @@ export function GuideSteps({
 
                             <ImageZoom zoomOnHover={false}>
                               <img
-                                src={step.image}
+                                src={step.imageUrl}
                                 alt={step.title}
                                 width={812} // TODO: This should ideally be dynamic
                                 className="mt-4 rounded-md"

@@ -5,43 +5,16 @@ import { GuideIntroduction } from "@/components/domains/guide/GuideIntroduction"
 import { GuideSteps } from "@/components/domains/guide/GuideSteps";
 import { GuideTableOfContents } from "@/components/domains/guide/GuideTableOfContents";
 import { apiService } from "@/lib/apiService";
-import { Manual } from "@/types/manual";
 
-import type { GuideStep, TableOfContentsItem } from "@/types/guide";
+import { Manual, GuideStep, TableOfContentsItem } from "@/types/manual";
 
-const steps: GuideStep[] = [
+const fallbackStep: GuideStep[] = [
   {
     id: 1,
-    title:
-      "Uzavřete vodu Uzavřete vodu Uzavřete vodu Uzavřete vodu Uzavřete vodu ",
-    description:
-      "Najděte uzavírací ventily pod dřezem. Otočte ventily pro teplou i studenou vodu po směru hodinových ručiček, dokud nebudou pevně uzavřené. Ověřte, že z kohoutku neteče voda, než budete pokračovat.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDOUDgL42NCnaTt4AzmmVpYHQR-gWJN5ADoL9A_tOLG3KWHVj5z5w71q28GUsMck7669ibKsey-JvpbwVaJX-NYh-bn4S7eoZ4caQKIguefdnw3D8_yxzFVfi-S6Dhc6fXLJDkVmH53I_VJr3hpim5NzjAaBeTS6IsRHBLXJ_D0C5_RnjOml4tOT8J5uA_xIWLdFKtwss3x_EUzDKB28PcVEmmYlK90YiflMNcbqMG-9pr-q4DipnZ69nk4ox6qZ5KlwxlQLCUo0Jw",
-  },
-  {
-    id: 2,
-    title: "Odstraňte rukojeť",
-    description:
-      "Použijte imbusový klíč nebo šroubovák k uvolnění fixačního šroubu na rukojeti. Opatrně sundejte rukojeť, abyste odhalili vnitřní kartuši nebo ventil. Použijte imbusový klíč nebo šroubovák k uvolnění fixačního šroubu na rukojeti. Opatrně sundejte rukojeť, abyste odhalili vnitřní kartuši nebo ventil. Použijte imbusový klíč nebo šroubovák k uvolnění fixačního šroubu na rukojeti. Opatrně sundejte rukojeť, abyste odhalili vnitřní kartuši nebo ventil.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBEdWC44HSkO2-HXGanl9ZmYYDygKA8Uobi1dtK7ocNqSM90dX2PQBrUtSG_d9TF1rWVlwuKbCTV9aB6elXiUbH0MHnOyc236a8rd5WMJczR0kTDfb_4veLXBodwdJsHuU6mVKMbT8D1tZIpqeqpbKOTrBCRxEu_OlcbDAUx51pZXKqbCQu0RjpxtLA5YpAXMOTeJT26DFrbCYyFvdxgdCDJ_rEAfyJA1_a6BejUi_-y2Jb_RwQBVyrgoR3_V9U0AFNINcmWWTLpxw",
-  },
-  {
-    id: 3,
-    title: "Vyšroubujte kartuši",
-    description:
-      "Pomocí nastavitelného klíče opatrně vyšroubujte zajišťovací matici držící kartuši. Vytáhněte kartuši přímo nahoru a ven.",
-    initiallyCompleted: true,
-  },
-  {
-    id: 4,
-    title:
-      "Zkontrolujte a vyměňte O-kroužky Zkontrolujte a vyměňte Zkontrolujte a vyměňte",
-    description:
-      "Prohlédněte O-kroužky a sedla na známky opotřebení, usazenin nebo prasklin. Vyměňte poškozené díly za přesné náhrady z opravářské sady.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAQib0Qyb3anUQWjonc77p2n0FB5XbYvONFuAnnE8PzdDSUz3mebVR8mHloCLQoStyfVuMa6SLgB97D4Fco8dWBn-63lYLg8Q7xqkTmxBcdjezbEkYZVpXkiR6F7IJTSMdlUPKIS-F8N-nyAgK1tvMlqhX3ivOVfFoEACD0ULxlcS2y6mcEaYGvXFyFGNN0-P8OAAH66F56RqeS33u2P42gTPdLvyVvlFuKrKYONhcEGP9VCkovAKLxm_uyT4rBTjgEPd0IHmyaGYQ",
+    manualId: 1,
+    title: "Postup se nemohl načíst.",
+    content:
+      "Zkuste prosím obnovit stránku. Pokud problém přetrvává, kontaktujte podporu.",
   },
 ];
 
@@ -50,6 +23,15 @@ const tableOfContents: TableOfContentsItem[] = [
   { id: "tools-required", number: "02", label: "Potřebné nástroje" },
   // { id: "preparation", number: "03", label: "Příprava" },
 ];
+
+// ! Mapper for aligning backend step IDs with local sequence (1, 2, 3...) for consistent UI display and tracking.
+// ! May do harm in the future for adding completed steps to user's profile
+const mapStepsToLocalSequence = (steps: GuideStep[]): GuideStep[] => {
+  return steps.map((step, index) => ({
+    ...step,
+    id: index + 1,
+  }));
+};
 
 export default function Guide() {
   const { manualId } = useParams<{ manualId: string }>();
@@ -62,10 +44,13 @@ export default function Guide() {
     !manualFromState && Boolean(manualId),
   );
   const [manualError, setManualError] = useState<string | null>(null);
+  const [steps, setSteps] = useState<GuideStep[]>([]);
+  const [stepsLoading, setStepsLoading] = useState(false);
+  const [stepsError, setStepsError] = useState<string | null>(null);
 
   const stepSectionIds = useMemo(
     () => steps.map((step) => `step-${step.id}`),
-    [],
+    [steps],
   );
   const trackedSectionIds = useMemo(
     // () => ["introduction", "tools-required", "preparation", ...stepSectionIds],
@@ -74,10 +59,7 @@ export default function Guide() {
   );
 
   const [completedStepIds, setCompletedStepIds] = useState<Set<number>>(
-    () =>
-      new Set(
-        steps.filter((step) => step.initiallyCompleted).map((step) => step.id),
-      ),
+    () => new Set(),
   );
   const [activeSectionId, setActiveSectionId] =
     useState<string>("introduction");
@@ -127,6 +109,58 @@ export default function Guide() {
       isCancelled = true;
     };
   }, [manualFromState, manualId]);
+
+  useEffect(() => {
+    const parsedManualId = Number(manualId);
+    if (!Number.isInteger(parsedManualId) || parsedManualId <= 0) {
+      setSteps([]);
+      setStepsLoading(false);
+      setStepsError("Neplatné ID návodu pro kroky.");
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchSteps = async () => {
+      setStepsLoading(true);
+      setStepsError(null);
+
+      try {
+        const response = await apiService.getManualSteps(parsedManualId);
+        if (isCancelled) return;
+
+        // ! Also here is the mapper
+        const mappedSteps = mapStepsToLocalSequence(response);
+        setSteps(mappedSteps.length > 0 ? mappedSteps : [fallbackStep[0]]);
+      } catch (err: unknown) {
+        if (isCancelled) return;
+
+        setStepsError(
+          err instanceof Error
+            ? err.message
+            : "Nepodařilo se načíst kroky návodu.",
+        );
+      } finally {
+        if (!isCancelled) {
+          setStepsLoading(false);
+        }
+      }
+    };
+
+    fetchSteps();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [manualId]);
+
+  useEffect(() => {
+    setCompletedStepIds(
+      new Set(
+        steps.filter((step) => step.initiallyCompleted).map((step) => step.id),
+      ),
+    );
+  }, [steps]);
 
   const handleToggleStep = useCallback((stepId: number) => {
     setCompletedStepIds((prev) => {
@@ -192,6 +226,7 @@ export default function Guide() {
         className="mx-auto w-full xl:max-w-[85vw] 2xl:max-w-[70vw] px-4 pb-20 sm:px-6"
         data-manual-id={manualId}
       >
+        {/* TODO: In the future add Skeletons */}
         {manualLoading && (
           <p className="mb-4 text-sm text-muted-foreground">
             Načítání návodu...
@@ -199,6 +234,14 @@ export default function Guide() {
         )}
         {manualError && (
           <p className="mb-4 text-sm text-destructive">{manualError}</p>
+        )}
+        {stepsLoading && (
+          <p className="mb-4 text-sm text-muted-foreground">
+            Načítání kroků...
+          </p>
+        )}
+        {stepsError && (
+          <p className="mb-4 text-sm text-destructive">{stepsError}</p>
         )}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
           <GuideSteps

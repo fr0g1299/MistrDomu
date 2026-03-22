@@ -1,25 +1,32 @@
-export interface Step {
-    id: number;
-    title: string;
-    content: string;
-    imageUrl?: string;
-    manualId: number;
+export interface GuideStep {
+  id: number;
+  title: string;
+  content: string;
+  imageUrl?: string;
+  manualId: number;
+  initiallyCompleted?: boolean;
 }
 
 export interface Manual {
-    id: number;
-    title: string;
-    imageUrl?: string;
-    description: string;
-    difficulty: number;
-    estimatedTimeMinutes: number;
-    requiredTools: string;
-    steps: Step[];
-    createdAt: string;
+  id: number;
+  title: string;
+  imageUrl?: string;
+  description: string;
+  difficulty: number;
+  estimatedTimeMinutes: number;
+  requiredTools: string;
+  steps?: GuideStep[];
+  createdAt: string;
 }
 
 export enum Difficulty {
-    Easy = 0,
-    Medium = 1,
-    Hard = 2
+  Easy = 0,
+  Medium = 1,
+  Hard = 2,
 }
+
+export type TableOfContentsItem = {
+  id: string;
+  number: string;
+  label: string;
+};
