@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
         {/* TODO: Maybe change Font */}
         <div className="flex items-center font-bold text-sm tracking-tight font-['Stack_Sans_Notch']">
-          <img style={{ height: "15px" }} src="logo_small.svg"></img>
+          <img style={{ height: "15px" }} src="/logo_small.svg"></img>
           <span className="text-muted-foreground/50 text-xs font-normal ml-3">
             © 2026
           </span>

@@ -127,7 +127,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
           }}
           className="transition-opacity"
         >
-          <img style={{ height: "40px" }} src="logo.svg" alt="Logo" />
+          <img style={{ height: "40px" }} src="/logo.svg" alt="Logo" />
         </a>
 
         <div className="flex items-center gap-2 md:gap-4 text-sm font-medium">
