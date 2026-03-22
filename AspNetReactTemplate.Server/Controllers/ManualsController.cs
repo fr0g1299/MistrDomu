@@ -19,17 +19,17 @@ public class ManualsController : ControllerBase
 
     // GET: api/Manuals
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ManualReadDto>>> GetManuals()
+    public async Task<ActionResult<IEnumerable<ManualReadDto>>> GetManuals([FromQuery] bool includeSteps = false)
     {
-        var manuals = await _manualQueryService.GetAllManualsAsync();
+        var manuals = await _manualQueryService.GetAllManualsAsync(includeSteps);
         return Ok(manuals);
     }
 
     // GET: api/Manuals/5
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ManualReadDto>> GetManual(int id)
+    public async Task<ActionResult<ManualReadDto>> GetManual(int id, [FromQuery] bool includeSteps = false)
     {
-        var manual = await _manualQueryService.GetManualByIdAsync(id);
+        var manual = await _manualQueryService.GetManualByIdAsync(id, includeSteps);
 
         if (manual is null)
         {
@@ -41,14 +41,22 @@ public class ManualsController : ControllerBase
 
     // GET: api/Manuals/{query}
     [HttpGet("search/{query}")]
-    public async Task<ActionResult<IEnumerable<ManualReadDto>>> SearchManuals(string query)
+    public async Task<ActionResult<IEnumerable<ManualReadDto>>> SearchManuals(string query, [FromQuery] bool includeSteps = false)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
             return BadRequest("Search keyword is required.");
         }
 
-        var manuals = await _manualQueryService.SearchManualsAsync(query);
+        var manuals = await _manualQueryService.SearchManualsAsync(query, includeSteps);
         return Ok(manuals);
+    }
+
+    // GET: api/Manuals/5/steps
+    [HttpGet("{id:int}/steps")]
+    public async Task<ActionResult<IEnumerable<StepReadDto>>> GetManualSteps(int id)
+    {
+        var steps = await _manualQueryService.GetStepsByManualIdAsync(id);
+        return Ok(steps);
     }
 }

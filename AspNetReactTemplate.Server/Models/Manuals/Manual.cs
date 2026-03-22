@@ -2,12 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using AspNetReactTemplate.Server.Models.Manuals.Enums;
 
 namespace AspNetReactTemplate.Server.Models.Manuals
-{ 
-
+{
     public class Manual : Entity<int>
     {
         [Required]
-        [StringLength(100)] 
+        [StringLength(100, ErrorMessage = "Název nesmí být delší než 100 znaků.")]
         public string Title { get; set; } = string.Empty;
 
         [StringLength(500, ErrorMessage = "URL nesmí být delší než 500 znaků.")]
@@ -16,6 +15,10 @@ namespace AspNetReactTemplate.Server.Models.Manuals
         [Required]
         [StringLength(10000, ErrorMessage = "Popis nesmí být delší než 10000 znaků.")]
         public string Description { get; set; } = string.Empty;
+
+        [Required]
+        [MinLength(1, ErrorMessage = "Musí být alespoň jeden krok.")]
+        public virtual ICollection<Step> Steps { get; set; } = new List<Step>();
 
         public Difficulty Difficulty { get; set; }
 

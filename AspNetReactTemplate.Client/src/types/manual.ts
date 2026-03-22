@@ -1,3 +1,11 @@
+export interface Step {
+    id: number;
+    title: string;
+    content: string;
+    imageUrl?: string;
+    manualId: number;
+}
+
 export interface Manual {
     id: number;
     title: string;
@@ -6,6 +14,7 @@ export interface Manual {
     difficulty: number;
     estimatedTimeMinutes: number;
     requiredTools: string;
+    steps: Step[];
     createdAt: string;
 }
 

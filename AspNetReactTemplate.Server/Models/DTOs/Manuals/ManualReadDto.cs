@@ -11,5 +11,6 @@ public class ManualReadDto
     public Difficulty Difficulty { get; set; }
     public int EstimatedTimeMinutes { get; set; }
     public string RequiredTools { get; set; } = null!;
+    public List<StepReadDto> Steps { get; set; } = [];
     public DateTime CreatedAt { get; set; }
 }

@@ -15,25 +15,23 @@ public class ManualQueryService : IManualQueryService
         _context = context;
     }
 
-    public async Task<IEnumerable<ManualReadDto>> GetAllManualsAsync()
+    public async Task<IEnumerable<ManualReadDto>> GetAllManualsAsync(bool includeSteps = false)
     {
-        var manuals = await _context.Manuals
-            .AsNoTracking()
+        var manuals = await BuildManualQuery(includeSteps)
             .ToListAsync();
 
-        return manuals.Select(MapToReadDto);
+        return manuals.Select(manual => MapToReadDto(manual, includeSteps));
     }
 
-    public async Task<ManualReadDto?> GetManualByIdAsync(int id)
+    public async Task<ManualReadDto?> GetManualByIdAsync(int id, bool includeSteps = false)
     {
-        var manual = await _context.Manuals
-            .AsNoTracking()
+        var manual = await BuildManualQuery(includeSteps)
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        return manual is null ? null : MapToReadDto(manual);
+        return manual is null ? null : MapToReadDto(manual, includeSteps);
     }
 
-    public async Task<IEnumerable<ManualReadDto>> SearchManualsAsync(string keyword)
+    public async Task<IEnumerable<ManualReadDto>> SearchManualsAsync(string keyword, bool includeSteps = false)
     {
         if (string.IsNullOrWhiteSpace(keyword))
         {
@@ -42,15 +40,44 @@ public class ManualQueryService : IManualQueryService
 
         var pattern = $"%{keyword.Trim()}%";
 
-        var manuals = await _context.Manuals
-            .AsNoTracking()
+        var manuals = await BuildManualQuery(includeSteps)
             .Where(m => EF.Functions.ILike(m.Title, pattern) || EF.Functions.ILike(m.Description, pattern))
             .ToListAsync();
 
-        return manuals.Select(MapToReadDto);
+        return manuals.Select(manual => MapToReadDto(manual, includeSteps));
     }
 
-    private static ManualReadDto MapToReadDto(Manual manual)
+    public async Task<IEnumerable<StepReadDto>> GetStepsByManualIdAsync(int manualId)
+    {
+        var steps = await _context.Steps
+            .AsNoTracking()
+            .Where(s => s.ManualId == manualId)
+            .ToListAsync();
+
+        return steps.Select(step => new StepReadDto
+        {
+            Id = step.Id,
+            Title = step.Title,
+            Content = step.Content,
+            ImageUrl = step.ImageUrl,
+            ManualId = step.ManualId
+        });
+    }
+
+    private IQueryable<Manual> BuildManualQuery(bool includeSteps)
+    {
+        var query = _context.Manuals
+            .AsNoTracking();
+
+        if (includeSteps)
+        {
+            query = query.Include(m => m.Steps);
+        }
+
+        return query;
+    }
+
+    private static ManualReadDto MapToReadDto(Manual manual, bool includeSteps)
     {
         return new ManualReadDto
         {
@@ -61,6 +88,18 @@ public class ManualQueryService : IManualQueryService
             Difficulty = manual.Difficulty,
             EstimatedTimeMinutes = manual.EstimatedTimeMinutes,
             RequiredTools = manual.RequiredTools,
+            Steps = includeSteps
+                ? manual.Steps
+                    .Select(step => new StepReadDto
+                    {
+                        Id = step.Id,
+                        Title = step.Title,
+                        Content = step.Content,
+                        ImageUrl = step.ImageUrl,
+                        ManualId = step.ManualId
+                    })
+                    .ToList()
+                : [],
             CreatedAt = manual.CreatedAt
         };
     }
