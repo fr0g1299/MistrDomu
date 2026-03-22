@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 
 import { GuideIntroduction } from "@/components/domains/guide/GuideIntroduction";
 import { GuideSteps } from "@/components/domains/guide/GuideSteps";
 import { GuideTableOfContents } from "@/components/domains/guide/GuideTableOfContents";
+import { apiService } from "@/lib/apiService";
+import { Manual } from "@/types/manual";
 
 import type { GuideStep, TableOfContentsItem } from "@/types/guide";
 
@@ -49,6 +52,17 @@ const tableOfContents: TableOfContentsItem[] = [
 ];
 
 export default function Guide() {
+  const { manualId } = useParams<{ manualId: string }>();
+  const location = useLocation();
+  const locationState = location.state as { manual?: Manual } | null;
+  const manualFromState = locationState?.manual;
+
+  const [manual, setManual] = useState<Manual | null>(manualFromState ?? null);
+  const [manualLoading, setManualLoading] = useState(
+    !manualFromState && Boolean(manualId),
+  );
+  const [manualError, setManualError] = useState<string | null>(null);
+
   const stepSectionIds = useMemo(
     () => steps.map((step) => `step-${step.id}`),
     [],
@@ -67,6 +81,52 @@ export default function Guide() {
   );
   const [activeSectionId, setActiveSectionId] =
     useState<string>("introduction");
+
+  useEffect(() => {
+    const parsedManualId = Number(manualId);
+    if (!Number.isInteger(parsedManualId) || parsedManualId <= 0) {
+      setManual(null);
+      setManualLoading(false);
+      setManualError("Neplatné ID návodu.");
+      return;
+    }
+
+    if (manualFromState && manualFromState.id === parsedManualId) {
+      setManual(manualFromState);
+      setManualLoading(false);
+      setManualError(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchManual = async () => {
+      setManualLoading(true);
+      setManualError(null);
+
+      try {
+        const response = await apiService.getManual(parsedManualId);
+        if (isCancelled) return;
+        setManual(response);
+      } catch (err: unknown) {
+        if (isCancelled) return;
+        setManual(null);
+        setManualError(
+          err instanceof Error ? err.message : "Nepodařilo se načíst návod.",
+        );
+      } finally {
+        if (!isCancelled) {
+          setManualLoading(false);
+        }
+      }
+    };
+
+    fetchManual();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [manualFromState, manualId]);
 
   const handleToggleStep = useCallback((stepId: number) => {
     setCompletedStepIds((prev) => {
@@ -126,9 +186,20 @@ export default function Guide() {
 
   return (
     <div className="min-h-screen bg-background text-zinc-950 dark:text-zinc-50 antialiased">
-      <GuideIntroduction />
+      <GuideIntroduction manual={manual} />
 
-      <main className="mx-auto w-full xl:max-w-[85vw] 2xl:max-w-[70vw] px-4 pb-20 sm:px-6">
+      <main
+        className="mx-auto w-full xl:max-w-[85vw] 2xl:max-w-[70vw] px-4 pb-20 sm:px-6"
+        data-manual-id={manualId}
+      >
+        {manualLoading && (
+          <p className="mb-4 text-sm text-muted-foreground">
+            Načítání návodu...
+          </p>
+        )}
+        {manualError && (
+          <p className="mb-4 text-sm text-destructive">{manualError}</p>
+        )}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
           <GuideSteps
             steps={steps}

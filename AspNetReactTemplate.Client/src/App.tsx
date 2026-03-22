@@ -6,6 +6,7 @@ import Footer from "./components/layouts/Footer";
 import { useDynamicScrollbar } from "./hooks/useDynamicScrollbar";
 import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/Search";
+import GuidePage from "./pages/Guide";
 
 function App() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/guide/:manualId" element={<GuidePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

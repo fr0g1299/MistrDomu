@@ -1,16 +1,42 @@
 import { Clock3, Gauge, Wrench } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
+import { Difficulty, Manual } from "@/types/manual";
 
 type GuideIntroductionProps = {
   sectionId?: string;
   toolsSectionId?: string;
+  manual?: Manual | null;
 };
+
+const FALLBACK_IMAGE =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuAcRfCcA84t_MOJqshbBYFeIbFVspxbHlB_1SiXurzVP1C8vOeTREN_yuNreTdbQnmmj-v5V0jdJuJI8qFxwX6xaK4bVXd5wqtsmmINbzXHkRhU5U7fs7dNADeXBEr8qdEWap_pZJqC4FTaPaVobrVOggyhfILZCASFtSXx7f6DUDe_OiDgdoe_JhuzKmqPF6d94yDPF5aWTG_xWNBXq2ymv9MSVWCnX8ZLEjE_l5--zBeRbZ3rr1DZsYoHlNJJ2CM6jBC0H44EvJQ";
+
+function getDifficultyLabel(difficulty?: number): string {
+  if (difficulty === Difficulty.Easy) return "Začátečník";
+  if (difficulty === Difficulty.Medium) return "Středně pokročilý";
+  if (difficulty === Difficulty.Hard) return "Pokročilý";
+  return "Neznámá";
+}
+
+function getToolsLabel(requiredTools?: string): string {
+  const value = requiredTools?.trim();
+  return value && value.length > 0 ? value : "Není uvedeno";
+}
 
 export function GuideIntroduction({
   sectionId = "introduction",
   toolsSectionId = "tools-required",
+  manual,
 }: GuideIntroductionProps) {
+  const title = manual?.title || "Detail návodu";
+  const description =
+    manual?.description ||
+    "Detailní návod se načte po otevření konkrétního manuálu.";
+  const imageUrl = manual?.imageUrl || FALLBACK_IMAGE;
+  const difficultyLabel = getDifficultyLabel(manual?.difficulty);
+  const toolsLabel = getToolsLabel(manual?.requiredTools);
+
   return (
     <section
       id={sectionId}
@@ -29,12 +55,10 @@ export function GuideIntroduction({
         </div> */}
 
         <h1 className="mb-5 max-w-xl text-4xl font-extrabold leading-tight md:text-6xl">
-          Jak opravit kapající kuchyňskou baterii
+          {title}
         </h1>
         <p className="mb-8 max-w-xl text-zinc-800 dark:text-zinc-400">
-          Zastavte kapání a ušetřete vodu. Tento podrobný průvodce vás provede
-          diagnostikou a opravou běžných netěsností kuchyňské baterie bez volání
-          instalatéra.
+          {description}
         </p>
 
         <Separator className="mb-6 bg-zinc-400/70 dark:bg-zinc-800/70" />
@@ -48,7 +72,7 @@ export function GuideIntroduction({
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                 Obtížnost
               </p>
-              <p className="text-sm font-semibold">Začátečník</p>
+              <p className="text-sm font-semibold">{difficultyLabel}</p>
             </div>
           </div>
 
@@ -60,7 +84,11 @@ export function GuideIntroduction({
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                 Čas
               </p>
-              <p className="text-sm font-semibold">45 minut</p>
+              <p className="text-sm font-semibold">
+                {manual?.estimatedTimeMinutes
+                  ? `${manual.estimatedTimeMinutes} minut`
+                  : "Není uvedeno"}
+              </p>
             </div>
           </div>
 
@@ -72,7 +100,7 @@ export function GuideIntroduction({
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                 Nářadí
               </p>
-              <p className="text-sm font-semibold">Klíč, kleště, šroubovák</p>
+              <p className="text-sm font-semibold">{toolsLabel}</p>
             </div>
           </div>
         </div>
@@ -80,9 +108,9 @@ export function GuideIntroduction({
 
       <div className="relative min-h-75 overflow-hidden lg:col-span-7 lg:min-h-105">
         <img
-          alt="Kitchen faucet repair"
+          alt={title}
           className="absolute inset-0 h-full w-full object-cover"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcRfCcA84t_MOJqshbBYFeIbFVspxbHlB_1SiXurzVP1C8vOeTREN_yuNreTdbQnmmj-v5V0jdJuJI8qFxwX6xaK4bVXd5wqtsmmINbzXHkRhU5U7fs7dNADeXBEr8qdEWap_pZJqC4FTaPaVobrVOggyhfILZCASFtSXx7f6DUDe_OiDgdoe_JhuzKmqPF6d94yDPF5aWTG_xWNBXq2ymv9MSVWCnX8ZLEjE_l5--zBeRbZ3rr1DZsYoHlNJJ2CM6jBC0H44EvJQ"
+          src={imageUrl}
         />
         <div className="hidden md:block absolute inset-0 bg-linear-to-r from-background via-background/40 dark:via-background/55 to-transparent" />
       </div>

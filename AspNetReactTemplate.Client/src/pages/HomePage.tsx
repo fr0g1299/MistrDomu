@@ -295,7 +295,8 @@ export default function HomePage() {
       </Dialog>
 
       {/* Hero Section */}
-      <div className="relative min-h-[calc(100vh-76px)] pt-12 md:pt-14 pb-6 md:pb-8 px-4 flex flex-col items-center justify-start text-center">
+      {/* Removed relative, maybe looks better, maybe not */}
+      <div className="min-h-[calc(100vh-76px)] pt-12 md:pt-14 pb-6 md:pb-8 px-4 flex flex-col items-center justify-start text-center">
         <div className="absolute inset-0 z-0">
           <img
             alt="Craftsman background"

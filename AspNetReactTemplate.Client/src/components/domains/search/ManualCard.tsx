@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 interface Props {
   manual: Manual;
@@ -19,35 +20,37 @@ export const ManualCard = ({ manual }: Props) => {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="aspect-video w-full overflow-hidden">
-        <img
-          src={
-            manual.imageUrl ||
-            "https://via.placeholder.com/400x250?text=No+Image"
-          }
-          alt={manual.title}
-          className="object-cover w-full h-full"
-        />
-      </div>
-      <CardHeader>
-        <CardTitle>{manual.title}</CardTitle>
-        <CardDescription className="line-clamp-2">
-          {manual.description}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-between items-center text-sm">
-          <span className="flex items-center gap-1">
-            {manual.estimatedTimeMinutes} min
-          </span>
-          <span
-            className={`font-semibold ${getDifficultyColor(manual.difficulty)}`}
-          >
-            {Difficulty[manual.difficulty]}
-          </span>
+    <Link to={`/guide/${manual.id}`} state={{ manual }} className="block">
+      <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+        <div className="aspect-video w-full overflow-hidden">
+          <img
+            src={
+              manual.imageUrl ||
+              "https://via.placeholder.com/400x250?text=No+Image"
+            }
+            alt={manual.title}
+            className="h-full w-full object-cover"
+          />
         </div>
-      </CardContent>
-    </Card>
+        <CardHeader>
+          <CardTitle>{manual.title}</CardTitle>
+          <CardDescription className="line-clamp-2">
+            {manual.description}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-1">
+              {manual.estimatedTimeMinutes} min
+            </span>
+            <span
+              className={`font-semibold ${getDifficultyColor(manual.difficulty)}`}
+            >
+              {Difficulty[manual.difficulty]}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 };
