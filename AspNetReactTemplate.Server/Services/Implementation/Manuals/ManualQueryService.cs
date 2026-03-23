@@ -38,12 +38,29 @@ public class ManualQueryService : IManualQueryService
             return Enumerable.Empty<ManualReadDto>();
         }
 
-        var pattern = $"%{keyword.Trim()}%";
+        var terms = keyword
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        terms = terms
+            .Where(term => term.Length >= 3)
+            .ToArray();
+
+        if (terms.Length == 0)
+        {
+            return Enumerable.Empty<ManualReadDto>();
+        }
+
+        var patterns = terms
+            .Select(term => $"%{term}%")
+            .ToArray();
 
         var manuals = await BuildManualQuery(includeSteps)
-            .Where(m =>EF.Functions.ILike(EF.Functions.Unaccent(m.Title), EF.Functions.Unaccent(pattern)) ||
-                EF.Functions.ILike(EF.Functions.Unaccent(m.Description), EF.Functions.Unaccent(pattern)) || 
-                m.Tags.Any(tag => EF.Functions.ILike(EF.Functions.Unaccent(tag), EF.Functions.Unaccent(pattern))))
+            .Where(m => patterns.Any(pattern =>
+                EF.Functions.ILike(EF.Functions.Unaccent(m.Title), EF.Functions.Unaccent(pattern)) ||
+                EF.Functions.ILike(EF.Functions.Unaccent(m.Description), EF.Functions.Unaccent(pattern)) ||
+                m.Tags.Any(tag => EF.Functions.ILike(EF.Functions.Unaccent(tag), EF.Functions.Unaccent(pattern)))))
             .ToListAsync();
 
         return manuals.Select(manual => MapToReadDto(manual, includeSteps));
