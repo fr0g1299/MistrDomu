@@ -12,5 +12,6 @@ public class ManualReadDto
     public int EstimatedTimeMinutes { get; set; }
     public string RequiredTools { get; set; } = null!;
     public List<StepReadDto> Steps { get; set; } = [];
+    public List<string> Tags { get; set; } = [];
     public DateTime CreatedAt { get; set; }
 }

@@ -25,7 +25,7 @@ public class ManualsController : ControllerBase
         return Ok(manuals);
     }
 
-    // GET: api/Manuals/5
+    // GET: api/Manuals/{id}
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ManualReadDto>> GetManual(int id, [FromQuery] bool includeSteps = false)
     {
@@ -39,7 +39,7 @@ public class ManualsController : ControllerBase
         return Ok(manual);
     }
 
-    // GET: api/Manuals/{query}
+    // GET: api/Manuals/search/{query}
     [HttpGet("search/{query}")]
     public async Task<ActionResult<IEnumerable<ManualReadDto>>> SearchManuals(string query, [FromQuery] bool includeSteps = false)
     {
@@ -52,7 +52,7 @@ public class ManualsController : ControllerBase
         return Ok(manuals);
     }
 
-    // GET: api/Manuals/5/steps
+    // GET: api/Manuals/{id}/steps
     [HttpGet("{id:int}/steps")]
     public async Task<ActionResult<IEnumerable<StepReadDto>>> GetManualSteps(int id)
     {

@@ -20,6 +20,10 @@ namespace AspNetReactTemplate.Server.Models.Manuals
         [MinLength(1, ErrorMessage = "Musí být alespoň jeden krok.")]
         public virtual ICollection<Step> Steps { get; set; } = new List<Step>();
 
+        //[Required]
+        //[MinLength(1, ErrorMessage = "Musí být alespoň jeden tag.")]
+        public List<string> Tags { get; set; } = new List<string>();
+
         public Difficulty Difficulty { get; set; }
 
         public int EstimatedTimeMinutes { get; set; }

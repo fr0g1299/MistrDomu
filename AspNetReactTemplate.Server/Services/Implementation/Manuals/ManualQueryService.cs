@@ -41,7 +41,7 @@ public class ManualQueryService : IManualQueryService
         var pattern = $"%{keyword.Trim()}%";
 
         var manuals = await BuildManualQuery(includeSteps)
-            .Where(m => EF.Functions.ILike(m.Title, pattern) || EF.Functions.ILike(m.Description, pattern))
+            .Where(m => EF.Functions.ILike(m.Title, pattern) || EF.Functions.ILike(m.Description, pattern) || m.Tags.Any(tag => EF.Functions.ILike(tag, pattern)))
             .ToListAsync();
 
         return manuals.Select(manual => MapToReadDto(manual, includeSteps));
@@ -100,6 +100,7 @@ public class ManualQueryService : IManualQueryService
                     })
                     .ToList()
                 : [],
+            Tags = manual.Tags,
             CreatedAt = manual.CreatedAt
         };
     }

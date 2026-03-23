@@ -20,6 +20,8 @@ public class ManualUpdateDto
     [MinLength(1, ErrorMessage = "Musi byt alespon jeden krok.")]
     public List<StepCreateDto> Steps { get; set; } = [];
 
+    public List<string> Tags { get; set; } = [];
+
     public Difficulty Difficulty { get; set; }
 
     public int EstimatedTimeMinutes { get; set; }
