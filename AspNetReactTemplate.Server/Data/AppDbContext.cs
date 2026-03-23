@@ -24,6 +24,8 @@ namespace AspNetReactTemplate.Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.HasPostgresExtension("unaccent");
+
             var rolesInit = new RolesInit();
             modelBuilder.Entity<Role>().HasData(rolesInit.GetRoles());
             modelBuilder.Entity<Manual>()
