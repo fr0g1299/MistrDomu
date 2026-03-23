@@ -1,4 +1,4 @@
-import { Manual, Difficulty } from "@/types/manual";
+import { Manual, Difficulty, getDifficultyLabel } from "@/types/manual";
 import {
   Card,
   CardContent,
@@ -21,7 +21,7 @@ export const ManualCard = ({ manual }: Props) => {
 
   return (
     <Link to={`/guide/${manual.id}`} state={{ manual }} className="block">
-      <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+      <Card className="overflow-hidden border-primary/40 shadow-[0_0_24px_rgba(245,158,11,0.18)] dark:shadow-[0_0_20px_rgba(245,158,11,0.14)] transition-shadow duration-300 hover:shadow-[0_0_48px_rgba(245,158,11,0.35)] dark:hover:shadow-[0_0_40px_rgba(245,158,11,0.28)]">
         <div className="aspect-video w-full overflow-hidden">
           <img
             src={
@@ -41,12 +41,12 @@ export const ManualCard = ({ manual }: Props) => {
         <CardContent>
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-1">
-              {manual.estimatedTimeMinutes} min
+              {manual.estimatedTimeMinutes} minut
             </span>
             <span
               className={`font-semibold ${getDifficultyColor(manual.difficulty)}`}
             >
-              {Difficulty[manual.difficulty]}
+              {getDifficultyLabel(manual.difficulty)}
             </span>
           </div>
         </CardContent>

@@ -19,7 +19,7 @@ export default function SearchPage() {
             Vyhledávání v návodech
           </h2>
           <p className="text-muted-foreground max-w-2xl">
-            Napište query a zobrazíme návody odpovídající vašemu hledání.
+            Zadejte hledaný výraz a zobrazíme návody odpovídající vašemu zadání.
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export default function SearchPage() {
             htmlFor="manual-search"
             className="block text-sm font-medium mb-2 text-muted-foreground"
           >
-            Search query
+            Hledaný výraz
           </label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />

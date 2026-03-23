@@ -9,6 +9,9 @@ export default function Footer() {
             © 2026
           </span>
         </div>
+        <div className="self-end md:self-end text-right text-[11px] tracking-[0.08em] text-muted-foreground/55">
+          AP8VT tým Žáčci
+        </div>
         {/* <div className="flex flex-wrap gap-6 text-xs uppercase tracking-[0.12em] text-zinc-600">
           <button className="hover:text-primary" type="button">
             O nás

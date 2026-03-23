@@ -25,6 +25,13 @@ export enum Difficulty {
   Hard = 2,
 }
 
+export function getDifficultyLabel(difficulty?: number): string {
+  if (difficulty === Difficulty.Easy) return "Začátečník";
+  if (difficulty === Difficulty.Medium) return "Středně pokročilý";
+  if (difficulty === Difficulty.Hard) return "Pokročilý";
+  return "Neznámá";
+}
+
 export type TableOfContentsItem = {
   id: string;
   number: string;

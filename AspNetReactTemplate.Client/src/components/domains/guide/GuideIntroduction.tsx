@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MouseEvent } from "react";
 
 import { Separator } from "@/components/ui/separator";
-import { Difficulty, Manual } from "@/types/manual";
+import { getDifficultyLabel, Manual } from "@/types/manual";
 
 type GuideIntroductionProps = {
   sectionId?: string;
@@ -13,13 +13,6 @@ type GuideIntroductionProps = {
 
 const FALLBACK_IMAGE =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAcRfCcA84t_MOJqshbBYFeIbFVspxbHlB_1SiXurzVP1C8vOeTREN_yuNreTdbQnmmj-v5V0jdJuJI8qFxwX6xaK4bVXd5wqtsmmINbzXHkRhU5U7fs7dNADeXBEr8qdEWap_pZJqC4FTaPaVobrVOggyhfILZCASFtSXx7f6DUDe_OiDgdoe_JhuzKmqPF6d94yDPF5aWTG_xWNBXq2ymv9MSVWCnX8ZLEjE_l5--zBeRbZ3rr1DZsYoHlNJJ2CM6jBC0H44EvJQ";
-
-function getDifficultyLabel(difficulty?: number): string {
-  if (difficulty === Difficulty.Easy) return "Začátečník";
-  if (difficulty === Difficulty.Medium) return "Středně pokročilý";
-  if (difficulty === Difficulty.Hard) return "Pokročilý";
-  return "Neznámá";
-}
 
 function getToolsLabel(requiredTools?: string): string {
   const value = requiredTools?.trim();
@@ -55,7 +48,7 @@ export function GuideIntroduction({
         <div className="mb-6 flex items-center gap-2">
           <button
             type="button"
-            aria-label="Go back"
+            aria-label="Zpět"
             onClick={handleBack}
             className="flex h-14 w-14 mr-4 text-primary hover:text-primary-600 items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-card transition-colors duration-300"
           >

@@ -35,7 +35,9 @@ export const ManualsList = ({ searchQuery }: Props) => {
         setManuals(data);
         setError(null);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(
+          err instanceof Error ? err.message : "Při načítání došlo k chybě",
+        );
       } finally {
         setLoading(false);
       }
