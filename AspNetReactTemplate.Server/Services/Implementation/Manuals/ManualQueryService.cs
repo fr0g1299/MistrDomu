@@ -41,9 +41,7 @@ public class ManualQueryService : IManualQueryService
         var pattern = $"%{keyword.Trim()}%";
 
         var manuals = await BuildManualQuery(includeSteps)
-            .Where(m =>
-                EF.Functions.ILike(EF.Functions.Unaccent(m.Title), EF.Functions.Unaccent(pattern)) ||
-                EF.Functions.ILike(EF.Functions.Unaccent(m.Description), EF.Functions.Unaccent(pattern)))
+            .Where(m => EF.Functions.ILike(m.Title, pattern) || EF.Functions.ILike(m.Description, pattern))
             .ToListAsync();
 
         return manuals.Select(manual => MapToReadDto(manual, includeSteps));
