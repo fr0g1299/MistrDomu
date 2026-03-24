@@ -1,17 +1,15 @@
 using AspNetReactTemplate.Server.Models.Identity;
-using Microsoft.AspNetCore.Identity;
 
 namespace AspNetReactTemplate.Server.Data.Seeding
 {
     internal class UserInit
     {
-        private readonly PasswordHasher<User> _passwordHasher = new PasswordHasher<User>();
 
         public User GetAdmin()
         {
             User admin = new User()
             {
-                Id = 1,
+                Id = 999,
                 FirstName = "APP",
                 LastName = "ADMIN",
                 UserName = "admin@mistrdomu.local",

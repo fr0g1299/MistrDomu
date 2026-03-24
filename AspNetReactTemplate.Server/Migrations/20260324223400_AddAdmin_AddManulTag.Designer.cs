@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260323181546_AddManualTags")]
-    partial class AddManualTags
+    [Migration("20260324223400_AddAdmin_AddManulTag")]
+    partial class AddAdmin_AddManulTag
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,7 @@ namespace AspNetReactTemplate.Server.Migrations
                 .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Role", b =>
@@ -61,6 +62,13 @@ namespace AspNetReactTemplate.Server.Migrations
                             ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f188",
                             Name = "User",
                             NormalizedName = "USER"
+                        },
+                        new
+                        {
+                            Id = 1,
+                            ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f158",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
                         });
                 });
 
@@ -139,6 +147,26 @@ namespace AspNetReactTemplate.Server.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 999,
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "b09a83ae-cfd3-4ee7-97e6-fbcf0b0fe78c",
+                            Email = "admin@mistrdomu.local",
+                            EmailConfirmed = true,
+                            FirstName = "APP",
+                            LastName = "ADMIN",
+                            LockoutEnabled = true,
+                            NormalizedEmail = "ADMIN@MISTRDOMU.CZ",
+                            NormalizedUserName = "ADMIN@MISTRDOMU.LOCAL",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKFSXTFjLJEcl/WYYBuW3NW8EDVBpBnzOc6nyiQY9lYqpT62LYoxFusIkLYEgk/gEw==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "SEJEPXC646ZBNCDYSM3H5FRK5RWP2TN6",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@mistrdomu.local"
+                        });
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Manual", b =>
@@ -321,6 +349,13 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 999,
+                            RoleId = 1
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>

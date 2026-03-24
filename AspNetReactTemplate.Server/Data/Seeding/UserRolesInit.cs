@@ -8,7 +8,7 @@ namespace AspNetReactTemplate.Server.Data.Seeding
         {
             List<IdentityUserRole<int>> adminUserRoles = new List<IdentityUserRole<int>>()
             {
-               new IdentityUserRole<int> { UserId = 1, RoleId = 1 },
+               new IdentityUserRole<int> { UserId = 999, RoleId = 1 },
             };
             
             return adminUserRoles;
