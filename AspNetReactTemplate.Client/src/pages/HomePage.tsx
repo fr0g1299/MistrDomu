@@ -129,7 +129,7 @@ export default function HomePage() {
             </span>
             <span className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-zinc-900 dark:text-zinc-100">
               <CircleAlert className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.25} />
-              JEN PRO PŘIHLÁŠENÉ
+              JEN PRO PŘIHLÁŠENÉ UŽIVATELE
             </span>
           </Button>
         </div>

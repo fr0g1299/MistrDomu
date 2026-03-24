@@ -15,7 +15,7 @@ interface Props {
 export const ManualCard = ({ manual }: Props) => {
   const getDifficultyColor = (diff: Difficulty) => {
     if (diff === Difficulty.Easy) return "text-green-600";
-    if (diff === Difficulty.Medium) return "text-yellow-600";
+    if (diff === Difficulty.Medium) return "text-yellow-400";
     return "text-red-600";
   };
 

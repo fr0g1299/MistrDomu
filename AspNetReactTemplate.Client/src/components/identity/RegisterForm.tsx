@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Loader2, Lock, Mail } from "lucide-react";
+import { AlertTriangle, Loader2, Lock, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useCapsLock } from "../../hooks/useCapsLock";
 
 interface ApiError {
   description: string;
@@ -15,6 +16,7 @@ export function RegisterForm({
 }) {
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const { formProps, showCapsLockWarning } = useCapsLock();
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -78,7 +80,11 @@ export function RegisterForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      {...formProps}
+      className="space-y-4"
+    >
       <div className="grid grid-cols-2 gap-4">
         <Input name="firstName" placeholder="Jméno" required />
         <Input name="lastName" placeholder="Příjmení" required />
@@ -116,6 +122,13 @@ export function RegisterForm({
           required
         />
       </div>
+
+      {showCapsLockWarning && (
+        <p className="text-xs text-red-500 flex items-center gap-1">
+          <AlertTriangle className="h-4 w-4" />
+          Caps Lock je zapnutý!
+        </p>
+      )}
 
       {errors.length > 0 && (
         <Alert variant="destructive">
