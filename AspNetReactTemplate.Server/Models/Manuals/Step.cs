@@ -15,6 +15,10 @@ namespace AspNetReactTemplate.Server.Models.Manuals
         [MinLength(10, ErrorMessage = "Obsah kroku musí být alespoň 10 znaků.")]
         public string Content { get; set; } = string.Empty;
 
+        [Required]
+        [Column("Order")]
+        public int OrderNumber { get; set; }
+
         [StringLength(500, ErrorMessage = "URL nesmí být delší než 500 znaků.")]
         public string? ImageUrl { get; set; }
 

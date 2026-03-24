@@ -32,6 +32,10 @@ namespace AspNetReactTemplate.Server.Data
                 .HasMany(m => m.Steps)
                 .WithOne(s => s.Manual)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Step>()
+                .HasIndex(s => new { s.ManualId, s.OrderNumber })
+                .IsUnique();
         }
     }
 }
