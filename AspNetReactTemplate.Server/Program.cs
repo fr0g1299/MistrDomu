@@ -1,13 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Extensions.ServicesRegistration;
-using AspNetReactTemplate.Server.Models.Identity;
 using DotNetEnv;
-using Microsoft.AspNetCore.Identity;
 
-PasswordHasher<User> _passwordHasher = new PasswordHasher<User>();
-var  hashedPassword = _passwordHasher.HashPassword(null, "UTBz@cci1234");
-Console.WriteLine(hashedPassword);
+
 var rootEnvPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
 if (File.Exists(rootEnvPath))
 {

@@ -148,7 +148,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 1,
+                            Id = 999,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "b09a83ae-cfd3-4ee7-97e6-fbcf0b0fe78c",
                             Email = "admin@mistrdomu.local",
@@ -350,7 +350,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = 1,
+                            UserId = 999,
                             RoleId = 1
                         });
                 });
