@@ -1,18 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 
 // Shadcn UI Imports
-
 import { Button } from "@/components/ui/button";
-
 import { AuthDialog } from "../identity/AuthDialog";
-
-import { useTheme } from "../providers/ThemeProvider";
-
-import {
-  ThemeToggleButton,
-  useThemeTransition,
-} from "../shared/ThemeToggleButton";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,30 +13,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
-import { LogOut, Loader2 } from "lucide-react"; // Přidána ikona Loader2
+import { LogOut, Loader2 } from "lucide-react";
+import { User } from "@/types/user";
 
 type HeaderProps = {
   onNavigateHome: () => void;
 };
 
-interface UserState {
-  isAuthenticated: boolean;
-
-  email?: string;
-}
-
 export default function Header({ onNavigateHome }: HeaderProps) {
-  const { setTheme, resolvedTheme } = useTheme();
-
-  const { startTransition } = useThemeTransition();
-
   // Stav pro uživatele
-
-  const [user, setUser] = useState<UserState | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Stav pro proces odhlašování
-
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const refreshUser = useCallback(async () => {
@@ -105,13 +83,8 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     }
   }, [onNavigateHome]);
 
-  const handleThemeToggle = useCallback(() => {
-    const newTheme = resolvedTheme === "dark" ? "light" : "dark";
-
-    startTransition(() => {
-      setTheme(newTheme);
-    });
-  }, [resolvedTheme, setTheme, startTransition]);
+  const initials = `${user?.firstName?.trim().charAt(0) ?? ""}${user?.lastName?.trim().charAt(0) ?? ""}`
+    .toUpperCase() || "U";
 
   return (
     <header className="border-b border-border/40 sticky top-0 z-50 bg-background/80 backdrop-blur-md p-4 md:px-14 transition-all shadow-sm">
@@ -141,11 +114,11 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     disabled={isLoggingOut} // Zablokuje avatar při odhlašování
                   >
                     <span className="hidden md:inline text-sm font-medium text-foreground max-w-60 overflow-hidden text-ellipsis whitespace-nowrap">
-                      {user.email || "Uživatel"}
+                      {user.firstName + " " + user.lastName || "Uživatel"}
                     </span>
                     <Avatar className="h-10 w-10 border border-accent/20">
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        {user.email?.substring(0, 2).toUpperCase() || "U"}
+                        {initials}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -161,7 +134,9 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                       <p className="text-sm font-medium leading-none">
                         Můj účet
                       </p>
-
+                      <p className="text-xs leading-none text-muted-foreground truncate">
+                        {user.firstName + " " + user.lastName}
+                      </p>
                       <p className="text-xs leading-none text-muted-foreground truncate">
                         {user.email}
                       </p>
@@ -195,13 +170,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
               </div>
             )}
           </div>
-
-          <ThemeToggleButton
-            theme={resolvedTheme}
-            variant="circle-blur"
-            onClick={handleThemeToggle}
-            start="top-right"
-          />
         </div>
       </div>
     </header>
