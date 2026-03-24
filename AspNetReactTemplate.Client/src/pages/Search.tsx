@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { ArrowLeft, BookOpen, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -7,23 +8,28 @@ import { ManualsList } from "@/components/domains/search/ManualsList";
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   return (
-    <section className="relative z-10 px-4 py-12 md:py-16">
+    <section className="relative z-10 px-4 pt-4 pb-8 md:pt-5 md:pb-10">
+      <button
+        type="button"
+        aria-label="Zpět"
+        onClick={() => navigate(-1)}
+        className="absolute left-2 top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full text-primary transition-colors duration-300 hover:bg-zinc-200 hover:text-primary-600 dark:hover:bg-card md:left-4 md:top-4"
+      >
+        <ArrowLeft className="size-9" />
+      </button>
+
       <div className="max-w-6xl mx-auto">
-        <div className="mb-10">
-          <span className="text-primary text-[12px] font-bold tracking-[0.15em] uppercase mb-4 block">
-            Návody
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Vyhledávání v návodech
+        <div className="mb-5">
+          <h2 className="mb-2 flex items-center gap-3 text-3xl font-bold md:text-4xl">
+            <BookOpen className="h-8 w-8 text-primary md:h-9 md:w-9" />
+            <span>Vyhledávání v návodech</span>
           </h2>
-          <p className="text-muted-foreground max-w-2xl">
-            Zadejte hledaný výraz a zobrazíme návody odpovídající vašemu zadání.
-          </p>
         </div>
 
-        <Card className="mb-10 p-4 md:p-6 border-border/70 bg-card/95">
+        <Card className="mb-8 border-border/70 bg-card/95 p-4 md:p-6">
           <label
             htmlFor="manual-search"
             className="block text-sm font-medium mb-2 text-muted-foreground"
