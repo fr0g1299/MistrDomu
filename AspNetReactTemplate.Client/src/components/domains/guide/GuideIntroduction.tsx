@@ -41,30 +41,18 @@ export function GuideIntroduction({
   return (
     <section
       id={sectionId}
-      className="mb-8 grid w-full xl:min-h-[80vh] 2xl:min-h-[60vh] lg:grid-cols-12"
+      className="relative mb-8 grid w-full xl:min-h-[80vh] 2xl:min-h-[60vh] lg:grid-cols-12"
     >
+      <button
+        type="button"
+        aria-label="Zpět"
+        onClick={handleBack}
+        className="absolute left-2 top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full text-primary transition-colors duration-300 hover:bg-zinc-200 hover:text-primary-600 dark:hover:bg-card md:left-4 md:top-4"
+      >
+        <ArrowLeft className="size-9" />
+      </button>
+
       <div className="2xl:ml-50 content-center px-4 py-8 sm:px-6 lg:col-span-5 lg:px-8 lg:py-12">
-        {/* Back button */}
-        <div className="mb-6 flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Zpět"
-            onClick={handleBack}
-            className="flex h-14 w-14 mr-4 text-primary hover:text-primary-600 items-center justify-center rounded-full hover:bg-zinc-200 dark:hover:bg-card transition-colors duration-300"
-          >
-            <ArrowLeft className="size-12" />
-          </button>
-
-          {/* Category */}
-          {/* <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-primary">
-            Instalace
-          </span>
-          <span className="size-1 rounded-full bg-zinc-600" />
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
-            Kuchyně
-          </span> */}
-        </div>
-
         <h1 className="mb-5 max-w-xl text-4xl font-extrabold leading-tight md:text-6xl">
           {title}
         </h1>
