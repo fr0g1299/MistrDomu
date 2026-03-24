@@ -1,5 +1,7 @@
 using AspNetReactTemplate.Server.Models.DTOs.Identity;
+using AspNetReactTemplate.Server.Models.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Auth;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Register;
 
@@ -11,21 +13,24 @@ namespace AspNetReactTemplate.Server.Controllers
     {
         private readonly IRegisterService _registerService;
         private readonly IAuthService _authService;
-        
+        private readonly UserManager<User> _userManager;
+
         public AuthController(
             IAuthService authService,
-            IRegisterService registerService)
+            IRegisterService registerService,
+            UserManager<User> userManager)
         {
-            
+
             _authService = authService;
             _registerService = registerService;
+            _userManager = userManager;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto model)
         {
             var result = await _registerService.RegisterAsync(model);
-            
+
             if (result.Succeeded)
             {
                 return Ok(new { message = "Registrace proběhla úspěšně." });
@@ -60,18 +65,34 @@ namespace AspNetReactTemplate.Server.Controllers
         }
 
         [HttpGet("me")]
-        public IActionResult GetCurrentUser()
+        public async Task<IActionResult> GetCurrentUser()
         {
             if (User.Identity?.IsAuthenticated == true)
             {
-                return Ok(new
+                var appUser = await _userManager.GetUserAsync(User);
+
+                if (appUser == null)
                 {
-                    isAuthenticated = true,
-                    email = User.Identity.Name,
-                });
+                    return Unauthorized(new { message = "Žádný přihlášený uživatel" });
+                }
+
+                var userDto = new CurrentUserDto
+                {
+                    IsAuthenticated = true,
+                    Email = appUser.Email,
+                    FirstName = appUser.FirstName,
+                    LastName = appUser.LastName,
+                };
+
+                return Ok(userDto);
             }
 
-            return Ok(new { isAuthenticated = false });
+            var unauthenticatedDto = new CurrentUserDto
+            {
+                IsAuthenticated = false
+            };
+
+            return Ok(unauthenticatedDto);
         }
     }
 }
