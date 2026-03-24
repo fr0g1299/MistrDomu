@@ -15,13 +15,13 @@ interface Props {
 export const ManualCard = ({ manual }: Props) => {
   const getDifficultyColor = (diff: Difficulty) => {
     if (diff === Difficulty.Easy) return "text-green-600";
-    if (diff === Difficulty.Medium) return "text-orange-600";
+    if (diff === Difficulty.Medium) return "text-yellow-600";
     return "text-red-600";
   };
 
   return (
     <Link to={`/guide/${manual.id}`} state={{ manual }} className="block">
-      <Card className="overflow-hidden border-primary/40 shadow-[0_0_24px_rgba(245,158,11,0.18)] dark:shadow-[0_0_20px_rgba(245,158,11,0.14)] transition-shadow duration-300 hover:shadow-[0_0_48px_rgba(245,158,11,0.35)] dark:hover:shadow-[0_0_40px_rgba(245,158,11,0.28)]">
+      <Card className="overflow-hidden border-0 shadow-none transition-transform duration-300 hover:scale-[1.03]">
         <div className="aspect-video w-full overflow-hidden">
           <img
             src={
