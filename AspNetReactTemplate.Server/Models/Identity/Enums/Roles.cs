@@ -7,5 +7,6 @@ namespace AspNetReactTemplate.Server.Models.Identity.Enums
     public enum Roles
     {
       User,
+      Admin,
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Models.Manuals;
 using AspNetReactTemplate.Server.Models.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace AspNetReactTemplate.Server.Data
 {
@@ -26,8 +27,15 @@ namespace AspNetReactTemplate.Server.Data
 
             modelBuilder.HasPostgresExtension("unaccent");
 
+            var userInit = new UserInit();
             var rolesInit = new RolesInit();
+
+
             modelBuilder.Entity<Role>().HasData(rolesInit.GetRoles());
+            modelBuilder.Entity<User>().HasData(userInit.GetAdmin());
+            UserRolesInit userRolesInit = new UserRolesInit();
+            modelBuilder.Entity<IdentityUserRole<int>>().HasData(userRolesInit.GetRolesForAdmin());
+
             modelBuilder.Entity<Manual>()
                 .HasMany(m => m.Steps)
                 .WithOne(s => s.Manual)

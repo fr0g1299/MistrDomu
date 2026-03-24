@@ -8,6 +8,14 @@ namespace AspNetReactTemplate.Server.Data.Seeding
         {
             List<Role> roles = new List<Role>();
             
+            Role roleAdmin = new Role()
+            {
+                Id = 1,
+                Name = "Admin",
+                NormalizedName = "ADMIN",
+                ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f158"
+            };
+            
             Role roleUser = new Role()
             {
                 Id = 8,
@@ -17,6 +25,7 @@ namespace AspNetReactTemplate.Server.Data.Seeding
             };
             
             roles.Add(roleUser);
+            roles.Add(roleAdmin);
 
             return roles;
         }
