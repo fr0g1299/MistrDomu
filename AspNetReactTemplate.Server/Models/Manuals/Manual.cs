@@ -32,6 +32,10 @@ namespace AspNetReactTemplate.Server.Models.Manuals
         [StringLength(1000, ErrorMessage = "Nástroje nesmí být delší než 1000 znaků.")]
         public string RequiredTools { get; set; } = string.Empty;
 
+        [Required]
+        [MinLength(1, ErrorMessage = "Musí být alespoň jeden nástroj.")]
+        public virtual ICollection<Tool> Tools { get; set; } = new List<Tool>();
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
