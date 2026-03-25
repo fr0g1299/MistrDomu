@@ -14,7 +14,6 @@ export interface Manual {
   description: string;
   difficulty: number;
   estimatedTimeMinutes: number;
-  requiredTools: string;
   steps?: GuideStep[];
   createdAt: string;
 }

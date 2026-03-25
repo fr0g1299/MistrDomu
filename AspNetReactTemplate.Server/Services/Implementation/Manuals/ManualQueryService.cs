@@ -109,7 +109,6 @@ public class ManualQueryService : IManualQueryService
             Description = manual.Description,
             Difficulty = manual.Difficulty,
             EstimatedTimeMinutes = manual.EstimatedTimeMinutes,
-            RequiredTools = manual.RequiredTools,
             Steps = includeSteps
                 ? manual.Steps
                     .OrderBy(step => step.OrderNumber)

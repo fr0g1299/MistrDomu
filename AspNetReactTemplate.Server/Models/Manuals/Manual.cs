@@ -28,10 +28,6 @@ namespace AspNetReactTemplate.Server.Models.Manuals
 
         public int EstimatedTimeMinutes { get; set; }
 
-        // Pro jednoduchost teď jako jeden řetězec, později může být List<Tool>
-        [StringLength(1000, ErrorMessage = "Nástroje nesmí být delší než 1000 znaků.")]
-        public string RequiredTools { get; set; } = string.Empty;
-
         [Required]
         [MinLength(1, ErrorMessage = "Musí být alespoň jeden nástroj.")]
         public virtual ICollection<Tool> Tools { get; set; } = new List<Tool>();
