@@ -20,6 +20,7 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<WaitlistEmail> WaitlistEmails { get; set; }
         public DbSet<Manual> Manuals { get; set; }
         public DbSet<Step> Steps { get; set; }
+        public DbSet<Tool> Tools { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +41,31 @@ namespace AspNetReactTemplate.Server.Data
                 .HasMany(m => m.Steps)
                 .WithOne(s => s.Manual)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Manual>()
+                .HasMany(m => m.Tools)
+                .WithMany(t => t.Manuals)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ManualTools",
+                    right => right
+                        .HasOne<Tool>()
+                        .WithMany()
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.Cascade),
+                    left => left
+                        .HasOne<Manual>()
+                        .WithMany()
+                        .HasForeignKey("ManualId")
+                        .OnDelete(DeleteBehavior.Cascade),
+                    join =>
+                    {
+                        join.HasKey("ManualId", "ToolId");
+                        join.ToTable("ManualTools");
+                    });
+
+            modelBuilder.Entity<Tool>()
+                .HasIndex(t => t.Name)
+                .IsUnique();
 
             modelBuilder.Entity<Step>()
                 .HasIndex(s => new { s.ManualId, s.OrderNumber })
