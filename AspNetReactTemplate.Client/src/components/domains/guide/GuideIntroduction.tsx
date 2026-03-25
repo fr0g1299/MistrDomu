@@ -5,24 +5,27 @@ import { MouseEvent } from "react";
 import { Separator } from "@/components/ui/separator";
 import { getDifficultyLabel, Manual } from "@/types/manual";
 
+type GuideTool = {
+  id: number;
+  name: string;
+  url?: string;
+};
+
 type GuideIntroductionProps = {
   sectionId?: string;
   toolsSectionId?: string;
   manual?: Manual | null;
+  tools?: GuideTool[];
 };
 
 const FALLBACK_IMAGE =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAcRfCcA84t_MOJqshbBYFeIbFVspxbHlB_1SiXurzVP1C8vOeTREN_yuNreTdbQnmmj-v5V0jdJuJI8qFxwX6xaK4bVXd5wqtsmmINbzXHkRhU5U7fs7dNADeXBEr8qdEWap_pZJqC4FTaPaVobrVOggyhfILZCASFtSXx7f6DUDe_OiDgdoe_JhuzKmqPF6d94yDPF5aWTG_xWNBXq2ymv9MSVWCnX8ZLEjE_l5--zBeRbZ3rr1DZsYoHlNJJ2CM6jBC0H44EvJQ";
 
-function getToolsLabel(requiredTools?: string): string {
-  const value = requiredTools?.trim();
-  return value && value.length > 0 ? value : "Není uvedeno";
-}
-
 export function GuideIntroduction({
   sectionId = "introduction",
   toolsSectionId = "tools-required",
   manual,
+  tools = [],
 }: GuideIntroductionProps) {
   const navigate = useNavigate();
 
@@ -36,7 +39,6 @@ export function GuideIntroduction({
     "Detailní návod se načte po otevření konkrétního manuálu.";
   const imageUrl = manual?.imageUrl || FALLBACK_IMAGE;
   const difficultyLabel = getDifficultyLabel(manual?.difficulty);
-  const toolsLabel = getToolsLabel(manual?.requiredTools);
 
   return (
     <section
@@ -91,16 +93,54 @@ export function GuideIntroduction({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-md bg-card">
-              <Wrench className="size-4 text-primary" />
-            </div>
-            <div>
+          <div className="w-full">
+            <div className="mb-2 flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-md bg-card">
+                <Wrench className="size-4 text-primary" />
+              </div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                 Nářadí
               </p>
-              <p className="text-sm font-semibold">{toolsLabel}</p>
             </div>
+
+            {tools.length > 0 ? (
+              <div className="overflow-x-auto rounded-md border border-zinc-300/70 dark:border-zinc-800/80">
+                <table className="w-full min-w-[320px] border-collapse text-sm">
+                  <thead className="bg-zinc-100/80 dark:bg-zinc-900/70">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-semibold">Název</th>
+                      <th className="px-3 py-2 text-left font-semibold">Odkaz</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tools.map((tool) => (
+                      <tr
+                        key={tool.id}
+                        className="border-t border-zinc-200/80 dark:border-zinc-800/80"
+                      >
+                        <td className="px-3 py-2 font-medium">{tool.name}</td>
+                        <td className="px-3 py-2">
+                          {tool.url ? (
+                            <a
+                              href={tool.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary underline-offset-2 hover:underline"
+                            >
+                              {tool.url}
+                            </a>
+                          ) : (
+                            <span className="text-zinc-500">Není uvedeno</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm font-semibold">Není uvedeno</p>
+            )}
           </div>
         </div>
       </div>

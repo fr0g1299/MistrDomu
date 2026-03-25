@@ -63,4 +63,24 @@ export const apiService = {
   async getManualSteps(manualId: number): Promise<GuideStep[]> {
     return requestJson<GuideStep[]>(`/manuals/${manualId}/steps`);
   },
+
+  async getTools(): Promise<{ id: number; name: string; url?: string }[]> {
+    return requestJson<{ id: number; name: string; url?: string }[]>(`/tools`);
+  },
+
+  async getTool(
+    id: number,
+  ): Promise<{ id: number; name: string; url?: string }> {
+    return requestJson<{ id: number; name: string; url?: string }>(
+      `/tools/${id}`,
+    );
+  },
+
+  async getManualTools(
+    manualId: number,
+  ): Promise<{ id: number; name: string; url?: string }[]> {
+    return requestJson<{ id: number; name: string; url?: string }[]>(
+      `/manuals/${manualId}/tools`,
+    );
+  },
 };

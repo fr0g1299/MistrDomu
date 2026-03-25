@@ -8,6 +8,8 @@ import { apiService } from "@/lib/apiService";
 
 import { Manual, GuideStep, TableOfContentsItem } from "@/types/manual";
 
+type ToolRead = { id: number; name: string; url?: string };
+
 const fallbackStep: GuideStep[] = [
   {
     id: 1,
@@ -47,6 +49,7 @@ export default function Guide() {
   const [steps, setSteps] = useState<GuideStep[]>([]);
   const [stepsLoading, setStepsLoading] = useState(false);
   const [stepsError, setStepsError] = useState<string | null>(null);
+  const [manualTools, setManualTools] = useState<ToolRead[]>([]);
 
   const stepSectionIds = useMemo(
     () => steps.map((step) => `step-${step.id}`),
@@ -155,6 +158,35 @@ export default function Guide() {
   }, [manualId]);
 
   useEffect(() => {
+    const parsedManualId = Number(manualId);
+    if (!Number.isInteger(parsedManualId) || parsedManualId <= 0) {
+      setManualTools([]);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchTools = async () => {
+      try {
+        const response = await apiService.getManualTools(parsedManualId);
+        if (isCancelled) return;
+
+        setManualTools(response);
+      } catch {
+        if (isCancelled) return;
+
+        setManualTools([]);
+      }
+    };
+
+    fetchTools();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [manualId]);
+
+  useEffect(() => {
     setCompletedStepIds(
       new Set(
         steps.filter((step) => step.initiallyCompleted).map((step) => step.id),
@@ -220,7 +252,7 @@ export default function Guide() {
 
   return (
     <div className="min-h-screen bg-background text-zinc-950 dark:text-zinc-50 antialiased">
-      <GuideIntroduction manual={manual} />
+      <GuideIntroduction manual={manual} tools={manualTools} />
 
       <main
         className="mx-auto w-full xl:max-w-[85vw] 2xl:max-w-[70vw] px-4 pb-20 sm:px-6"
