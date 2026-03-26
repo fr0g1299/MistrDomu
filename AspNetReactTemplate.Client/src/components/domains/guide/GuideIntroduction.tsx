@@ -1,8 +1,9 @@
-import { Clock3, Gauge, Wrench, ArrowLeft } from "lucide-react";
+import { Clock3, Gauge, Wrench, ArrowLeft, ExternalLink } from "lucide-react"; // Přidána ikona ExternalLink
 import { useNavigate } from "react-router-dom";
 import { MouseEvent } from "react";
 
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button"; // Importujeme Shadcn Button
 import { getDifficultyLabel, Manual } from "@/types/manual";
 
 type GuideTool = {
@@ -18,8 +19,7 @@ type GuideIntroductionProps = {
   tools?: GuideTool[];
 };
 
-const FALLBACK_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAcRfCcA84t_MOJqshbBYFeIbFVspxbHlB_1SiXurzVP1C8vOeTREN_yuNreTdbQnmmj-v5V0jdJuJI8qFxwX6xaK4bVXd5wqtsmmINbzXHkRhU5U7fs7dNADeXBEr8qdEWap_pZJqC4FTaPaVobrVOggyhfILZCASFtSXx7f6DUDe_OiDgdoe_JhuzKmqPF6d94yDPF5aWTG_xWNBXq2ymv9MSVWCnX8ZLEjE_l5--zBeRbZ3rr1DZsYoHlNJJ2CM6jBC0H44EvJQ";
+const FALLBACK_IMAGE = "https://lh3.googleusercontent.com/aida-public/AB6AXuAcRfCcA84t_MOJqshbBYFeIbFVspxbHlB_1SiXurzVP1C8vOeTREN_yuNreTdbQnmmj-v5V0jdJuJI8qFxwX6xaK4bVXd5wqtsmmINbzXHkRhU5U7fs7dNADeXBEr8qdEWap_pZJqC4FTaPaVobrVOggyhfILZCASFtSXx7f6DUDe_OiDgdoe_JhuzKmqPF6d94yDPF5aWTG_xWNBXq2ymv9MSVWCnX8ZLEjE_l5--zBeRbZ3rr1DZsYoHlNJJ2CM6jBC0H44EvJQ";
 
 export function GuideIntroduction({
   sectionId = "introduction",
@@ -33,6 +33,7 @@ export function GuideIntroduction({
     e.preventDefault();
     navigate(-1);
   };
+
   const title = manual?.title || "Detail návodu";
   const description =
     manual?.description ||
@@ -121,16 +122,23 @@ export function GuideIntroduction({
                         <td className="px-3 py-2 font-medium">{tool.name}</td>
                         <td className="px-3 py-2">
                           {tool.url ? (
-                            <a
-                              href={tool.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-primary underline-offset-2 hover:underline"
+                            <Button 
+                              asChild 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 gap-2 border-primary text-primary hover:bg-primary hover:text-white"
                             >
-                              {tool.url}
-                            </a>
+                              <a
+                                href={tool.url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <ExternalLink className="size-3" />
+                                Koupit ZDE
+                              </a>
+                            </Button>
                           ) : (
-                            <span className="text-zinc-500">Není uvedeno</span>
+                            <span className="text-zinc-500 italic text-xs">Není uvedeno</span>
                           )}
                         </td>
                       </tr>
