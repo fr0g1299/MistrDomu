@@ -28,6 +28,7 @@ export function EditToolModal({
 }: EditToolModalProps) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
+  const [note, setNote] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +36,7 @@ export function EditToolModal({
     if (tool) {
       setName(tool.name);
       setUrl(tool.url || "");
+      setNote(tool.note || "");
       setError(null);
     }
   }, [tool, isOpen]);
@@ -53,6 +55,7 @@ export function EditToolModal({
         id: tool!.id,
         name: name.trim(),
         url: url.trim() || undefined,
+        note: note.trim() || undefined,
       });
       onClose();
     } catch (err) {
@@ -70,7 +73,7 @@ export function EditToolModal({
         <DialogHeader>
           <DialogTitle>Upravit nástroj</DialogTitle>
           <DialogDescription>
-            Upravte název a URL nástroje. Klikněte na Uložit, až budete hotovi.
+            Upravte název, URL a poznámku nástroje. Klikněte na Uložit, až budete hotovi.
           </DialogDescription>
         </DialogHeader>
 
@@ -94,6 +97,17 @@ export function EditToolModal({
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com"
               type="url"
+              disabled={isSaving}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="note">Poznámka</Label>
+            <Input
+              id="note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Poznámka k nástroji"
               disabled={isSaving}
             />
           </div>

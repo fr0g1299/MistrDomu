@@ -1,3 +1,4 @@
+import { Tool } from "@/types/tool";
 import { Manual, GuideStep } from "../types/manual";
 
 const API_BASE_URL = "/api";
@@ -38,6 +39,7 @@ async function requestJson<T>(path: string): Promise<T> {
 }
 
 export const apiService = {
+  // Manuals
   async getAllManuals(includeSteps = false): Promise<Manual[]> {
     return requestJson<Manual[]>(`/manuals?includeSteps=${includeSteps}`);
   },
@@ -64,23 +66,16 @@ export const apiService = {
     return requestJson<GuideStep[]>(`/manuals/${manualId}/steps`);
   },
 
-  async getTools(): Promise<{ id: number; name: string; url?: string }[]> {
-    return requestJson<{ id: number; name: string; url?: string }[]>(`/tools`);
+  // Tools
+  async getTools(): Promise<Tool[]> {
+    return requestJson<Tool[]>(`/tools`);
   },
 
-  async getTool(
-    id: number,
-  ): Promise<{ id: number; name: string; url?: string }> {
-    return requestJson<{ id: number; name: string; url?: string }>(
-      `/tools/${id}`,
-    );
+  async getTool(id: number): Promise<Tool> {
+    return requestJson<Tool>(`/tools/${id}`);
   },
 
-  async getManualTools(
-    manualId: number,
-  ): Promise<{ id: number; name: string; url?: string }[]> {
-    return requestJson<{ id: number; name: string; url?: string }[]>(
-      `/manuals/${manualId}/tools`,
-    );
+  async getManualTools(manualId: number): Promise<Tool[]> {
+    return requestJson<Tool[]>(`/manuals/${manualId}/tools`);
   },
 };
