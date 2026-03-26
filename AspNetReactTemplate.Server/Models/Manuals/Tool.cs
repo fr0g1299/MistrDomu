@@ -12,12 +12,16 @@ namespace AspNetReactTemplate.Server.Models.Manuals
         [StringLength(500, ErrorMessage = "URL nesmí být delší než 500 znaků.")]
         public string? Url { get; set; }
 
+        [StringLength(50, ErrorMessage = "Poznámka nesmí být delší než 50 znaků.")]
+        public string? Note { get; set; }
+
         public virtual ICollection<Manual> Manuals { get; set; } = new List<Manual>();
 
-        public Tool(string name, string? url = null)
+        public Tool(string name, string? url = null, string? note = null)
         {
             Name = name;
             Url = url;
+            Note = note;
         }
 
         public Tool() { }

@@ -37,7 +37,8 @@ public class ToolCommandService : IToolCommandService
         var newTool = new Tool
         (
             toolDto.Name,
-            toolDto.Url
+            toolDto.Url,
+            toolDto.Note
         );
 
         newTool.Manuals.Add(manual);

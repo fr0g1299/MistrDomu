@@ -11,4 +11,7 @@ public class ToolCreateDto
 
     [StringLength(500, ErrorMessage = "URL nesmí být delší než 500 znaků.")]
     public string? Url { get; set; }
+
+    [StringLength(50, ErrorMessage = "Poznámka nesmí být delší než 50 znaků.")]
+    public string? Note { get; set; }
 }

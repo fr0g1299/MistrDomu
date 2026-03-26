@@ -25,6 +25,7 @@ public class ToolQueryService : IToolQueryService
                 Id = t.Id,
                 Name = t.Name,
                 Url = t.Url,
+                Note = t.Note,
                 Manuals = t.Manuals.Select(m => m.Title).ToList()
             })
             .ToListAsync();
@@ -39,7 +40,9 @@ public class ToolQueryService : IToolQueryService
             {
                 Id = t.Id,
                 Name = t.Name,
-                Url = t.Url
+                Url = t.Url,
+                Note = t.Note,
+                Manuals = t.Manuals.Select(m => m.Title).ToList()
             })
             .FirstOrDefaultAsync();
     }
@@ -53,7 +56,9 @@ public class ToolQueryService : IToolQueryService
             {
                 Id = t.Id,
                 Name = t.Name,
-                Url = t.Url
+                Url = t.Url,
+                Note = t.Note,
+                Manuals = t.Manuals.Select(m => m.Title).ToList()
             })
             .ToListAsync();
     }
