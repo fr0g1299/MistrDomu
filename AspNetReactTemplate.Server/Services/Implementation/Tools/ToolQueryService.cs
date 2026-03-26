@@ -36,6 +36,7 @@ public class ToolQueryService : IToolQueryService
         return await _context.Tools
             .AsNoTracking()
             .Where(t => t.Id == id)
+            .Include(t => t.Manuals)
             .Select(t => new ToolReadDto
             {
                 Id = t.Id,
@@ -52,6 +53,7 @@ public class ToolQueryService : IToolQueryService
         return await _context.Tools
             .AsNoTracking()
             .Where(t => t.Manuals.Any(m => m.Id == manualId))
+            .Include(t => t.Manuals)
             .Select(t => new ToolReadDto
             {
                 Id = t.Id,
