@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { JSX, useCallback } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 
 import Header from "./components/layouts/Header";
@@ -7,6 +7,18 @@ import { useDynamicScrollbar } from "./hooks/useDynamicScrollbar";
 import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/Search";
 import GuidePage from "./pages/Guide";
+import ToolsManagement from "./pages/ToolsManagement";
+import { useAuth } from "./hooks/useAuth";
+import { AuthProvider } from "./components/providers/AuthProvider";
+
+const AdminRoute = ({ children }: { children: JSX.Element }) => {
+  const { isAdmin, loading, isAuthenticated } = useAuth();
+
+  if (loading) return null;
+  if (!isAuthenticated || !isAdmin) return <Navigate to="/" replace />;
+
+  return children;
+};
 
 function App() {
   const navigate = useNavigate();
@@ -19,20 +31,32 @@ function App() {
   useDynamicScrollbar();
 
   return (
-    <div className="min-h-screen flex flex-col antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
-      <Header onNavigateHome={navigateHome} />
+    <AuthProvider>
+      <div className="min-h-screen flex flex-col antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
+        <Header onNavigateHome={navigateHome} />
 
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/guide/:manualId" element={<GuidePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/guide/:manualId" element={<GuidePage />} />
+            
+            <Route 
+              path="/tools-management" 
+              element={
+                <AdminRoute>
+                  <ToolsManagement />
+                </AdminRoute>
+              } 
+            />
+            
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 }
 

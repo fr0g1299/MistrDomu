@@ -19,11 +19,13 @@ public class ToolQueryService : IToolQueryService
     {
         return await _context.Tools
             .AsNoTracking()
+            .Include(t => t.Manuals)
             .Select(t => new ToolReadDto
             {
                 Id = t.Id,
                 Name = t.Name,
-                Url = t.Url
+                Url = t.Url,
+                Manuals = t.Manuals.Select(m => m.Title).ToList()
             })
             .ToListAsync();
     }

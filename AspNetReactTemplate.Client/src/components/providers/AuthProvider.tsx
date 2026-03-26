@@ -1,0 +1,79 @@
+import { createContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { User, Role } from "@/types/auth";
+
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  isAdmin: boolean;
+  isAuthenticated: boolean;
+  setUser: (user: User | null) => void;
+  logout: () => Promise<boolean>;
+  fetchUser: () => Promise<boolean>;
+}
+
+export const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/Auth/me", { credentials: "include" });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+        return true;
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Chyba při načítání uživatele:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+    return false;
+  }, []);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  const isAdmin = user?.roles?.includes(Role.Admin) ?? false;
+  const isAuthenticated = !!user && user.isAuthenticated;
+
+  const logout = async () => {
+  try {
+    const response = await fetch("/api/Auth/logout", { 
+        method: "POST", 
+        credentials: "include" 
+    });
+    if (response.ok) {
+      setUser(null);
+      return true;
+    }
+  } catch (error) {
+    console.error("Logout failed", error);
+  }
+  return false;
+};
+
+  const value = {
+    user,
+    loading,
+    isAdmin,
+    isAuthenticated,
+    setUser,
+    logout,
+    fetchUser
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
