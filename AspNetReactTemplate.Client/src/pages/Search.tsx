@@ -12,12 +12,12 @@ export default function SearchPage() {
 
   return (
     // Also at_50% looks good
-    <section className="relative bg-radial-[at_5%_90%] from-primary/3 to-primary/1 z-10 px-4 pt-4 pb-8 md:pt-10 md:pb-10">
+    <section className="relative bg-radial-[at_5%_90%] from-primary/3 to-primary/1 z-10 px-4 pt-4 pb-8 md:pt-10 md:pb-10 min-h-screen">
       <button
         type="button"
         aria-label="Zpět"
         onClick={() => navigate(-1)}
-        className="absolute left-2 top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full text-primary transition-colors duration-300 hover:bg-zinc-200 hover:text-primary-600 dark:hover:bg-card md:left-8 md:top-9"
+        className="hidden md:flex absolute left-2 top-3 z-20 h-12 w-12 items-center justify-center rounded-full text-primary transition-colors duration-300 hover:bg-zinc-200 hover:text-primary-600 dark:hover:bg-card md:left-8 md:top-9"
       >
         <ArrowLeft className="size-9" />
       </button>
