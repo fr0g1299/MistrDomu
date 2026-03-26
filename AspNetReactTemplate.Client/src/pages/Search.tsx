@@ -11,31 +11,33 @@ export default function SearchPage() {
   const navigate = useNavigate();
 
   return (
-    <section className="relative z-10 px-4 pt-4 pb-8 md:pt-5 md:pb-10">
+    // Also at_50% looks good
+    <section className="relative bg-radial-[at_5%_90%] from-primary/3 to-primary/1 z-10 px-4 pt-4 pb-8 md:pt-10 md:pb-10">
       <button
         type="button"
         aria-label="Zpět"
         onClick={() => navigate(-1)}
-        className="absolute left-2 top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full text-primary transition-colors duration-300 hover:bg-zinc-200 hover:text-primary-600 dark:hover:bg-card md:left-4 md:top-4"
+        className="absolute left-2 top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full text-primary transition-colors duration-300 hover:bg-zinc-200 hover:text-primary-600 dark:hover:bg-card md:left-8 md:top-9"
       >
         <ArrowLeft className="size-9" />
       </button>
 
       <div className="max-w-6xl mx-auto">
-        <div className="mb-5">
-          <h2 className="mb-2 flex items-center gap-3 text-3xl font-bold md:text-4xl">
+        <div className="mb-8">
+          <h2 className="flex items-center justify-center gap-3 text-3xl font-bold md:text-4xl">
             <BookOpen className="h-8 w-8 text-primary md:h-9 md:w-9" />
             <span>Vyhledávání v návodech</span>
           </h2>
         </div>
 
-        <Card className="mb-8 border-border/70 bg-card/95 p-4 md:p-6">
-          <label
+        <Card className="mb-8 border-border/40 bg-card/10 p-4 md:p-6">
+          {/* TODO: If this is good change, then remove */}
+          {/* <label
             htmlFor="manual-search"
             className="block text-sm font-medium mb-2 text-muted-foreground"
           >
             Hledaný výraz
-          </label>
+          </label> */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
