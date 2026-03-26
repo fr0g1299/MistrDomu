@@ -66,6 +66,7 @@ public class ToolCommandService : IToolCommandService
 
         existingTool.Name = toolDto.Name;
         existingTool.Url = toolDto.Url;
+        existingTool.Note = toolDto.Note;
 
         await _context.SaveChangesAsync();
 
