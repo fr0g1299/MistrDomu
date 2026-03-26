@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AspNetReactTemplate.Server.Models.DTOs.Manuals;
 
 namespace AspNetReactTemplate.Server.Services.Abstraction.Tools;
@@ -10,7 +11,7 @@ public interface IToolCommandService
     /// <param name="manualId"></param>
     /// <param name="tool"></param>
     /// <returns></returns>
-    Task<ToolCreateDto> CreateToolAsync(int manualId, ToolCreateDto tool);
+    Task<ToolCreateDto> CreateToolAsync(int manualId, ToolCreateDto tool, ClaimsPrincipal user);
 
     /// <summary>
     /// Aktualizuje nastroj podle ID.
@@ -18,12 +19,12 @@ public interface IToolCommandService
     /// <param name="id"></param>
     /// <param name="tool"></param>
     /// <returns></returns>
-    Task<ToolUpdateDto> UpdateToolAsync(int id, ToolUpdateDto tool);
+    Task<ToolUpdateDto> UpdateToolAsync(int id, ToolUpdateDto tool, ClaimsPrincipal user);
 
     /// <summary>
     /// Smaze nastroj podle ID.
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<bool> DeleteToolAsync(int id);
+    Task<bool> DeleteToolAsync(int id, ClaimsPrincipal user);
 }

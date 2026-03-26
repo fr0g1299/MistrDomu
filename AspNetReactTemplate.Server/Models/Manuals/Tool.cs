@@ -20,6 +20,6 @@ namespace AspNetReactTemplate.Server.Models.Manuals
             Url = url;
         }
 
-        protected Tool() { }
+        public Tool() { }
     }
 }
