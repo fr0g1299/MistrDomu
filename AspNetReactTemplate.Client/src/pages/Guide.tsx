@@ -7,6 +7,7 @@ import { GuideTableOfContents } from "@/components/domains/guide/GuideTableOfCon
 import { apiService } from "@/lib/apiService";
 
 import { Manual, GuideStep, TableOfContentsItem } from "@/types/manual";
+import { Separator } from "@/components/ui/separator";
 
 type ToolRead = { id: number; name: string; url?: string };
 
@@ -253,9 +254,10 @@ export default function Guide() {
   return (
     <div className="min-h-screen bg-background text-zinc-950 dark:text-zinc-50 antialiased">
       <GuideIntroduction manual={manual} tools={manualTools} />
+      <Separator className="mb-8 bg-linear-to-r from-background to-primary/50" />
 
       <main
-        className="mx-auto w-full xl:max-w-[85vw] 2xl:max-w-[70vw] px-4 pb-20 sm:px-6"
+        className="mx-auto w-full xl:max-w-[95vw] 2xl:max-w-[85vw] px-4 pb-20 sm:px-6"
         data-manual-id={manualId}
       >
         {/* TODO: In the future add Skeletons */}
