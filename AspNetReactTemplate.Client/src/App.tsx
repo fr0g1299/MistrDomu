@@ -1,5 +1,11 @@
-import { JSX, useCallback } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { JSX, useCallback, useEffect } from "react";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
 import Header from "./components/layouts/Header";
 import Footer from "./components/layouts/Footer";
@@ -22,6 +28,7 @@ const AdminRoute = ({ children }: { children: JSX.Element }) => {
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const navigateHome = useCallback(() => {
     navigate("/");
@@ -29,6 +36,22 @@ function App() {
   }, [navigate]);
 
   useDynamicScrollbar();
+
+  // Prevent browser from restoring scroll position automatically
+  // ! Remove if things break
+  useEffect(() => {
+    try {
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+    } catch {
+      // no-op
+    }
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [location.pathname]);
 
   return (
     <AuthProvider>
@@ -40,16 +63,16 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/guide/:manualId" element={<GuidePage />} />
-            
-            <Route 
-              path="/tools-management" 
+
+            <Route
+              path="/tools-management"
               element={
                 <AdminRoute>
                   <ToolsManagement />
                 </AdminRoute>
-              } 
+              }
             />
-            
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
