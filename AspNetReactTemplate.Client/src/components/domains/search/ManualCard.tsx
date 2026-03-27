@@ -13,21 +13,14 @@ interface Props {
   manual: Manual;
 }
 
+const FALLBACK_IMAGE = "Place url in the future lol";
+
 export const ManualCard = ({ manual }: Props) => {
   const getDifficultyColor = (diff: Difficulty) => {
     if (diff === Difficulty.Easy) return "text-green-600";
     if (diff === Difficulty.Medium) return "text-yellow-400";
     return "text-red-600";
   };
-
-  const logo = `${import.meta.env.BASE_URL}logo.svg`;
-  const hasImage = Boolean(manual.imageUrl);
-  const wrapperClass = hasImage
-    ? "relative aspect-video w-full overflow-hidden"
-    : "relative aspect-video w-full overflow-hidden bg-radial-[at_50%_90%] from-primary/15 to-transparent to-80% flex items-center justify-center";
-  const imageClass = hasImage
-    ? "h-full w-full object-cover"
-    : "h-32 w-32 object-contain opacity-90";
 
   return (
     <Link
@@ -36,11 +29,11 @@ export const ManualCard = ({ manual }: Props) => {
       className="block h-full"
     >
       <Card className="h-full flex flex-col bg-card/80 overflow-hidden gap-3 border-0 pt-0 shadow-none transition-transform duration-400 hover:scale-[1.02]">
-        <div className={wrapperClass}>
+        <div className="relative aspect-video w-full overflow-hidden">
           <img
-            src={hasImage ? manual.imageUrl! : logo}
+            src={manual.imageUrl || FALLBACK_IMAGE}
             alt={manual.title}
-            className={imageClass}
+            className="h-full w-full object-cover"
           />
           <div className="hidden md:block absolute inset-0 bg-linear-to-t from-card/80 via-5% via-transparent to-transparent" />
         </div>

@@ -19,9 +19,7 @@ type GuideIntroductionProps = {
   tools?: GuideTool[];
 };
 
-//TODO: Make fallback image same as on search page, maybe do a component from it
-const FALLBACK_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAcRfCcA84t_MOJqshbBYFeIbFVspxbHlB_1SiXurzVP1C8vOeTREN_yuNreTdbQnmmj-v5V0jdJuJI8qFxwX6xaK4bVXd5wqtsmmINbzXHkRhU5U7fs7dNADeXBEr8qdEWap_pZJqC4FTaPaVobrVOggyhfILZCASFtSXx7f6DUDe_OiDgdoe_JhuzKmqPF6d94yDPF5aWTG_xWNBXq2ymv9MSVWCnX8ZLEjE_l5--zBeRbZ3rr1DZsYoHlNJJ2CM6jBC0H44EvJQ";
+const FALLBACK_IMAGE = "Place url in the future lol";
 
 export function GuideIntroduction({
   sectionId = "introduction",
