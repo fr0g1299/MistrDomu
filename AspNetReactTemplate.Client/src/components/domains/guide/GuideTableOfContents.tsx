@@ -26,7 +26,7 @@ export function GuideTableOfContents({
   onResetCompletedSteps,
 }: GuideTableOfContentsProps) {
   return (
-    <aside className="hidden h-fit flex-col gap-4 lg:sticky lg:top-24 lg:col-span-1 lg:flex">
+    <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-1 lg:flex">
       <Card className="gap-4 border-border bg-card p-5">
         <div>
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-primary">
@@ -80,13 +80,14 @@ export function GuideTableOfContents({
                 key={`toc-step-${step.id}`}
                 type="button"
                 onClick={() => onScrollTo(stepSectionId)}
-                className={
+                className={`flex items-center justify-between w-full rounded-md border-l-2 px-3 py-3 transition-colors duration-300
+                ${
                   isActive
-                    ? "flex items-center justify-between rounded-md border-l-2 border-primary bg-primary/10 px-3 py-3 transition-colors duration-300"
+                    ? "border-primary bg-primary/10"
                     : isCompleted
-                      ? "flex items-center justify-between rounded-md border-l-2 border-transparent bg-zinc-300/50 dark:bg-zinc-800/50 px-3 py-3 opacity-80 transition-colors duration-300"
-                      : "flex items-center justify-between rounded-md border-l-2 border-transparent px-3 py-3 hover:bg-zinc-300 dark:hover:bg-zinc-800 transition-colors duration-300"
-                }
+                      ? "border-transparent bg-zinc-300/50 dark:bg-zinc-800/50 opacity-80"
+                      : "border-transparent hover:bg-zinc-300 dark:hover:bg-zinc-800"
+                }`}
               >
                 <div className="flex gap-3 min-w-0 items-center">
                   <span
