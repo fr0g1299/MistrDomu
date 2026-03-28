@@ -197,6 +197,20 @@
   --color-primary-800: oklch(0.4732 0.1247 46.2);
   --color-primary-900: oklch(0.4137 0.1054 45.9);
   --color-primary-950: oklch(0.2791 0.0742 45.64);
+
+  /* Bounce Animation */
+  --animate-bounce: bounce 2s ease-in-out infinite;
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(-8%);
+      animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+    }
+    50% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+    }
+  }
 }
 
 @layer base {
@@ -233,6 +247,14 @@
   75% {
     opacity: 1;
   }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Scrollbar */

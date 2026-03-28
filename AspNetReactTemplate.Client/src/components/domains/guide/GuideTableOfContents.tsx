@@ -1,4 +1,6 @@
-import { ArrowRight, CheckCircle2, RotateCcw } from "lucide-react";
+import { CheckCircle2, RotateCcw } from "lucide-react";
+
+import { GuideAiAssistantCard } from "@/components/domains/guide/GuideAiAssistantCard";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -141,23 +143,7 @@ export function GuideTableOfContents({
         </Button>
       </Card>
 
-      {/* For future */}
-      <Card className="gap-3 border-primary/30 bg-primary/5 p-5">
-        <h3 className="text-base font-bold">Potřebujete pomoc?</h3>
-        <p className="text-sm text-zinc-400">
-          Naše odborná komunita je k dispozici 24/7, aby odpověděla na vaše
-          otázky k opravám.
-        </p>
-        <button
-          type="button"
-          disabled
-          onClick={() => onScrollTo("introduction")}
-          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary hover:underline"
-        >
-          Zeptejte se
-          <ArrowRight className="size-4" />
-        </button>
-      </Card>
+      <GuideAiAssistantCard />
     </aside>
   );
 }

@@ -1,0 +1,283 @@
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
+import { Bot, SendHorizontal, User2, ArrowUp } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+type ChatMessage = {
+  id: number;
+  role: "user" | "assistant";
+  text: string;
+};
+
+const initialMessages: ChatMessage[] = [
+  {
+    id: 1,
+    role: "assistant",
+    text: "Ahoj, jsem AI asistent pro tento návod. Zeptej se mě na jakoukoliv otázku ohledně tohoto krok nebo nástroje.",
+  },
+];
+
+const buildMockReply = (userText: string): string => {
+  return [
+    "Backend AI ještě není připojený, takže zatím odpovídám v demo režimu.",
+    `Tvoje zpráva: \"${userText}\"`,
+    "Zkus se například zeptat na bezpečný postup pro konkrétní krok.",
+  ].join(" ");
+};
+
+const TYPEWRITER_INTERVAL_MS = 18;
+const TYPEWRITER_CHUNK_SIZE = 2;
+
+export function GuideAiAssistantCard() {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [inputValue, setInputValue] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isAwaitingReply, setIsAwaitingReply] = useState(false);
+
+  const nextMessageIdRef = useRef(2);
+  const replyTimeoutRef = useRef<number | null>(null);
+  const typingIntervalRef = useRef<number | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const resizeInput = () => {
+    if (!inputRef.current) return;
+
+    const textarea = inputRef.current;
+    const computedStyle = window.getComputedStyle(textarea);
+    const lineHeight = Number.parseFloat(computedStyle.lineHeight) || 20;
+    const maxHeight = lineHeight * 8;
+
+    textarea.style.height = "auto";
+
+    const nextHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY =
+      textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+  };
+
+  useEffect(() => {
+    return () => {
+      if (replyTimeoutRef.current !== null) {
+        window.clearTimeout(replyTimeoutRef.current);
+      }
+
+      if (typingIntervalRef.current !== null) {
+        window.clearInterval(typingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!messagesContainerRef.current) return;
+
+    messagesContainerRef.current.scrollTop =
+      messagesContainerRef.current.scrollHeight;
+  }, [messages, isSending]);
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+
+    const onScroll = () => {
+      setShowScrollTop(el.scrollTop > 120);
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    resizeInput();
+  }, [inputValue]);
+
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey) return;
+
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedMessage = inputValue.trim();
+    if (!trimmedMessage || isSending) return;
+
+    const userMessage: ChatMessage = {
+      id: nextMessageIdRef.current,
+      role: "user",
+      text: trimmedMessage,
+    };
+    nextMessageIdRef.current += 1;
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+    setIsSending(true);
+    setIsAwaitingReply(true);
+
+    replyTimeoutRef.current = window.setTimeout(() => {
+      replyTimeoutRef.current = null;
+      setIsAwaitingReply(false);
+
+      const assistantReply = buildMockReply(trimmedMessage);
+      const assistantMessageId = nextMessageIdRef.current;
+
+      const assistantMessage: ChatMessage = {
+        id: assistantMessageId,
+        role: "assistant",
+        text: "",
+      };
+      nextMessageIdRef.current += 1;
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      let visibleLength = 0;
+
+      if (typingIntervalRef.current !== null) {
+        window.clearInterval(typingIntervalRef.current);
+      }
+
+      typingIntervalRef.current = window.setInterval(() => {
+        visibleLength = Math.min(
+          visibleLength + TYPEWRITER_CHUNK_SIZE,
+          assistantReply.length,
+        );
+
+        const nextText = assistantReply.slice(0, visibleLength);
+
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantMessageId
+              ? { ...message, text: nextText }
+              : message,
+          ),
+        );
+
+        if (visibleLength >= assistantReply.length) {
+          if (typingIntervalRef.current !== null) {
+            window.clearInterval(typingIntervalRef.current);
+            typingIntervalRef.current = null;
+          }
+
+          setIsSending(false);
+        }
+      }, TYPEWRITER_INTERVAL_MS);
+    }, 650);
+  };
+
+  return (
+    <Card className="relative max-h-165.5 gap-3 border-primary/30 bg-primary/5 p-5">
+      <div>
+        <h3 className="text-base font-bold">AI asistent</h3>
+        <p className="text-sm text-zinc-700 dark:text-zinc-400">
+          Napište dotaz k postupu manuálu.
+        </p>
+      </div>
+
+      <div
+        ref={messagesContainerRef}
+        // Was min-h-90 max-h-128
+        className="h-128 space-y-3 overflow-y-auto rounded-md hide-scrollbar bg-transparent p-2"
+        aria-live="polite"
+      >
+        {messages.map((message) => {
+          const isUser = message.role === "user";
+
+          return (
+            <div
+              key={message.id}
+              className={isUser ? "ml-8 flex justify-end" : "mr-8 flex"}
+            >
+              <div
+                // TODO: Make better background color for user
+                className={
+                  isUser
+                    ? "rounded-xl rounded-br-sm bg-primary/90 px-3 py-2 text-sm text-primary-foreground"
+                    : "rounded-xl rounded-bl-sm bg-zinc-200/80 px-3 py-2 text-sm text-zinc-900 dark:bg-zinc-800/90 dark:text-zinc-100"
+                }
+              >
+                <p className="mb-1 inline-flex items-center gap-1 text-[11px] font-semibold opacity-80">
+                  {isUser ? (
+                    <>
+                      <User2 className="size-3" />
+                      Vy
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="size-3" />
+                      AI
+                    </>
+                  )}
+                </p>
+                {isUser ? (
+                  <p className="wrap-break-word selection:text-primary-50! selection:bg-primary-700!">
+                    {message.text}
+                  </p>
+                ) : (
+                  <p className="wrap-break-word">{message.text}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {isAwaitingReply && (
+          <div className="mr-8 flex">
+            <div className="rounded-xl rounded-bl-sm bg-zinc-200/80 px-3 py-2 text-sm text-zinc-900 dark:bg-zinc-800/90 dark:text-zinc-100">
+              <p className="mb-1 inline-flex items-center gap-1 text-[11px] font-semibold opacity-80">
+                <Bot className="size-3" />
+                AI
+              </p>
+              <p className="italic opacity-80">Píšu odpověď...</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+        <textarea
+          ref={inputRef}
+          rows={1}
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          onKeyDown={handleInputKeyDown}
+          placeholder="Napište dotaz..."
+          className="hide-scrollbar placeholder:text-muted-foreground selection:bg-primary! selection:text-primary-foreground! bg-input/30 border-input min-h-10 w-full rounded-md border px-3 py-2 text-base transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring aria-invalid:border-destructive md:text-sm resize-none"
+        />
+        <Button
+          type="submit"
+          size="sm"
+          className="h-10 rounded-full"
+          disabled={isSending || inputValue.trim().length === 0}
+        >
+          <SendHorizontal className="size-5" />
+        </Button>
+      </form>
+
+      {/* Floating scroll-to-top button */}
+      <button
+        type="button"
+        aria-label="Scroll to top"
+        onClick={() => {
+          const el = messagesContainerRef.current;
+          if (!el) return;
+          el.scrollTo({ top: 0, behavior: "smooth" });
+          setShowScrollTop(false);
+        }}
+        className={`animate-bounce pointer-events-auto transition-all duration-200 absolute left-1/2 -translate-x-1/2 top-20 flex h-10 w-10 items-center justify-center rounded-full bg-primary-900 text-primary-50 hover:scale-105 shadow-lg focus:outline-none ${
+          showScrollTop
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 -translate-y-2 pointer-events-none"
+        }`}
+      >
+        <ArrowUp className="size-5" />
+      </button>
+    </Card>
+  );
+}
