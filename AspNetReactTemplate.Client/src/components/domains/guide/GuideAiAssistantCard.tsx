@@ -47,7 +47,7 @@ const buildMockReply = (userText: string): string => {
 
 const TYPEWRITER_INTERVAL_MS = 18;
 const TYPEWRITER_CHUNK_SIZE = 2;
-const FREE_USER_MESSAGES_LIMIT = 2;
+const FREE_USER_MESSAGES_LIMIT = 50; // TODO: Edit to 2 later, right now its just for easier testing
 
 {
   /* TODO: Clean this file up into compoents */
