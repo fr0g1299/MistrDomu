@@ -34,16 +34,7 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-const buildMockReply = (userText: string): string => {
-  return [
-    "# Backend AI ještě není připojený",
-    "Takže zatím odpovídám v demo režimu.",
-    "",
-    "### Tvoje zpráva:",
-    `**${userText}**`,
-    "Zkus se například zeptat na bezpečný postup pro konkrétní krok.",
-  ].join("\n");
-};
+
 
 const TYPEWRITER_INTERVAL_MS = 18;
 const TYPEWRITER_CHUNK_SIZE = 2;
@@ -52,7 +43,7 @@ const FREE_USER_MESSAGES_LIMIT = 50; // TODO: Edit to 2 later, right now its jus
 {
   /* TODO: Clean this file up into compoents */
 }
-export function GuideAiAssistantCard() {
+export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -92,6 +83,39 @@ export function GuideAiAssistantCard() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!manualId) return;
+
+    let isCancelled = false;
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`/api/Chat/${manualId}`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+
+        if (response.ok && !isCancelled) {
+          const history = await response.json();
+          if (history && history.length > 0) {
+            setMessages(history);
+            const maxId = Math.max(...history.map((m: any) => m.id));
+            if (maxId > 0) {
+              nextMessageIdRef.current = maxId + 1;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load chat history", err);
+      }
+    };
+
+    fetchHistory();
+    return () => { isCancelled = true; };
+  }, [manualId]);
 
   useEffect(() => {
     if (!messagesContainerRef.current) return;
@@ -170,54 +194,84 @@ export function GuideAiAssistantCard() {
     setIsSending(true);
     setIsAwaitingReply(true);
 
-    replyTimeoutRef.current = window.setTimeout(() => {
-      replyTimeoutRef.current = null;
-      setIsAwaitingReply(false);
+    const fetchAiReply = async () => {
+      try {
+        const response = await fetch("/api/Chat", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({ manualId, message: trimmedMessage })
+        });
 
-      const assistantReply = buildMockReply(trimmedMessage);
-      const assistantMessageId = nextMessageIdRef.current;
+        setIsAwaitingReply(false);
 
-      const assistantMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: "assistant",
-        text: "",
-      };
-      nextMessageIdRef.current += 1;
-
-      setMessages((prev) => [...prev, assistantMessage]);
-
-      let visibleLength = 0;
-
-      if (typingIntervalRef.current !== null) {
-        window.clearInterval(typingIntervalRef.current);
-      }
-
-      typingIntervalRef.current = window.setInterval(() => {
-        visibleLength = Math.min(
-          visibleLength + TYPEWRITER_CHUNK_SIZE,
-          assistantReply.length,
-        );
-
-        const nextText = assistantReply.slice(0, visibleLength);
-
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === assistantMessageId
-              ? { ...message, text: nextText }
-              : message,
-          ),
-        );
-
-        if (visibleLength >= assistantReply.length) {
-          if (typingIntervalRef.current !== null) {
-            window.clearInterval(typingIntervalRef.current);
-            typingIntervalRef.current = null;
-          }
-
-          setIsSending(false);
+        if (!response.ok) {
+          throw new Error("Failed to get AI response");
         }
-      }, TYPEWRITER_INTERVAL_MS);
-    }, 650);
+
+        const data = await response.json();
+        const assistantReply = data.reply;
+        
+        const assistantMessageId = nextMessageIdRef.current;
+        const assistantMessage: ChatMessage = {
+          id: assistantMessageId,
+          role: "assistant",
+          text: "",
+        };
+        nextMessageIdRef.current += 1;
+
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        let visibleLength = 0;
+
+        if (typingIntervalRef.current !== null) {
+          window.clearInterval(typingIntervalRef.current);
+        }
+
+        typingIntervalRef.current = window.setInterval(() => {
+          visibleLength = Math.min(
+            visibleLength + TYPEWRITER_CHUNK_SIZE,
+            assistantReply.length,
+          );
+
+          const nextText = assistantReply.slice(0, visibleLength);
+
+          setMessages((prev) =>
+            prev.map((message) =>
+              message.id === assistantMessageId
+                ? { ...message, text: nextText }
+                : message,
+            ),
+          );
+
+          if (visibleLength >= assistantReply.length) {
+            if (typingIntervalRef.current !== null) {
+              window.clearInterval(typingIntervalRef.current);
+              typingIntervalRef.current = null;
+            }
+
+            setIsSending(false);
+          }
+        }, TYPEWRITER_INTERVAL_MS);
+      } catch (err) {
+        setIsAwaitingReply(false);
+        setIsSending(false);
+        
+        const errorMessageId = nextMessageIdRef.current;
+        const errorMessage: ChatMessage = {
+          id: errorMessageId,
+          role: "assistant",
+          text: "Omlouvám se, došlo k chybě při komunikaci se serverem.",
+        };
+        nextMessageIdRef.current += 1;
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    };
+    
+    fetchAiReply();
   };
 
   return (

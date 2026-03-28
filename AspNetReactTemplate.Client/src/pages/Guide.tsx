@@ -285,6 +285,7 @@ export default function Guide() {
           />
 
           <GuideTableOfContents
+            manualId={Number(manualId)}
             tableOfContents={tableOfContents}
             steps={steps}
             completedStepIds={completedStepIds}

@@ -19,6 +19,8 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IManualQueryService, ManualQueryService>();
         services.AddScoped<IToolCommandService, ToolCommandService>();
         services.AddScoped<IToolQueryService, ToolQueryService>();
+        
+        services.AddHttpClient();
 
         return services;
     }

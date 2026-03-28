@@ -15,6 +15,7 @@ type GuideTableOfContentsProps = {
   activeSectionId: string;
   onScrollTo: (sectionId: string) => void;
   onResetCompletedSteps: () => void;
+  manualId: number;
 };
 
 export function GuideTableOfContents({
@@ -24,6 +25,7 @@ export function GuideTableOfContents({
   activeSectionId,
   onScrollTo,
   onResetCompletedSteps,
+  manualId,
 }: GuideTableOfContentsProps) {
   return (
     <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-1 lg:flex">
@@ -144,7 +146,7 @@ export function GuideTableOfContents({
         </Button>
       </Card>
 
-      <GuideAiAssistantCard />
+      <GuideAiAssistantCard manualId={manualId} />
     </aside>
   );
 }

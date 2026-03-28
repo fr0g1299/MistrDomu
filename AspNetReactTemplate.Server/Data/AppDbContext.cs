@@ -21,6 +21,7 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<Manual> Manuals { get; set; }
         public DbSet<Step> Steps { get; set; }
         public DbSet<Tool> Tools { get; set; }
+        public DbSet<AiChatInteraction> AiChatInteractions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
