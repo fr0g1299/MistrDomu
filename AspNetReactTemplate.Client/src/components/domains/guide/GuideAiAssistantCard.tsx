@@ -28,6 +28,7 @@ const buildMockReply = (userText: string): string => {
 
 const TYPEWRITER_INTERVAL_MS = 18;
 const TYPEWRITER_CHUNK_SIZE = 2;
+const FREE_USER_MESSAGES_LIMIT = 2;
 
 export function GuideAiAssistantCard() {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -77,6 +78,10 @@ export function GuideAiAssistantCard() {
   }, [messages, isSending]);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const userMessagesCount = messages.filter(
+    (message) => message.role === "user",
+  ).length;
+  const hasReachedMessageLimit = userMessagesCount >= FREE_USER_MESSAGES_LIMIT;
 
   useEffect(() => {
     const el = messagesContainerRef.current;
@@ -107,7 +112,7 @@ export function GuideAiAssistantCard() {
     event.preventDefault();
 
     const trimmedMessage = inputValue.trim();
-    if (!trimmedMessage || isSending) return;
+    if (!trimmedMessage || isSending || hasReachedMessageLimit) return;
 
     const userMessage: ChatMessage = {
       id: nextMessageIdRef.current,
@@ -240,25 +245,56 @@ export function GuideAiAssistantCard() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        <textarea
-          ref={inputRef}
-          rows={1}
-          value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
-          onKeyDown={handleInputKeyDown}
-          placeholder="Napište dotaz..."
-          className="hide-scrollbar placeholder:text-muted-foreground selection:bg-primary! selection:text-primary-foreground! bg-input/30 border-input min-h-10 w-full rounded-md border px-3 py-2 text-base transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring aria-invalid:border-destructive md:text-sm resize-none"
-        />
-        <Button
-          type="submit"
-          size="sm"
-          className="h-10 rounded-full"
-          disabled={isSending || inputValue.trim().length === 0}
-        >
-          <SendHorizontal className="size-5" />
-        </Button>
-      </form>
+      {!hasReachedMessageLimit && (
+        <form onSubmit={handleSubmit} className="flex items-end gap-2">
+          <textarea
+            ref={inputRef}
+            rows={1}
+            value={inputValue}
+            onChange={(event) => setInputValue(event.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder={
+              hasReachedMessageLimit
+                ? "Limit zpráv byl dosažen. Pro pokračování aktivujte placený tarif."
+                : "Napište dotaz..."
+            }
+            disabled={hasReachedMessageLimit}
+            className="hide-scrollbar placeholder:text-muted-foreground selection:bg-primary! selection:text-primary-foreground! bg-input/30 border-input min-h-10 w-full rounded-md border px-3 py-2 text-base transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring aria-invalid:border-destructive md:text-sm resize-none"
+          />
+          <Button
+            type="submit"
+            size="sm"
+            className="h-10 rounded-full"
+            disabled={
+              isSending ||
+              hasReachedMessageLimit ||
+              inputValue.trim().length === 0
+            }
+          >
+            <SendHorizontal className="size-5" />
+          </Button>
+        </form>
+      )}
+
+      {hasReachedMessageLimit && (
+        <div className="flex flex-wrap justify-center rounded-md border border-primary/35 bg-primary/10 p-3 text-sm">
+          <p className="font-semibold text-primary-900 dark:text-primary-100">
+            Dosáhli jste bezplatného limitu 2 zpráv.
+          </p>
+          <p className="mt-1 text-zinc-700 dark:text-zinc-300">
+            Pro další zprávy si prosím aktivujte placený tarif.
+          </p>
+          <Button
+            type="button"
+            className="mt-3 mx-auto"
+            onClick={() => {
+              window.location.href = "/TODO:pricing|payment|subscribe";
+            }}
+          >
+            Přejít na stránku placení
+          </Button>
+        </div>
+      )}
 
       {/* Floating scroll-to-top button */}
       <button
