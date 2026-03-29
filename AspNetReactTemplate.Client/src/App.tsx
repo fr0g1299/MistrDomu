@@ -14,6 +14,7 @@ import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/Search";
 import GuidePage from "./pages/Guide";
 import ToolsManagement from "./pages/ToolsManagement";
+import AdminPaidAccess from "./pages/AdminPaidAccess";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 
@@ -69,6 +70,15 @@ function App() {
               element={
                 <AdminRoute>
                   <ToolsManagement />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/paid-access"
+              element={
+                <AdminRoute>
+                  <AdminPaidAccess />
                 </AdminRoute>
               }
             />

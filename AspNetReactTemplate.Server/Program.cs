@@ -10,12 +10,16 @@ if (File.Exists(rootEnvPath))
     Env.Load(rootEnvPath);
 }
 
+// Configure Stripe global API key
+Stripe.StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddCustomDatabase(builder.Configuration);
 builder.Services.AddCustomIdentity();
 builder.Services.AddApplicationServices();
+
 
 // Configure the HTTP request pipeline.
 var app = builder.Build();

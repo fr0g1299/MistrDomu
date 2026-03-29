@@ -24,6 +24,7 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<AiChatInteraction> AiChatInteractions { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<UserCompletedStep> UserCompletedSteps { get; set; }
+        public DbSet<ManualPayment> ManualPayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -88,6 +89,11 @@ namespace AspNetReactTemplate.Server.Data
                 .WithMany()
                 .HasForeignKey(u => u.StepId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ManualPayments: unique per (UserId, ManualId)
+            modelBuilder.Entity<ManualPayment>()
+                .HasIndex(p => new { p.UserId, p.ManualId })
+                .IsUnique();
 
             // Seed default AppSettings rows
             modelBuilder.Entity<AppSetting>().HasData(

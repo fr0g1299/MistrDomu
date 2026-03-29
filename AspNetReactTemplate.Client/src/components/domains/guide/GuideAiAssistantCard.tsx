@@ -38,7 +38,7 @@ const initialMessages: ChatMessage[] = [
 
 const TYPEWRITER_INTERVAL_MS = 18;
 const TYPEWRITER_CHUNK_SIZE = 2;
-const FREE_USER_MESSAGES_LIMIT = 50; // TODO: Edit to 2 later, right now its just for easier testing
+const FREE_USER_MESSAGES_LIMIT = 2;
 
 {
   /* TODO: Clean this file up into compoents */
@@ -49,6 +49,8 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
   const [isSending, setIsSending] = useState(false);
   const [isAwaitingReply, setIsAwaitingReply] = useState(false);
   const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
+  const [requiresPayment, setRequiresPayment] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const nextMessageIdRef = useRef(2);
   const replyTimeoutRef = useRef<number | null>(null);
@@ -207,6 +209,12 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
         });
 
         setIsAwaitingReply(false);
+
+        if (response.status === 402) {
+          setIsSending(false);
+          setRequiresPayment(true);
+          return;
+        }
 
         if (!response.ok) {
           throw new Error("Failed to get AI response");
@@ -382,7 +390,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
           )}
         </div>
 
-        {!hasReachedMessageLimit && (
+        {!hasReachedMessageLimit && !requiresPayment && (
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <textarea
               ref={inputRef}
@@ -413,22 +421,42 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
           </form>
         )}
 
-        {hasReachedMessageLimit && (
+        {(hasReachedMessageLimit || requiresPayment) && (
           <div className="flex flex-wrap flex-col justify-center items-center rounded-md border border-primary/35 bg-primary/10 p-3 text-sm">
             <p className="font-semibold text-primary-900 dark:text-primary-100">
               Dosáhli jste bezplatného limitu 2 zpráv.
             </p>
             <p className="mt-1 text-zinc-700 dark:text-zinc-300">
-              Pro další zprávy si prosím aktivujte placený tarif.
+              Pro další zprávy si prosím odemkněte přístup k tomuto návodu.
             </p>
             <Button
+              id="btn-pay-for-manual"
               type="button"
               className="mt-3 mx-auto"
-              onClick={() => {
-                window.location.href = "/TODO:pricing|payment|subscribe";
+              disabled={isCheckingOut}
+              onClick={async () => {
+                setIsCheckingOut(true);
+                try {
+                  const res = await fetch("/api/payment/checkout", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ manualId }),
+                  });
+                  if (res.ok) {
+                    const data = await res.json();
+                    if (data.alreadyPaid) {
+                      setRequiresPayment(false);
+                    } else if (data.url) {
+                      window.location.href = data.url;
+                    }
+                  }
+                } finally {
+                  setIsCheckingOut(false);
+                }
               }}
             >
-              Přejít na stránku placení
+              {isCheckingOut ? "Přesměrování..." : "Odemknout přístup"}
             </Button>
           </div>
         )}

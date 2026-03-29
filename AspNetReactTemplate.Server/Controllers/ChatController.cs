@@ -69,8 +69,24 @@ namespace AspNetReactTemplate.Server.Controllers
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+            // ── Free tier limit: 2 interactions per manual ──────────────────────
+            var interactionCount = await _context.AiChatInteractions
+                .CountAsync(i => i.UserId == userId && i.ManualId == request.ManualId);
+
+            if (interactionCount >= 2)
+            {
+                var hasPaid = await _context.ManualPayments
+                    .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
+
+                if (!hasPaid)
+                {
+                    return StatusCode(402, new { requiresPayment = true, manualId = request.ManualId });
+                }
+            }
+
             // ── API key: DB setting takes precedence, fall back to env / appsettings ──
             var dbApiKey = (await _context.AppSettings.FindAsync("GeminiApiKey"))?.Value;
+
             var apiKey = !string.IsNullOrWhiteSpace(dbApiKey)
                 ? dbApiKey
                 : (Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? _configuration["GEMINI_API_KEY"]);
