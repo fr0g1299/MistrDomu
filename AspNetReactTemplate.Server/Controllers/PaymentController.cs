@@ -155,6 +155,19 @@ namespace AspNetReactTemplate.Server.Controllers
             }
         }
 
+        // ── GET /api/payment/check/{manualId} ────────────────────────────────
+        /// <summary>Checks if the current user has paid for the specified manual.</summary>
+        [HttpGet("check/{manualId}")]
+        [Authorize]
+        public async Task<ActionResult> CheckPaymentStatus(int manualId)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var alreadyPaid = await _context.ManualPayments
+                .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
+
+            return Ok(new { hasPaid = alreadyPaid });
+        }
+
         // ── GET /api/payment/admin/paid-access ───────────────────────────────
         /// <summary>Returns all paid access records (Admin only).</summary>
         [HttpGet("admin/paid-access")]

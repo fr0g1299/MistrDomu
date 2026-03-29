@@ -51,6 +51,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
   const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
   const [requiresPayment, setRequiresPayment] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [hasPaid, setHasPaid] = useState(false);
 
   const nextMessageIdRef = useRef(2);
   const replyTimeoutRef = useRef<number | null>(null);
@@ -115,7 +116,26 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
       }
     };
 
+    const checkPayment = async () => {
+      try {
+        const response = await fetch(`/api/payment/check/${manualId}`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+        if (response.ok && !isCancelled) {
+          const data = await response.json();
+          setHasPaid(data.hasPaid);
+        }
+      } catch (err) {
+        console.error("Failed to load payment status", err);
+      }
+    };
+
     fetchHistory();
+    checkPayment();
     return () => { isCancelled = true; };
   }, [manualId]);
 
@@ -130,7 +150,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
   const userMessagesCount = messages.filter(
     (message) => message.role === "user",
   ).length;
-  const hasReachedMessageLimit = userMessagesCount >= FREE_USER_MESSAGES_LIMIT;
+  const hasReachedMessageLimit = !hasPaid && userMessagesCount >= FREE_USER_MESSAGES_LIMIT;
 
   useEffect(() => {
     const el = messagesContainerRef.current;
