@@ -31,17 +31,6 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AppDbContext>();
         context.Database.Migrate();
-
-        // ── LOAD STRIPE CONFIGURATION FROM DB ─────────────────────────────
-        var stripeSecretKeySetting = context.AppSettings.FirstOrDefault(s => s.Key == "StripeSecretKey");
-        var stripeSecretKey = !string.IsNullOrEmpty(stripeSecretKeySetting?.Value) 
-            ? stripeSecretKeySetting.Value 
-            : Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
-
-        if (!string.IsNullOrEmpty(stripeSecretKey))
-        {
-            Stripe.StripeConfiguration.ApiKey = stripeSecretKey;
-        }
     }
     catch (Exception ex)
     {

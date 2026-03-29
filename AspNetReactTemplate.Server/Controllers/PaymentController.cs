@@ -40,10 +40,18 @@ namespace AspNetReactTemplate.Server.Controllers
             var priceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripePriceId");
             var priceId = !string.IsNullOrEmpty(priceIdSetting?.Value) 
                 ? priceIdSetting.Value 
-                : Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
+                : _configuration["Stripe:PriceId"] ?? _configuration["STRIPE_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
             
             if (string.IsNullOrEmpty(priceId))
                 return StatusCode(500, "Stripe Price ID is not configured.");
+
+            var secretKeySetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeSecretKey");
+            var secretKey = !string.IsNullOrEmpty(secretKeySetting?.Value) 
+                ? secretKeySetting.Value 
+                : _configuration["Stripe:SecretKey"] ?? _configuration["STRIPE_SECRET_KEY"] ?? Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+
+            if (string.IsNullOrEmpty(secretKey))
+                return StatusCode(500, "Stripe Secret Key is not configured.");
 
             var manual = await _context.Manuals.FindAsync(request.ManualId);
             var manualName = manual?.Title ?? $"Manual #{request.ManualId}";
@@ -75,7 +83,15 @@ namespace AspNetReactTemplate.Server.Controllers
             };
 
             var service = new SessionService();
-            Session session = await service.CreateAsync(options);
+            Session session;
+            try
+            {
+                session = await service.CreateAsync(options, new RequestOptions { ApiKey = secretKey });
+            }
+            catch (StripeException ex)
+            {
+                return StatusCode(500, $"Stripe error: {ex.StripeError?.Message ?? ex.Message}");
+            }
 
             return Ok(new { url = session.Url });
         }
@@ -89,7 +105,7 @@ namespace AspNetReactTemplate.Server.Controllers
             var webhookSecretSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeWebhookSecret");
             var webhookSecret = !string.IsNullOrEmpty(webhookSecretSetting?.Value) 
                 ? webhookSecretSetting.Value 
-                : Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET");
+                : _configuration["Stripe:WebhookSecret"] ?? _configuration["STRIPE_WEBHOOK_SECRET"] ?? Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET");
 
             string json;
             using (var reader = new System.IO.StreamReader(Request.Body))
