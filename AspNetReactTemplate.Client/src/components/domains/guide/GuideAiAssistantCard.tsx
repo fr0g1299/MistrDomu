@@ -203,7 +203,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
             "Content-Type": "application/json",
             "Accept": "application/json"
           },
-          body: JSON.stringify({ manualId, message: trimmedMessage })
+          body: JSON.stringify({ manualId, message: trimmedMessage }),
         });
 
         setIsAwaitingReply(false);

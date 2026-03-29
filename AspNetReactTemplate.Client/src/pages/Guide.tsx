@@ -32,6 +32,7 @@ const tableOfContents: TableOfContentsItem[] = [
 const mapStepsToLocalSequence = (steps: GuideStep[]): GuideStep[] => {
   return steps.map((step, index) => ({
     ...step,
+    dbId: step.dbId ?? step.id, // preserve real DB id before overwriting
     id: index + 1,
   }));
 };
@@ -187,29 +188,63 @@ export default function Guide() {
     };
   }, [manualId]);
 
+  // Load completed steps from the server once steps are available
   useEffect(() => {
-    setCompletedStepIds(
-      new Set(
-        steps.filter((step) => step.initiallyCompleted).map((step) => step.id),
-      ),
-    );
-  }, [steps]);
+    const parsedManualId = Number(manualId);
+    if (steps.length === 0 || !Number.isInteger(parsedManualId) || parsedManualId <= 0) return;
 
-  const handleToggleStep = useCallback((stepId: number) => {
-    setCompletedStepIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(stepId)) {
-        next.delete(stepId);
-      } else {
-        next.add(stepId);
+    let isCancelled = false;
+
+    const fetchCompleted = async () => {
+      try {
+        const dbIds = await apiService.getCompletedSteps(parsedManualId);
+        if (isCancelled) return;
+        // Map returned DB step IDs → local sequence IDs
+        const localIds = new Set(
+          steps
+            .filter((step) => dbIds.includes(step.dbId ?? step.id))
+            .map((step) => step.id),
+        );
+        setCompletedStepIds(localIds);
+      } catch {
+        // silently ignore — local state stays empty
       }
-      return next;
-    });
-  }, []);
+    };
+
+    fetchCompleted();
+    return () => {
+      isCancelled = true;
+    };
+  }, [steps, manualId]);
+
+  const handleToggleStep = useCallback(
+    (stepId: number) => {
+      setCompletedStepIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(stepId)) {
+          next.delete(stepId);
+        } else {
+          next.add(stepId);
+        }
+        return next;
+      });
+
+      // Persist to server using the real DB step ID
+      const step = steps.find((s) => s.id === stepId);
+      if (step) {
+        const dbStepId = step.dbId ?? step.id;
+        apiService
+          .toggleCompletedStep(Number(manualId), dbStepId)
+          .catch(console.error);
+      }
+    },
+    [steps, manualId],
+  );
 
   const handleResetCompletedSteps = useCallback(() => {
     setCompletedStepIds(new Set());
-  }, []);
+    apiService.resetCompletedSteps(Number(manualId)).catch(console.error);
+  }, [manualId]);
 
   const handleScrollTo = useCallback((sectionId: string) => {
     const target = document.getElementById(sectionId);

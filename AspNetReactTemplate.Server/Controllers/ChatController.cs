@@ -91,15 +91,32 @@ namespace AspNetReactTemplate.Server.Controllers
                 .Include(m => m.Tools)
                 .FirstOrDefaultAsync(m => m.Id == request.ManualId);
 
-            var systemPrompt = BuildSystemPrompt(manual);
+            // ── 2. Load user's completed steps → map to 1-based display numbers ─
+            var completedDbStepIds = (await _context.UserCompletedSteps
+                .Where(u => u.UserId == userId && u.ManualId == request.ManualId)
+                .Select(u => u.StepId)
+                .ToListAsync()).ToHashSet();
 
-            // ── 2. Load chat history for this user + manual ─────────────────────
+            var completedDisplayNumbers = new HashSet<int>();
+            if (manual is not null && completedDbStepIds.Count > 0)
+            {
+                var orderedSteps = manual.Steps.OrderBy(s => s.OrderNumber).ToList();
+                for (int i = 0; i < orderedSteps.Count; i++)
+                {
+                    if (completedDbStepIds.Contains(orderedSteps[i].Id))
+                        completedDisplayNumbers.Add(i + 1);
+                }
+            }
+
+            var systemPrompt = BuildSystemPrompt(manual, completedDisplayNumbers);
+
+            // ── 3. Load chat history for this user + manual ─────────────────────
             var history = await _context.AiChatInteractions
                 .Where(i => i.UserId == userId && i.ManualId == request.ManualId)
                 .OrderBy(i => i.CreatedAt)
                 .ToListAsync();
 
-            // ── 3. Build multi-turn contents array ──────────────────────────────
+            // ── 4. Build multi-turn contents array ──────────────────────────────
             //    Gemini alternates: user → model → user → model …
             var contentsTurns = new List<object>();
 
@@ -124,7 +141,7 @@ namespace AspNetReactTemplate.Server.Controllers
                 parts = new[] { new { text = request.Message } }
             });
 
-            // ── 4. Call Gemini ──────────────────────────────────────────────────
+            // ── 5. Call Gemini ──────────────────────────────────────────────────
             var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{geminiModel}:generateContent?key={apiKey}";
 
             var geminiRequest = new
@@ -146,7 +163,7 @@ namespace AspNetReactTemplate.Server.Controllers
                 return StatusCode((int)response.StatusCode, "Error from Gemini API: " + responseString);
             }
 
-            // ── 5. Parse response ───────────────────────────────────────────────
+            // ── 6. Parse response ───────────────────────────────────────────────
             using var jsonDocument = JsonDocument.Parse(responseString);
             var aiResponseText = jsonDocument.RootElement
                 .GetProperty("candidates")[0]
@@ -155,7 +172,7 @@ namespace AspNetReactTemplate.Server.Controllers
                 .GetProperty("text")
                 .GetString() ?? "Omlouvám se, nepodařilo se mi vygenerovat odpověď.";
 
-            // ── 6. Persist interaction ──────────────────────────────────────────
+            // ── 7. Persist interaction ──────────────────────────────────────────
             var interaction = new AiChatInteraction
             {
                 UserId = userId,
@@ -173,9 +190,12 @@ namespace AspNetReactTemplate.Server.Controllers
 
         // ── Helpers ───────────────────────────────────────────────────────────────
 
-        private static string BuildSystemPrompt(AspNetReactTemplate.Server.Models.Manuals.Manual? manual)
+        private static string BuildSystemPrompt(
+            AspNetReactTemplate.Server.Models.Manuals.Manual? manual,
+            IEnumerable<int>? completedStepIds = null)
         {
             var sb = new System.Text.StringBuilder();
+            var completedSet = new HashSet<int>(completedStepIds ?? Enumerable.Empty<int>());
 
             sb.AppendLine("Jsi AI asistent specializovaný na technické návody a manuály. Odpovídej stručně, přesně a vždy česky.");
             sb.AppendLine("Pokud uživatel položí otázku, která nesouvisí s tímto návodem, přátelsky ho nasměruj zpět k tématu.");
@@ -205,9 +225,14 @@ namespace AspNetReactTemplate.Server.Controllers
                 int displayNumber = 1;
                 foreach (var step in steps)
                 {
-                    sb.AppendLine($"{displayNumber}. **{step.Title}** — {step.Content}");
+                    var status = completedSet.Contains(displayNumber) ? " ✓ dokončeno" : " ○ nedokončeno";
+                    sb.AppendLine($"{displayNumber}. **{step.Title}**{status} — {step.Content}");
                     displayNumber++;
                 }
+                sb.AppendLine();
+
+                var validCompleted = completedSet.Count(id => id >= 1 && id <= steps.Count);
+                sb.AppendLine($"Uživatel dokončil {validCompleted} z {steps.Count} kroků.");
                 sb.AppendLine();
             }
 

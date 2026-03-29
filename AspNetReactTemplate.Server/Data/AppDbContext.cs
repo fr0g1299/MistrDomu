@@ -23,6 +23,7 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<Tool> Tools { get; set; }
         public DbSet<AiChatInteraction> AiChatInteractions { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
+        public DbSet<UserCompletedStep> UserCompletedSteps { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -72,6 +73,21 @@ namespace AspNetReactTemplate.Server.Data
             modelBuilder.Entity<Step>()
                 .HasIndex(s => new { s.ManualId, s.OrderNumber })
                 .IsUnique();
+
+            modelBuilder.Entity<UserCompletedStep>()
+                .HasKey(u => new { u.UserId, u.StepId });
+
+            modelBuilder.Entity<UserCompletedStep>()
+                .HasOne(u => u.Manual)
+                .WithMany()
+                .HasForeignKey(u => u.ManualId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserCompletedStep>()
+                .HasOne(u => u.Step)
+                .WithMany()
+                .HasForeignKey(u => u.StepId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Seed default AppSettings rows
             modelBuilder.Entity<AppSetting>().HasData(

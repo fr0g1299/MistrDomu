@@ -78,4 +78,23 @@ export const apiService = {
   async getManualTools(manualId: number): Promise<Tool[]> {
     return requestJson<Tool[]>(`/manuals/${manualId}/tools`);
   },
+
+  // Completed steps
+  async getCompletedSteps(manualId: number): Promise<number[]> {
+    return requestJson<number[]>(`/steps/${manualId}/completed`);
+  },
+
+  async toggleCompletedStep(manualId: number, stepId: number): Promise<void> {
+    await fetch(`${API_BASE_URL}/steps/${manualId}/completed/${stepId}`, {
+      method: "POST",
+      credentials: "include",
+    });
+  },
+
+  async resetCompletedSteps(manualId: number): Promise<void> {
+    await fetch(`${API_BASE_URL}/steps/${manualId}/completed`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+  },
 };
