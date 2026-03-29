@@ -69,31 +69,65 @@ namespace AspNetReactTemplate.Server.Controllers
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? _configuration["GEMINI_API_KEY"];
-            
+
             if (string.IsNullOrEmpty(apiKey))
             {
                 return StatusCode(500, "API key is not configured.");
             }
 
-            // Construct Gemini Request
-                        var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
-            
+            // ── 1. Load manual context ──────────────────────────────────────────
+            var manual = await _context.Manuals
+                .Include(m => m.Steps)
+                .Include(m => m.Tools)
+                .FirstOrDefaultAsync(m => m.Id == request.ManualId);
+
+            var systemPrompt = BuildSystemPrompt(manual);
+
+            // ── 2. Load chat history for this user + manual ─────────────────────
+            var history = await _context.AiChatInteractions
+                .Where(i => i.UserId == userId && i.ManualId == request.ManualId)
+                .OrderBy(i => i.CreatedAt)
+                .ToListAsync();
+
+            // ── 3. Build multi-turn contents array ──────────────────────────────
+            //    Gemini alternates: user → model → user → model …
+            var contentsTurns = new List<object>();
+
+            foreach (var turn in history)
+            {
+                contentsTurns.Add(new
+                {
+                    role = "user",
+                    parts = new[] { new { text = turn.UserMessage } }
+                });
+                contentsTurns.Add(new
+                {
+                    role = "model",
+                    parts = new[] { new { text = turn.AiResponse } }
+                });
+            }
+
+            // Append the current user message as the final turn
+            contentsTurns.Add(new
+            {
+                role = "user",
+                parts = new[] { new { text = request.Message } }
+            });
+
+            // ── 4. Call Gemini ──────────────────────────────────────────────────
+            var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
+
             var geminiRequest = new
             {
-                contents = new[]
+                systemInstruction = new
                 {
-                    new
-                    {
-                        parts = new[]
-                        {
-                            new { text = "Jsi užitečný AI asistent pro technický návod/manuál. Odpovídej uživateli na jeho dotazy ohledně návodu stručně, přesně a česky. Zde je dotaz: " + request.Message }
-                        }
-                    }
-                }
+                    parts = new[] { new { text = systemPrompt } }
+                },
+                contents = contentsTurns
             };
 
             var content = new StringContent(JsonSerializer.Serialize(geminiRequest), Encoding.UTF8, "application/json");
-            
+
             var response = await _httpClient.PostAsync(geminiUrl, content);
             var responseString = await response.Content.ReadAsStringAsync();
 
@@ -102,7 +136,7 @@ namespace AspNetReactTemplate.Server.Controllers
                 return StatusCode((int)response.StatusCode, "Error from Gemini API: " + responseString);
             }
 
-            // Parse response
+            // ── 5. Parse response ───────────────────────────────────────────────
             using var jsonDocument = JsonDocument.Parse(responseString);
             var aiResponseText = jsonDocument.RootElement
                 .GetProperty("candidates")[0]
@@ -111,7 +145,7 @@ namespace AspNetReactTemplate.Server.Controllers
                 .GetProperty("text")
                 .GetString() ?? "Omlouvám se, nepodařilo se mi vygenerovat odpověď.";
 
-            // Save to DB
+            // ── 6. Persist interaction ──────────────────────────────────────────
             var interaction = new AiChatInteraction
             {
                 UserId = userId,
@@ -125,6 +159,62 @@ namespace AspNetReactTemplate.Server.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { reply = aiResponseText });
+        }
+
+        // ── Helpers ───────────────────────────────────────────────────────────────
+
+        private static string BuildSystemPrompt(AspNetReactTemplate.Server.Models.Manuals.Manual? manual)
+        {
+            var sb = new System.Text.StringBuilder();
+
+            sb.AppendLine("Jsi AI asistent specializovaný na technické návody a manuály. Odpovídej stručně, přesně a vždy česky.");
+            sb.AppendLine("Pokud uživatel položí otázku, která nesouvisí s tímto návodem, přátelsky ho nasměruj zpět k tématu.");
+            sb.AppendLine("Pokud by odpověd měla obsahovat informace o zásahu do elektrického zařízení, upozorni uživatele na riziko úrazu elektrickým proudem a doporuč mu, aby se obrátil na kvalifikovaného elektrikáře. Nikdy neposkytuj návod na zásah do elektrického zařízení.");
+            sb.AppendLine();
+
+            if (manual is null)
+            {
+                sb.AppendLine("Kontext konkrétního návodu není k dispozici.");
+                return sb.ToString();
+            }
+
+            sb.AppendLine($"## Název návodu: {manual.Title}");
+            sb.AppendLine();
+
+            if (!string.IsNullOrWhiteSpace(manual.Description))
+            {
+                sb.AppendLine("### Popis:");
+                sb.AppendLine(manual.Description);
+                sb.AppendLine();
+            }
+
+            var steps = manual.Steps.OrderBy(s => s.OrderNumber).ToList();
+            if (steps.Count > 0)
+            {
+                sb.AppendLine("### Kroky návodu:");
+                int displayNumber = 1;
+                foreach (var step in steps)
+                {
+                    sb.AppendLine($"{displayNumber}. **{step.Title}** — {step.Content}");
+                    displayNumber++;
+                }
+                sb.AppendLine();
+            }
+
+            var tools = manual.Tools.ToList();
+            if (tools.Count > 0)
+            {
+                sb.AppendLine("### Potřebné nástroje / materiály:");
+                foreach (var tool in tools)
+                {
+                    sb.AppendLine($"- {tool.Name}");
+                }
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("Odpovídej vždy v kontextu tohoto návodu. Pokud si nejsi jistý, řekni to.");
+
+            return sb.ToString();
         }
     }
 }
