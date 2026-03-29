@@ -22,6 +22,7 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<Step> Steps { get; set; }
         public DbSet<Tool> Tools { get; set; }
         public DbSet<AiChatInteraction> AiChatInteractions { get; set; }
+        public DbSet<AppSetting> AppSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -71,6 +72,22 @@ namespace AspNetReactTemplate.Server.Data
             modelBuilder.Entity<Step>()
                 .HasIndex(s => new { s.ManualId, s.OrderNumber })
                 .IsUnique();
+
+            // Seed default AppSettings rows
+            modelBuilder.Entity<AppSetting>().HasData(
+                new AppSetting
+                {
+                    Key = "GeminiApiKey",
+                    Value = "",
+                    Description = "API klíč pro Google Gemini. Pokud je nastaven, má přednost před proměnnou prostředí GEMINI_API_KEY."
+                },
+                new AppSetting
+                {
+                    Key = "GeminiModel",
+                    Value = "gemini-2.5-flash-lite",
+                    Description = "Název modelu Gemini, který se má používat (např. gemini-2.5-flash-lite, gemini-1.5-pro)."
+                }
+            );
         }
     }
 }

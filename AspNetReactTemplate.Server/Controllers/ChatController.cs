@@ -68,12 +68,22 @@ namespace AspNetReactTemplate.Server.Controllers
             }
 
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? _configuration["GEMINI_API_KEY"];
+
+            // ── API key: DB setting takes precedence, fall back to env / appsettings ──
+            var dbApiKey = (await _context.AppSettings.FindAsync("GeminiApiKey"))?.Value;
+            var apiKey = !string.IsNullOrWhiteSpace(dbApiKey)
+                ? dbApiKey
+                : (Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? _configuration["GEMINI_API_KEY"]);
 
             if (string.IsNullOrEmpty(apiKey))
             {
                 return StatusCode(500, "API key is not configured.");
             }
+
+            // ── Model: read from DB, default to gemini-2.5-flash-lite ──────────────
+            var geminiModel = (await _context.AppSettings.FindAsync("GeminiModel"))?.Value;
+            if (string.IsNullOrWhiteSpace(geminiModel))
+                geminiModel = "gemini-2.5-flash-lite";
 
             // ── 1. Load manual context ──────────────────────────────────────────
             var manual = await _context.Manuals
@@ -115,7 +125,7 @@ namespace AspNetReactTemplate.Server.Controllers
             });
 
             // ── 4. Call Gemini ──────────────────────────────────────────────────
-            var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={apiKey}";
+            var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{geminiModel}:generateContent?key={apiKey}";
 
             var geminiRequest = new
             {
