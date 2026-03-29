@@ -10,8 +10,7 @@ if (File.Exists(rootEnvPath))
     Env.Load(rootEnvPath);
 }
 
-// Configure Stripe global API key
-Stripe.StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+// Configure Stripe global API key will be done after builder is built to access DB.
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,11 +31,22 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AppDbContext>();
         context.Database.Migrate();
+
+        // ── LOAD STRIPE CONFIGURATION FROM DB ─────────────────────────────
+        var stripeSecretKeySetting = context.AppSettings.FirstOrDefault(s => s.Key == "StripeSecretKey");
+        var stripeSecretKey = !string.IsNullOrEmpty(stripeSecretKeySetting?.Value) 
+            ? stripeSecretKeySetting.Value 
+            : Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+
+        if (!string.IsNullOrEmpty(stripeSecretKey))
+        {
+            Stripe.StripeConfiguration.ApiKey = stripeSecretKey;
+        }
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        logger.LogError(ex, "An error occurred while migrating the database or loading settings.");
     }
 }
 app.UseAuthentication();

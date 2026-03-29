@@ -37,7 +37,11 @@ namespace AspNetReactTemplate.Server.Controllers
             if (alreadyPaid)
                 return Ok(new { alreadyPaid = true });
 
-            var priceId = Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
+            var priceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripePriceId");
+            var priceId = !string.IsNullOrEmpty(priceIdSetting?.Value) 
+                ? priceIdSetting.Value 
+                : Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
+            
             if (string.IsNullOrEmpty(priceId))
                 return StatusCode(500, "Stripe Price ID is not configured.");
 
@@ -82,7 +86,10 @@ namespace AspNetReactTemplate.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Webhook()
         {
-            var webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET");
+            var webhookSecretSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeWebhookSecret");
+            var webhookSecret = !string.IsNullOrEmpty(webhookSecretSetting?.Value) 
+                ? webhookSecretSetting.Value 
+                : Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET");
 
             string json;
             using (var reader = new System.IO.StreamReader(Request.Body))

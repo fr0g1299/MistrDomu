@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AspNetReactTemplate.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260329214905_StripeKeysDb")]
+    partial class StripeKeysDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -88,24 +91,6 @@ namespace AspNetReactTemplate.Server.Migrations
                             Key = "GeminiModel",
                             Description = "Název modelu Gemini, který se má používat (např. gemini-2.5-flash-lite, gemini-1.5-pro).",
                             Value = "gemini-2.5-flash-lite"
-                        },
-                        new
-                        {
-                            Key = "StripeSecretKey",
-                            Description = "Tajný klíč pro Stripe API. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_SECRET_KEY.",
-                            Value = ""
-                        },
-                        new
-                        {
-                            Key = "StripeWebhookSecret",
-                            Description = "Secret pro Stripe Webhooky. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_WEBHOOK_SECRET.",
-                            Value = ""
-                        },
-                        new
-                        {
-                            Key = "StripePriceId",
-                            Description = "ID ceny ve Stripe, která se má použít pro platby. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_PRICE_ID.",
-                            Value = ""
                         });
                 });
 

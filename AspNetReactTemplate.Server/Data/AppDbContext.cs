@@ -108,6 +108,24 @@ namespace AspNetReactTemplate.Server.Data
                     Key = "GeminiModel",
                     Value = "gemini-2.5-flash-lite",
                     Description = "Název modelu Gemini, který se má používat (např. gemini-2.5-flash-lite, gemini-1.5-pro)."
+                },
+                new AppSetting
+                {
+                    Key = "StripeSecretKey",
+                    Value = "",
+                    Description = "Tajný klíč pro Stripe API. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_SECRET_KEY."
+                },
+                new AppSetting
+                {
+                    Key = "StripeWebhookSecret",
+                    Value = "",
+                    Description = "Secret pro Stripe Webhooky. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_WEBHOOK_SECRET."
+                },
+                new AppSetting
+                {
+                    Key = "StripePriceId",
+                    Value = "",
+                    Description = "ID ceny ve Stripe, která se má použít pro platby. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_PRICE_ID."
                 }
             );
         }
