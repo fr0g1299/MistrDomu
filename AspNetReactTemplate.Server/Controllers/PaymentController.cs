@@ -116,7 +116,8 @@ namespace AspNetReactTemplate.Server.Controllers
                 var stripeEvent = EventUtility.ConstructEvent(
                     json,
                     Request.Headers["Stripe-Signature"],
-                    webhookSecret
+                    webhookSecret,
+                    throwOnApiVersionMismatch: false
                 );
 
                 if (stripeEvent.Type == "checkout.session.completed")
