@@ -1,27 +1,16 @@
+"use client";
+
 import { useState } from "react";
 import { useTools } from "@/hooks/useTools";
 import { EditToolModal } from "@/components/domains/tool/EditToolModal";
 import { Tool, ToolWithManuals } from "@/types/tool";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Edit2, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-// --- NOVÉ IMPORTY PRO TOOLTIP ---
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+// Import local table logic
+import { DataTable } from "../components/ui/data-table"; 
+import { getColumns } from "../components/ui/columns";
 
 export default function ToolsManagement() {
   const { tools, loading, error, refetch } = useTools();
@@ -37,24 +26,21 @@ export default function ToolsManagement() {
     try {
       const response = await fetch(`/api/tools/${updatedTool.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           name: updatedTool.name,
           url: updatedTool.url,
-          note: updatedTool.note, 
+          note: updatedTool.note,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Nepodařilo se uložit nástroj");
-      }
-
+      if (!response.ok) throw new Error("Failed to save tool");
+      
+      // Refresh data after successful update
       await refetch();
     } catch (err) {
-      throw err instanceof Error ? err : new Error("Neznámá chyba");
+      throw err instanceof Error ? err : new Error("Unknown error");
     }
   };
 
@@ -67,109 +53,26 @@ export default function ToolsManagement() {
   }
 
   return (
-    <TooltipProvider delayDuration={300}> {/* Provider obaluje tabulku pro tooltipy */}
+    <TooltipProvider delayDuration={300}>
       <div className="container mx-auto px-4 py-8">
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Správa nástrojů</CardTitle>
+            <CardTitle className="text-2xl font-bold">Správa nástrojů</CardTitle>
             <CardDescription>
-              Zde můžete upravovat existující nástroje. Editujte jméno, URL a poznámku.
+              Přehled všech nástrojů. Můžete vyhledávat v názvech, manuálech i poznámkách.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-800">
+              <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm font-medium">
                 {error}
               </div>
             )}
-
-            {tools.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Nejsou přidány žádné nástroje
-              </p>
-            ) : (
-              <div className="overflow-x-auto border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {/* Sloupce jsou nyní standardní, bez resize */}
-                      <TableHead>Název</TableHead>
-                      <TableHead>URL</TableHead>
-                      <TableHead>Poznámka</TableHead>
-                      <TableHead>Používáno v manuálech</TableHead>
-                      <TableHead className="w-20">Akce</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tools.map((tool) => (
-                      <TableRow key={tool.id}>
-                        <TableCell className="font-medium whitespace-nowrap">{tool.name}</TableCell>
-                        <TableCell>
-                          {tool.url ? (
-                            <a
-                              href={tool.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline truncate block max-w-[200px]"
-                              title={tool.url}
-                            >
-                              {tool.url}
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        
-                        {/* --- POZNÁMKA S TOOLTIPEM --- */}
-                        <TableCell>
-                          {tool.note ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                {/* Text se ořízne a přidá "...", cursor se změní na otazník */}
-                                <p className="text-muted-foreground italic max-w-[250px] truncate cursor-help">
-                                  {tool.note}
-                                </p>
-                              </TooltipTrigger>
-                              {/* V nápovědě se ukáže celý text */}
-                              <TooltipContent side="top" className="max-w-[300px] break-words">
-                                <p className="text-sm">{tool.note}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            <span className="text-muted-foreground opacity-30">-</span>
-                          )}
-                        </TableCell>
-
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {tool.manuals && tool.manuals.length > 0 ? (
-                              tool.manuals.map((manual) => (
-                                <Badge key={manual} variant="secondary">
-                                  {manual}
-                                </Badge>
-                              ))
-                            ) : (
-                              <span className="text-muted-foreground text-sm">
-                                Není přidán
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditClick(tool)}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            
+            <DataTable 
+              columns={getColumns(handleEditClick)} 
+              data={tools} 
+            />
           </CardContent>
         </Card>
 
