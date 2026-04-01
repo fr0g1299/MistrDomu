@@ -52,6 +52,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
   const [requiresPayment, setRequiresPayment] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const nextMessageIdRef = useRef(2);
   const replyTimeoutRef = useRef<number | null>(null);
@@ -480,13 +481,21 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
         )}
 
         {(hasReachedMessageLimit || requiresPayment) && (
-          <div className="flex flex-wrap flex-col justify-center items-center rounded-md border border-primary/35 bg-primary/10 p-3 text-sm">
+          <div
+            className="flex flex-wrap flex-col items-center justify-center rounded-md border border-primary/35 bg-primary/10 p-3 text-sm"
+            aria-live="polite"
+          >
             <p className="font-semibold text-primary-900 dark:text-primary-100">
               Dosáhli jste bezplatného limitu 2 zpráv.
             </p>
             <p className="mt-1 text-zinc-700 dark:text-zinc-300">
               Pro další zprávy si prosím odemkněte přístup k tomuto návodu.
             </p>
+            {paymentError && (
+              <p className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-center text-sm text-destructive">
+                {paymentError}
+              </p>
+            )}
             <Button
               id="btn-pay-for-manual"
               type="button"
@@ -494,6 +503,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
               disabled={isCheckingOut}
               onClick={async () => {
                 setIsCheckingOut(true);
+                setPaymentError(null);
                 try {
                   const res = await fetch("/api/payment/checkout", {
                     method: "POST",
@@ -501,14 +511,32 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ manualId }),
                   });
-                  if (res.ok) {
-                    const data = await res.json();
-                    if (data.alreadyPaid) {
-                      setRequiresPayment(false);
-                    } else if (data.url) {
-                      window.location.href = data.url;
-                    }
+                  if (!res.ok) {
+                    const responseText = (await res.text()).trim();
+                    setPaymentError(
+                      responseText ||
+                        "Platbu se nepodařilo spustit. Zkontrolujte Stripe konfiguraci.",
+                    );
+                    return;
                   }
+
+                  const data = await res.json();
+                  if (data.alreadyPaid) {
+                    setRequiresPayment(false);
+                    setPaymentError(null);
+                  } else if (data.url) {
+                    window.location.href = data.url;
+                  } else {
+                    setPaymentError(
+                      "Stripe nevrátil checkout adresu. Zkuste to prosím znovu.",
+                    );
+                  }
+                } catch (error) {
+                  setPaymentError(
+                    error instanceof Error
+                      ? error.message
+                      : "Platbu se nepodařilo spustit.",
+                  );
                 } finally {
                   setIsCheckingOut(false);
                 }
