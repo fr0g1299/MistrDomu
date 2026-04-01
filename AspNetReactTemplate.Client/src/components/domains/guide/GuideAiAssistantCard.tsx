@@ -139,6 +139,34 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
     return () => { isCancelled = true; };
   }, [manualId]);
 
+  // Handle payment success redirect from Stripe checkout
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('payment') === 'success') {
+      // Re-check payment status after returning from Stripe
+      (async () => {
+        try {
+          const response = await fetch(`/api/payment/check/${manualId}`, {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Accept": "application/json"
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setHasPaid(data.hasPaid);
+            setRequiresPayment(false);
+            // Clean up query param from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (err) {
+          console.error("Failed to verify payment after checkout", err);
+        }
+      })();
+    }
+  }, [manualId]);
+
   useEffect(() => {
     if (!messagesContainerRef.current) return;
 

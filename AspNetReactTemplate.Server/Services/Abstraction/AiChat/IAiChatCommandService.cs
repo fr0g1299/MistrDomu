@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using AspNetReactTemplate.Server.Models.DTOs.AiChat;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetReactTemplate.Server.Services.Abstraction.AiChat;

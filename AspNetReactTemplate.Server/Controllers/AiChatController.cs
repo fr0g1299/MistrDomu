@@ -19,6 +19,7 @@ namespace AspNetReactTemplate.Server.Controllers
             _queryService = queryService;
         }
 
+        // ── GET /api/aichat/{manualId} ────────────────────────────────────────
         [HttpGet("{manualId}")]
         public async Task<ActionResult<IEnumerable<AiChatInteractionDto>>> GetHistory(int manualId)
         {
@@ -40,6 +41,7 @@ namespace AspNetReactTemplate.Server.Controllers
             return Ok(historyFromValue);
         }
 
+        // ── POST /api/aichat ────────────────────────────────────────────────
         [HttpPost]
         public async Task<ActionResult> PostMessage([FromBody] AiChatRequestDto request)
         {
