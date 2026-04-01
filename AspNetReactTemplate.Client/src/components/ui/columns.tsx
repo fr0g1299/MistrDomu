@@ -20,6 +20,7 @@ import {
 export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<ToolWithManuals>[] => [
   {
     accessorKey: "name",
+    size: 100,
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
       return (
@@ -38,6 +39,7 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
   },
   {
     accessorKey: "url",
+    size: 125,
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
       return (
@@ -63,10 +65,29 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
     cell: ({ row }) => {
       const url = row.getValue("url") as string;
       return url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block max-w-[250px]">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
           {url}
         </a>
       ) : <span className="text-muted-foreground opacity-50">-</span>;
+    }
+  },
+  {
+    accessorKey: "note",
+    size: 125,
+    header: () => <span className="font-bold">Poznámka</span>,
+    cell: ({ row }) => {
+      const note = row.getValue("note") as string;
+      if (!note) return <span className="text-muted-foreground opacity-30">-</span>;
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="text-muted-foreground italic truncate cursor-help">{note}</p>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-[200px] break-words">
+            <p className="text-sm">{note}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     }
   },
   {
@@ -115,24 +136,6 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
         </div>
       );
     },
-  },
-  {
-    accessorKey: "note",
-    header: () => <span className="font-bold">Poznámka</span>,
-    cell: ({ row }) => {
-      const note = row.getValue("note") as string;
-      if (!note) return <span className="text-muted-foreground opacity-30">-</span>;
-      return (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <p className="text-muted-foreground italic max-w-[200px] truncate cursor-help">{note}</p>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-[300px] break-words">
-            <p className="text-sm">{note}</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    }
   },
   {
     id: "actions",

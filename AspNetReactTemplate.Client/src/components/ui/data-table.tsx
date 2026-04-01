@@ -33,7 +33,6 @@ const normalizeText = (str: string | unknown): string => {
 
 const multiKeywordFilter: FilterFn<any> = (row, _columnId, filterValue: string) => {
   const keywords = normalizeText(filterValue).split(/\s+/).filter(Boolean);
-  
   if (keywords.length === 0) return true;
 
   const name = row.getValue("name") as string;
@@ -64,11 +63,9 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    
     globalFilterFn: multiKeywordFilter,
     onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
-    
     state: {
       sorting,
       globalFilter,
@@ -113,12 +110,16 @@ export function DataTable<TData, TValue>({
 
       {/* --- TABLE --- */}
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-        <Table>
+        <Table className="table-fixed w-full">
           <TableHeader className="bg-muted/30">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="h-12">
+                  <TableHead 
+                    key={header.id} 
+                    className="h-12"
+                    style={{ width: header.getSize() }}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -139,7 +140,12 @@ export function DataTable<TData, TValue>({
                   className="group transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3">
+                    <TableCell 
+                      key={cell.id} 
+                      className="py-3"
+                      // Aplikace šířky na každou buňku
+                      style={{ width: cell.column.getSize() }}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
