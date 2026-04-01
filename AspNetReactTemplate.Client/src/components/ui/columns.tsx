@@ -63,7 +63,7 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
     cell: ({ row }) => {
       const url = row.getValue("url") as string;
       return url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block max-w-[150px]">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block max-w-[250px]">
           {url}
         </a>
       ) : <span className="text-muted-foreground opacity-50">-</span>;
@@ -125,7 +125,7 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <p className="text-muted-foreground italic max-w-[180px] truncate cursor-help">{note}</p>
+            <p className="text-muted-foreground italic max-w-[200px] truncate cursor-help">{note}</p>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[300px] break-words">
             <p className="text-sm">{note}</p>

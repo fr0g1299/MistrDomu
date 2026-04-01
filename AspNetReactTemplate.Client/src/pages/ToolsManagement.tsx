@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTools } from "@/hooks/useTools";
 import { EditToolModal } from "@/components/domains/tool/EditToolModal";
 import { Tool, ToolWithManuals } from "@/types/tool";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -54,13 +54,10 @@ export default function ToolsManagement() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-5">
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Správa nástrojů</CardTitle>
-            <CardDescription>
-              Přehled všech nástrojů. Můžete vyhledávat v názvech, manuálech i poznámkách.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             {error && (

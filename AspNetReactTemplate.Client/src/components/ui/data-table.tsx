@@ -21,15 +21,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 
-// --- POMOCNÉ FUNKCE PRO FILTROVÁNÍ ---
-
-/**
- * Odstraní diakritiku a převede text na malá písmena.
- * Příklad: "Vývojář" -> "vyvojar"
- */
 const normalizeText = (str: string | unknown): string => {
   if (typeof str !== "string") return "";
   return str
@@ -38,8 +31,9 @@ const normalizeText = (str: string | unknown): string => {
     .toLowerCase();
 };
 
-const multiKeywordFilter: FilterFn<any> = (row, columnId, filterValue: string) => {
+const multiKeywordFilter: FilterFn<any> = (row, _columnId, filterValue: string) => {
   const keywords = normalizeText(filterValue).split(/\s+/).filter(Boolean);
+  
   if (keywords.length === 0) return true;
 
   const name = row.getValue("name") as string;
@@ -110,6 +104,12 @@ export function DataTable<TData, TValue>({
           Zobrazeno <span className="text-foreground">{filteredCount}</span> z <span className="text-foreground">{data.length}</span> nástrojů
         </div>
       </div>
+      
+      {data.length > 0 && (
+        <p className="text-[11px] px-2 text-muted-foreground text-left italic">
+          Tip: Kliknutím na štítek manuálu v tabulce vyhledáte všechny nástroje v daném manuálu.
+        </p>
+      )}
 
       {/* --- TABLE --- */}
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
@@ -161,12 +161,6 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      
-      {data.length > 0 && (
-        <p className="text-[11px] text-muted-foreground text-center italic">
-          Tip: Kliknutím na štítek manuálu v tabulce zfiltrujete všechny nástroje v daném manuálu.
-        </p>
-      )}
     </div>
   );
 }
