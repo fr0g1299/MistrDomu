@@ -25,7 +25,17 @@ public class PaymentsCommandService : IPaymentsCommandService
 
     public async Task<ActionResult> CreateCheckout([FromBody] CheckoutRequest request, ClaimsPrincipal user)
     {
-        var userId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return new UnauthorizedResult();
+        }
+
+        var manual = await _context.Manuals.FindAsync(request.ManualId);
+        if (manual is null)
+        {
+            return new NotFoundObjectResult($"Manual with id {request.ManualId} was not found.");
+        }
 
         // If user already paid, nothing to do
         var alreadyPaid = await _context.ManualPayments
@@ -49,9 +59,6 @@ public class PaymentsCommandService : IPaymentsCommandService
 
         if (string.IsNullOrEmpty(secretKey))
             return new ObjectResult(new { error = "Stripe Secret Key is not configured." }) { StatusCode = 500 };
-
-        var manual = await _context.Manuals.FindAsync(request.ManualId);
-        var manualName = manual?.Title ?? $"Manual #{request.ManualId}";
 
         // Build absolute success / cancel URLs
         var httpRequest = _httpContextAccessor.HttpContext?.Request;

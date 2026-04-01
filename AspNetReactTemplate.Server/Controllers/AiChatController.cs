@@ -25,6 +25,16 @@ namespace AspNetReactTemplate.Server.Controllers
         {
             var historyResult = await _queryService.GetHistory(manualId, User);
 
+            if (historyResult.Result is UnauthorizedResult)
+            {
+                return Unauthorized();
+            }
+
+            if (historyResult.Result is NotFoundObjectResult notFoundResult)
+            {
+                return NotFound(notFoundResult.Value);
+            }
+
             if (historyResult.Result is OkObjectResult okResult)
             {
                 var history = okResult.Value as IEnumerable<AiChatInteractionDto> ?? new List<AiChatInteractionDto>();

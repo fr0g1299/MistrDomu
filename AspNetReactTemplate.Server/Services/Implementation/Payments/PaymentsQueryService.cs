@@ -17,7 +17,12 @@ public class PaymentsQueryService : IPaymentsQueryService
 
     public async Task<ActionResult> CheckPaymentStatus(int manualId, ClaimsPrincipal user)
     {
-        var userId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return new UnauthorizedResult();
+        }
+
         var alreadyPaid = await _context.ManualPayments
             .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
 

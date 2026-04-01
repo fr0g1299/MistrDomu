@@ -28,7 +28,11 @@ public class AiChatCommandService : IAiChatCommandService
 
     public async Task<ActionResult> PostMessage([FromBody] AiChatRequestDto request, ClaimsPrincipal user)
     {
-        var userId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return new UnauthorizedResult();
+        }
 
         // ── Free tier limit: 2 interactions per manual ──────────────────────
         var interactionCount = await _context.AiChatInteractions
@@ -70,6 +74,11 @@ public class AiChatCommandService : IAiChatCommandService
             .Include(m => m.Steps)
             .Include(m => m.Tools)
             .FirstOrDefaultAsync(m => m.Id == request.ManualId);
+
+        if (manual is null)
+        {
+            return new NotFoundObjectResult($"Manual with id {request.ManualId} was not found.");
+        }
 
         // ── 2. Load user's completed steps → map to 1-based display numbers ─
         var completedDbStepIds = (await _context.UserCompletedSteps
