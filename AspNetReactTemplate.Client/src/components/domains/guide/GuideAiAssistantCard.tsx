@@ -93,7 +93,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
     let isCancelled = false;
     const fetchHistory = async () => {
       try {
-        const response = await fetch(`/api/Chat/${manualId}`, {
+        const response = await fetch(`/api/AiChat/${manualId}`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -218,7 +218,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
 
     const fetchAiReply = async () => {
       try {
-        const response = await fetch("/api/Chat", {
+        const response = await fetch("/api/AiChat", {
           method: "POST",
           credentials: "include",
           headers: {
@@ -237,7 +237,8 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
         }
 
         if (!response.ok) {
-          throw new Error("Failed to get AI response");
+          const serverMessage = (await response.text()).trim();
+          throw new Error(serverMessage || "Failed to get AI response");
         }
 
         const data = await response.json();
@@ -287,12 +288,21 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
       } catch (err) {
         setIsAwaitingReply(false);
         setIsSending(false);
+
+        const errorText =
+          err instanceof Error && err.message
+            ? err.message
+            : "Omlouvám se, došlo k chybě při komunikaci se serverem.";
+
+        const userFacingError = errorText.includes("API key is not configured")
+          ? "AI není nakonfigurovaná: chybí Gemini API klíč na backendu."
+          : errorText;
         
         const errorMessageId = nextMessageIdRef.current;
         const errorMessage: ChatMessage = {
           id: errorMessageId,
           role: "assistant",
-          text: "Omlouvám se, došlo k chybě při komunikaci se serverem.",
+          text: userFacingError,
         };
         nextMessageIdRef.current += 1;
         setMessages((prev) => [...prev, errorMessage]);

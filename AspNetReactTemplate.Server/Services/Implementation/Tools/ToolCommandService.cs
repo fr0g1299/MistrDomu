@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models.DTOs.Manuals;
 using AspNetReactTemplate.Server.Models.Manuals;
