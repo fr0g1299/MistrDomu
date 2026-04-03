@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
+using AspNetReactTemplate.Server.Extensions.Polices;
 using AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 using DotNetEnv;
 
@@ -16,6 +17,7 @@ builder.Services.AddControllers();
 builder.Services.AddCustomDatabase(builder.Configuration);
 builder.Services.AddCustomIdentity();
 builder.Services.AddApplicationServices();
+builder.Services.AddAuthorization(UserPolicy.AddPolicies);
 
 // Configure the HTTP request pipeline.
 var app = builder.Build();

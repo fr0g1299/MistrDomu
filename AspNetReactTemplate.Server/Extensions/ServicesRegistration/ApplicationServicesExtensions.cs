@@ -1,9 +1,12 @@
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Auth;
+using AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Register;
 using AspNetReactTemplate.Server.Services.Abstraction.Manuals;
 using AspNetReactTemplate.Server.Services.Implementation.Identity.Auth;
+using AspNetReactTemplate.Server.Services.Implementation.Identity.Edit;
 using AspNetReactTemplate.Server.Services.Implementation.Identity.Register;
 using AspNetReactTemplate.Server.Services.Implementation.Manuals;
+
 
 namespace AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 
@@ -15,6 +18,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IManualCommandService, ManualCommandService>();
         services.AddScoped<IManualQueryService, ManualQueryService>();
+        services.AddScoped<IEditUserService, EditUserService>();
 
         return services;
     }
