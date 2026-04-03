@@ -8,13 +8,18 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Check,
   Loader2,
@@ -24,6 +29,12 @@ import {
 } from "lucide-react";
 
 type VisibilityFilter = "all" | "selected" | "unselected";
+
+type PendingExpertAction = {
+  manualId: number;
+  manualTitle: string;
+  isRemoving: boolean;
+};
 
 export default function ManualHelpManagement() {
   const navigate = useNavigate();
@@ -38,6 +49,9 @@ export default function ManualHelpManagement() {
     () => new Set(),
   );
   const [savingManualId, setSavingManualId] = useState<number | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingExpertAction | null>(
+    null,
+  );
 
   const fetchData = async () => {
     if (!user?.id) {
@@ -132,29 +146,25 @@ export default function ManualHelpManagement() {
     }
   };
 
-  const selectVisibleManuals = () => {
-    setSelectedManualIds((current) => {
-      const next = new Set(current);
-      filteredManuals.forEach((manual) => next.add(manual.id));
-      return next;
+  const openTogglePopup = (manual: Manual) => {
+    const isRemoving = selectedManualIds.has(manual.id);
+    setPendingAction({
+      manualId: manual.id,
+      manualTitle: manual.title,
+      isRemoving,
     });
   };
 
-  const deselectVisibleManuals = () => {
-    setSelectedManualIds((current) => {
-      const next = new Set(current);
-      filteredManuals.forEach((manual) => next.delete(manual.id));
-      return next;
-    });
+  const confirmToggleAction = async () => {
+    if (!pendingAction) return;
+    await toggleManual(pendingAction.manualId);
+    setPendingAction(null);
   };
 
   const selectedCount = selectedManualIds.size;
   const totalCount = manuals.length;
-  const visibleSelectedCount = filteredManuals.filter((manual) =>
-    selectedManualIds.has(manual.id),
-  ).length;
 
-  const pageTitle = "Spravovat mé návody";
+  const pageTitle = "Správa mých návodů";
   const pageDescription =
     "Zde vidíte návody, ve kterých jste zapsaní jako pomocník. Můžete se přidávat do nových i odebírat z existujících.";
 
@@ -168,6 +178,7 @@ export default function ManualHelpManagement() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
+      {/* Page Header */}
       <div className="border-b border-border bg-card px-6 py-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4">
           <div className="flex items-center gap-3">
@@ -187,18 +198,11 @@ export default function ManualHelpManagement() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-6 py-6">
         <Card className="shadow-sm">
-          <CardHeader className="border-b">
-            <CardTitle className="text-xl font-bold">Výběr návodů</CardTitle>
-            <CardDescription>
-              Vyhledej návod, zaškrtni ho a rychle přepínej mezi vybranými a
-              nevybranými položkami.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 pt-6">
+          <CardContent className="space-y-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-1.5">
                 <label className="text-sm font-medium text-foreground">
                   Vyhledávání
                 </label>
@@ -242,29 +246,14 @@ export default function ManualHelpManagement() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-4">
+            {/* Statistics bar with reduced padding */}
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3">
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Badge variant="secondary">Celkem: {totalCount}</Badge>
-                <Badge variant="secondary">Jsem pomocník: {selectedCount}</Badge>
                 <Badge variant="secondary">
                   Zobrazeno: {filteredManuals.length}
                 </Badge>
-                <Badge variant="secondary">
-                  Ve výběru: {visibleSelectedCount}
-                </Badge>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" onClick={selectVisibleManuals}>
-                  Vybrat viditelné
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={deselectVisibleManuals}
-                >
-                  Zrušit výběr viditelných
-                </Button>
+                <Badge variant="secondary">Jsem pomocník: {selectedCount}</Badge>
               </div>
             </div>
 
@@ -351,7 +340,7 @@ export default function ManualHelpManagement() {
                             <Button
                               type="button"
                               variant={isSelected ? "default" : "outline"}
-                              onClick={() => toggleManual(manual.id)}
+                              onClick={() => openTogglePopup(manual)}
                               disabled={isSaving}
                             >
                               {isSaving
@@ -379,6 +368,39 @@ export default function ManualHelpManagement() {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={Boolean(pendingAction)} onOpenChange={() => setPendingAction(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {pendingAction?.isRemoving
+                ? "Potvrdit odepsání z návodu"
+                : "Potvrdit zapsání do návodu"}
+            </DialogTitle>
+            <DialogDescription>
+              {pendingAction?.isRemoving
+                ? `Opravdu se chcete odepsat z návodu ${pendingAction.manualTitle}?`
+                : `Opravdu se chcete zapsat jako pomocník do návodu ${pendingAction?.manualTitle}?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPendingAction(null)}
+            >
+              Zrušit
+            </Button>
+            <Button
+              type="button"
+              onClick={confirmToggleAction}
+              disabled={savingManualId !== null}
+            >
+              {pendingAction?.isRemoving ? "Ano, odepsat" : "Ano, zapsat"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -11,8 +11,15 @@ import { Manual } from "@/types/manual";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Loader2, ShieldCheck } from "lucide-react";
 
 type ExpertOverview = {
@@ -20,6 +27,21 @@ type ExpertOverview = {
   expertName: string;
   manuals: ManualForExpertRead[];
 };
+
+type PendingAdminAction =
+  | {
+      type: "add";
+      manualId: number;
+      manualTitle: string;
+      expertId: number;
+    }
+  | {
+      type: "remove";
+      manualId: number;
+      manualTitle: string;
+      expertId: number;
+      expertName: string;
+    };
 
 export default function AdminManualHelpManagement() {
   const [manuals, setManuals] = useState<Manual[]>([]);
@@ -29,8 +51,12 @@ export default function AdminManualHelpManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedManualId, setSelectedManualId] = useState<number | null>(null);
-  const [newExpertId, setNewExpertId] = useState<string>("");
+  const [selectedExpertId, setSelectedExpertId] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAdminAction | null>(
+    null,
+  );
+  const [infoPopupMessage, setInfoPopupMessage] = useState<string | null>(null);
 
   const loadAll = async () => {
     try {
@@ -103,17 +129,12 @@ export default function AdminManualHelpManagement() {
     ? expertByManual[selectedManualId] ?? []
     : [];
 
-  const handleAssign = async () => {
-    const parsedExpertId = Number(newExpertId);
-    if (!selectedManualId || !Number.isInteger(parsedExpertId) || parsedExpertId <= 0) {
-      return;
-    }
-
+  const assignExpert = async (manualId: number, expertId: number) => {
     try {
       setSaving(true);
       setError(null);
-      await apiService.addManualToExpert(selectedManualId, parsedExpertId);
-      setNewExpertId("");
+      await apiService.addManualToExpert(manualId, expertId);
+      setSelectedExpertId("");
       await loadAll();
     } catch (err) {
       setError(
@@ -126,7 +147,7 @@ export default function AdminManualHelpManagement() {
     }
   };
 
-  const handleRemove = async (manualId: number, expertId: number) => {
+  const removeExpert = async (manualId: number, expertId: number) => {
     try {
       setSaving(true);
       setError(null);
@@ -141,6 +162,51 @@ export default function AdminManualHelpManagement() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const openAddPopup = () => {
+    const parsedExpertId = Number(selectedExpertId);
+    if (!selectedManualId || !Number.isInteger(parsedExpertId) || parsedExpertId <= 0) {
+      setInfoPopupMessage(
+        "Pro přidání experta bude potřeba vybrat experta ze seznamu. Dropdown zatím slouží jako placeholder pro budoucí data.",
+      );
+      return;
+    }
+
+    const selectedManual = manuals.find((manual) => manual.id === selectedManualId);
+    setPendingAction({
+      type: "add",
+      manualId: selectedManualId,
+      manualTitle: selectedManual?.title ?? `Návod ID ${selectedManualId}`,
+      expertId: parsedExpertId,
+    });
+  };
+
+  const openRemovePopup = (
+    manualId: number,
+    expertId: number,
+    expertName: string,
+  ) => {
+    const selectedManual = manuals.find((manual) => manual.id === manualId);
+    setPendingAction({
+      type: "remove",
+      manualId,
+      manualTitle: selectedManual?.title ?? `Návod ID ${manualId}`,
+      expertId,
+      expertName,
+    });
+  };
+
+  const handleConfirmPendingAction = async () => {
+    if (!pendingAction) return;
+
+    if (pendingAction.type === "add") {
+      await assignExpert(pendingAction.manualId, pendingAction.expertId);
+    } else {
+      await removeExpert(pendingAction.manualId, pendingAction.expertId);
+    }
+
+    setPendingAction(null);
   };
 
   return (
@@ -168,8 +234,8 @@ export default function AdminManualHelpManagement() {
         {!loading && (
           <Tabs defaultValue="overview" className="space-y-5">
             <TabsList>
-              <TabsTrigger value="overview">Mód 1: Přehled expertů</TabsTrigger>
-              <TabsTrigger value="manage">Mód 2: Správa přiřazení</TabsTrigger>
+              <TabsTrigger value="overview">Přehled expertů</TabsTrigger>
+              <TabsTrigger value="manage">Správa přiřazení</TabsTrigger>
             </TabsList>
 
             {error && (
@@ -237,14 +303,17 @@ export default function AdminManualHelpManagement() {
                       ))}
                     </select>
 
-                    <Input
-                      value={newExpertId}
-                      onChange={(event) => setNewExpertId(event.target.value)}
-                      placeholder="ID experta"
-                      inputMode="numeric"
-                    />
+                    <select
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      value={selectedExpertId}
+                      onChange={(event) => setSelectedExpertId(event.target.value)}
+                    >
+                      <option value="" disabled>
+                        Zatím bez výběru experta
+                      </option>
+                    </select>
 
-                    <Button type="button" onClick={handleAssign} disabled={saving}>
+                    <Button type="button" onClick={openAddPopup} disabled={saving}>
                       Přidat experta
                     </Button>
                   </div>
@@ -271,7 +340,11 @@ export default function AdminManualHelpManagement() {
                           disabled={saving || !selectedManualId}
                           onClick={() =>
                             selectedManualId &&
-                            handleRemove(selectedManualId, expert.expertId)
+                            openRemovePopup(
+                              selectedManualId,
+                              expert.expertId,
+                              expert.expertName,
+                            )
                           }
                         >
                           Odebrat
@@ -285,6 +358,53 @@ export default function AdminManualHelpManagement() {
           </Tabs>
         )}
       </main>
+
+      <Dialog open={Boolean(infoPopupMessage)} onOpenChange={() => setInfoPopupMessage(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Informace</DialogTitle>
+            <DialogDescription>{infoPopupMessage}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" onClick={() => setInfoPopupMessage(null)}>
+              Rozumím
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(pendingAction)} onOpenChange={() => setPendingAction(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {pendingAction?.type === "add"
+                ? "Potvrdit přidání experta"
+                : "Potvrdit odebrání experta"}
+            </DialogTitle>
+            <DialogDescription>
+              {pendingAction?.type === "add"
+                ? `Chcete přiřadit experta s ID ${pendingAction.expertId} k návodu ${pendingAction.manualTitle}?`
+                : `Chcete odebrat experta ${pendingAction?.expertName} (ID: ${pendingAction?.expertId}) z návodu ${pendingAction?.manualTitle}?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPendingAction(null)}
+            >
+              Zrušit
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmPendingAction}
+              disabled={saving}
+            >
+              {pendingAction?.type === "add" ? "Potvrdit přidání" : "Potvrdit odebrání"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

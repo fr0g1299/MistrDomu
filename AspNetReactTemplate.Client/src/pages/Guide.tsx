@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { GuideIntroduction } from "@/components/domains/guide/GuideIntroduction";
 import { GuideSteps } from "@/components/domains/guide/GuideSteps";
@@ -43,6 +43,7 @@ const mapStepsToLocalSequence = (steps: GuideStep[]): GuideStep[] => {
 export default function Guide() {
   const { user, isExpert, isAdmin } = useAuth();
   const { manualId } = useParams<{ manualId: string }>();
+  const navigate = useNavigate();
   const userId = user?.id;
   const location = useLocation();
   const locationState = location.state as { manual?: Manual } | null;
@@ -440,6 +441,18 @@ export default function Guide() {
             )}
             {helperEnrollError && (
               <p className="mt-3 text-sm text-destructive">{helperEnrollError}</p>
+            )}
+            {isExpert && helperAlreadyEnrolled && (
+              <div className="mt-3">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto px-0 text-sm"
+                  onClick={() => navigate("/manual-help-management")}
+                >
+                  Přejít do správy mých návodů
+                </Button>
+              </div>
             )}
           </div>
         )}

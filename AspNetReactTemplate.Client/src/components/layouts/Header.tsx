@@ -60,16 +60,18 @@ export default function Header({ onNavigateHome }: HeaderProps) {
 
         <div className="flex items-center gap-2 md:gap-4 text-sm font-medium">
 
-          <Button
-            asChild
-            variant="ghost"
-            className="h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2"
-          >
-            <Link to="/search">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden md:inline">Návody</span>
-            </Link>
-          </Button>
+          {isAuthenticated && (
+            <Button
+              asChild
+              variant="ghost"
+              className="h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2"
+            >
+              <Link to="/search">
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden md:inline">Návody</span>
+              </Link>
+            </Button>
+          )}
           
           {/* SEKCE SPRÁVA - pro Admina i budoucího Experta */}
           {(isAdmin || isExpert) && (
@@ -103,7 +105,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                       onClick={() => navigate("/manual-help-management")}
                       className="cursor-pointer"
                     >
-                      Spravovat mé návody
+                      Mé návody
                     </DropdownMenuItem>
                   </>
                 ) : (
@@ -111,7 +113,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     onClick={() => navigate("/manual-help-management")}
                     className="cursor-pointer"
                   >
-                    Spravovat mé návody
+                    Mé návody
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
