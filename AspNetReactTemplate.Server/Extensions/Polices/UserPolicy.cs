@@ -9,7 +9,7 @@ public static class UserPolicy
         options.AddPolicy("CanSeeAllUsers", policy => policy.RequireRole("Admin"));
         options.AddPolicy("CanSetRole", policy => policy.RequireRole("Admin"));
 
-        foreach (var role in Enum.GetValues<AspNetReactTemplate.Server.Models.Identity.Enums.Roles>())
+        foreach (var role in Enum.GetValues<Models.Identity.Enums.Roles>())
         {
             options.AddPolicy($"CanSetRole[{role}]", policy => policy.RequireRole("Admin"));
         }
