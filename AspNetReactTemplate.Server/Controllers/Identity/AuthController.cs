@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Auth;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Register;
 
-namespace AspNetReactTemplate.Server.Controllers
+namespace AspNetReactTemplate.Server.Controllers.Identity
 {
     [ApiController]
     [Route("api/[controller]")]
