@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using AspNetReactTemplate.Server.Data;
-using AspNetReactTemplate.Server.Models;
+using AspNetReactTemplate.Server.Services.Abstraction.Steps;
 
 namespace AspNetReactTemplate.Server.Controllers
 {
@@ -12,11 +9,13 @@ namespace AspNetReactTemplate.Server.Controllers
     [Route("api/[controller]")]
     public class StepsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IStepsQueryService _stepsQueryService;
+        private readonly IStepsCommandService _stepsCommandService;
 
-        public StepsController(AppDbContext context)
+        public StepsController(IStepsQueryService stepsQueryService, IStepsCommandService stepsCommandService)
         {
-            _context = context;
+            _stepsQueryService = stepsQueryService;
+            _stepsCommandService = stepsCommandService;
         }
 
         // GET /api/Steps/{manualId}/completed
@@ -24,14 +23,9 @@ namespace AspNetReactTemplate.Server.Controllers
         [HttpGet("{manualId}/completed")]
         public async Task<ActionResult<IEnumerable<int>>> GetCompleted(int manualId)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var completedSteps = await _stepsQueryService.GetCompleted(manualId, User);
 
-            var completedStepIds = await _context.UserCompletedSteps
-                .Where(u => u.UserId == userId && u.ManualId == manualId)
-                .Select(u => u.StepId)
-                .ToListAsync();
-
-            return Ok(completedStepIds);
+            return Ok(completedSteps);
         }
 
         // POST /api/Steps/{manualId}/completed/{stepId}
@@ -39,27 +33,13 @@ namespace AspNetReactTemplate.Server.Controllers
         [HttpPost("{manualId}/completed/{stepId}")]
         public async Task<ActionResult> ToggleCompleted(int manualId, int stepId)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _stepsCommandService.ToggleCompleted(manualId, stepId, User);
 
-            var existing = await _context.UserCompletedSteps
-                .FirstOrDefaultAsync(u => u.UserId == userId && u.StepId == stepId);
-
-            if (existing is not null)
+            if (!result.IsSuccess)
             {
-                _context.UserCompletedSteps.Remove(existing);
-            }
-            else
-            {
-                _context.UserCompletedSteps.Add(new UserCompletedStep
-                {
-                    UserId = userId,
-                    StepId = stepId,
-                    ManualId = manualId,
-                    CompletedAt = DateTime.UtcNow
-                });
+                return Unauthorized();
             }
 
-            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -68,16 +48,11 @@ namespace AspNetReactTemplate.Server.Controllers
         [HttpDelete("{manualId}/completed")]
         public async Task<ActionResult> ResetCompleted(int manualId)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var result = await _stepsCommandService.ResetCompleted(manualId, User);
 
-            var rows = await _context.UserCompletedSteps
-                .Where(u => u.UserId == userId && u.ManualId == manualId)
-                .ToListAsync();
-
-            if (rows.Count > 0)
+            if (!result.IsSuccess)
             {
-                _context.UserCompletedSteps.RemoveRange(rows);
-                await _context.SaveChangesAsync();
+                return Unauthorized();
             }
 
             return NoContent();

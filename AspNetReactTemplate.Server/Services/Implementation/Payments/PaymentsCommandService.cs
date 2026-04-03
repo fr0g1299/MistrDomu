@@ -23,18 +23,18 @@ public class PaymentsCommandService : IPaymentsCommandService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ActionResult> CreateCheckout([FromBody] CheckoutRequest request, ClaimsPrincipal user)
+    public async Task<PaymentCheckoutResult> CreateCheckout([FromBody] CheckoutRequestDto request, ClaimsPrincipal user)
     {
         var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out var userId))
         {
-            return new UnauthorizedResult();
+            return new PaymentCheckoutResult(PaymentServiceStatus.Unauthorized);
         }
 
         var manual = await _context.Manuals.FindAsync(request.ManualId);
         if (manual is null)
         {
-            return new NotFoundObjectResult($"Manual with id {request.ManualId} was not found.");
+            return new PaymentCheckoutResult(PaymentServiceStatus.NotFound, ErrorMessage: $"Manual with id {request.ManualId} was not found.");
         }
 
         // If user already paid, nothing to do
@@ -42,7 +42,7 @@ public class PaymentsCommandService : IPaymentsCommandService
             .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
 
         if (alreadyPaid)
-            return new ObjectResult(new { alreadyPaid = true }) { StatusCode = 200 };
+            return new PaymentCheckoutResult(PaymentServiceStatus.Success, AlreadyPaid: true);
 
         var priceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripePriceId");
         var priceId = !string.IsNullOrEmpty(priceIdSetting?.Value)
@@ -50,7 +50,7 @@ public class PaymentsCommandService : IPaymentsCommandService
             : _configuration["Stripe:PriceId"] ?? _configuration["STRIPE_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
 
         if (string.IsNullOrEmpty(priceId))
-            return new ObjectResult(new { error = "Stripe Price ID is not configured." }) { StatusCode = 500 };
+            return new PaymentCheckoutResult(PaymentServiceStatus.Error, ErrorMessage: "Stripe Price ID is not configured.");
 
         var secretKeySetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeSecretKey");
         var secretKey = !string.IsNullOrEmpty(secretKeySetting?.Value)
@@ -58,7 +58,7 @@ public class PaymentsCommandService : IPaymentsCommandService
             : _configuration["Stripe:SecretKey"] ?? _configuration["STRIPE_SECRET_KEY"] ?? Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
 
         if (string.IsNullOrEmpty(secretKey))
-            return new ObjectResult(new { error = "Stripe Secret Key is not configured." }) { StatusCode = 500 };
+            return new PaymentCheckoutResult(PaymentServiceStatus.Error, ErrorMessage: "Stripe Secret Key is not configured.");
 
         // Build absolute success / cancel URLs
         var httpRequest = _httpContextAccessor.HttpContext?.Request;
@@ -95,10 +95,10 @@ public class PaymentsCommandService : IPaymentsCommandService
         }
         catch (StripeException ex)
         {
-            return new ObjectResult($"Stripe error: {ex.StripeError?.Message ?? ex.Message}") { StatusCode = 500 };
+            return new PaymentCheckoutResult(PaymentServiceStatus.Error, ErrorMessage: $"Stripe error: {ex.StripeError?.Message ?? ex.Message}");
         }
 
-        return new OkObjectResult(new { url = session.Url });
+        return new PaymentCheckoutResult(PaymentServiceStatus.Success, Url: session.Url);
     }
 
     public async Task<IActionResult> PaymentsWebhook()

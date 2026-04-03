@@ -11,7 +11,7 @@ public interface IPaymentsCommandService
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    Task<ActionResult> CreateCheckout([FromBody] CheckoutRequest request, ClaimsPrincipal user);
+    Task<PaymentCheckoutResult> CreateCheckout([FromBody] CheckoutRequestDto request, ClaimsPrincipal user);
 
     /// <summary>
     /// Stripe webhook endpoint that listens for payment events. When a payment is successful, this endpoint will be called by Stripe, and it should record the payment in the database by creating a ManualPayment entry for the user and manual associated with the payment. This ensures that the user's access to the manual is properly granted after a successful payment.

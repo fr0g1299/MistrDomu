@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models.DTOs.Payments;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Services.Abstraction.Payments;
@@ -15,21 +14,21 @@ public class PaymentsQueryService : IPaymentsQueryService
         _context = context;
     }
 
-    public async Task<ActionResult> CheckPaymentStatus(int manualId, ClaimsPrincipal user)
+    public async Task<PaymentStatusResult> CheckPaymentStatus(int manualId, ClaimsPrincipal user)
     {
         var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out var userId))
         {
-            return new UnauthorizedResult();
+            return new PaymentStatusResult(PaymentServiceStatus.Unauthorized);
         }
 
         var alreadyPaid = await _context.ManualPayments
             .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
 
-        return new OkObjectResult(new { hasPaid = alreadyPaid });
+        return new PaymentStatusResult(PaymentServiceStatus.Success, HasPaid: alreadyPaid);
     }
 
-    public async Task<ActionResult<IEnumerable<PaidAccessDto>>> GetPaidAccess()
+    public async Task<PaidAccessResult> GetPaidAccess()
     {
         var records = await _context.ManualPayments
                 .Include(p => p.User)
@@ -48,6 +47,6 @@ public class PaymentsQueryService : IPaymentsQueryService
                 })
                 .ToListAsync();
 
-        return new OkObjectResult(records);
+        return new PaidAccessResult(PaymentServiceStatus.Success, records);
     }
 }

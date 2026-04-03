@@ -1,6 +1,6 @@
 namespace AspNetReactTemplate.Server.Models.DTOs.Payments
 {
-    public class CheckoutRequest
+    public class CheckoutRequestDto
     {
         public int ManualId { get; set; }
     }

@@ -25,30 +25,22 @@ namespace AspNetReactTemplate.Server.Controllers
         {
             var historyResult = await _queryService.GetHistory(manualId, User);
 
-            if (historyResult.Result is UnauthorizedResult)
+            if (historyResult.Status == AiChatStatus.Unauthorized)
             {
                 return Unauthorized();
             }
 
-            if (historyResult.Result is NotFoundObjectResult notFoundResult)
+            if (historyResult.Status == AiChatStatus.NotFound)
             {
-                return NotFound(notFoundResult.Value);
+                return NotFound(historyResult.ErrorMessage);
             }
 
-            if (historyResult.Result is OkObjectResult okResult)
+            if (historyResult.Status == AiChatStatus.Success)
             {
-                var history = okResult.Value as IEnumerable<AiChatInteractionDto> ?? new List<AiChatInteractionDto>();
-                return Ok(history);
+                return Ok(historyResult.History ?? Array.Empty<AiChatInteractionDto>());
             }
 
-            if (historyResult.Result is not null)
-            {
-                return StatusCode((historyResult.Result as ObjectResult)?.StatusCode ?? 500, "Failed to retrieve chat history.");
-            }
-
-            var historyFromValue = historyResult.Value ?? new List<AiChatInteractionDto>();
-
-            return Ok(historyFromValue);
+            return StatusCode(500, historyResult.ErrorMessage ?? "Failed to retrieve chat history.");
         }
 
         // ── POST /api/aichat ────────────────────────────────────────────────
@@ -61,7 +53,28 @@ namespace AspNetReactTemplate.Server.Controllers
             }
 
             var result = await _commandService.PostMessage(request, User);
-            return result;
+
+            if (result.Status == AiChatStatus.Unauthorized)
+            {
+                return Unauthorized();
+            }
+
+            if (result.Status == AiChatStatus.RequiresPayment)
+            {
+                return StatusCode(402, new { requiresPayment = true, manualId = result.ManualId });
+            }
+
+            if (result.Status == AiChatStatus.NotFound)
+            {
+                return NotFound(result.ErrorMessage);
+            }
+
+            if (result.Status == AiChatStatus.Error)
+            {
+                return StatusCode(500, result.ErrorMessage);
+            }
+
+            return Ok(new { reply = result.Reply });
         }
     }
 }

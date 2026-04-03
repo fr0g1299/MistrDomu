@@ -26,12 +26,12 @@ public class AiChatCommandService : IAiChatCommandService
         _httpClient = httpClient;
     }
 
-    public async Task<ActionResult> PostMessage([FromBody] AiChatRequestDto request, ClaimsPrincipal user)
+    public async Task<AiChatMessageResult> PostMessage([FromBody] AiChatRequestDto request, ClaimsPrincipal user)
     {
         var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out var userId))
         {
-            return new UnauthorizedResult();
+            return new AiChatMessageResult(AiChatStatus.Unauthorized);
         }
 
         // ── Free tier limit: 2 interactions per manual ──────────────────────
@@ -45,10 +45,7 @@ public class AiChatCommandService : IAiChatCommandService
 
             if (!hasPaid)
             {
-                return new ObjectResult(new { requiresPayment = true, manualId = request.ManualId })
-                {
-                    StatusCode = 402
-                };
+                return new AiChatMessageResult(AiChatStatus.RequiresPayment, ManualId: request.ManualId);
             }
         }
 
@@ -61,7 +58,7 @@ public class AiChatCommandService : IAiChatCommandService
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            return new ObjectResult("API key is not configured.") { StatusCode = 500 };
+            return new AiChatMessageResult(AiChatStatus.Error, ErrorMessage: "API key is not configured.");
         }
 
         // ── Model: read from DB, default to gemini-2.5-flash-lite ──────────────
@@ -77,7 +74,7 @@ public class AiChatCommandService : IAiChatCommandService
 
         if (manual is null)
         {
-            return new NotFoundObjectResult($"Manual with id {request.ManualId} was not found.");
+            return new AiChatMessageResult(AiChatStatus.NotFound, ErrorMessage: $"Manual with id {request.ManualId} was not found.");
         }
 
         // ── 2. Load user's completed steps → map to 1-based display numbers ─
@@ -149,10 +146,7 @@ public class AiChatCommandService : IAiChatCommandService
 
         if (!response.IsSuccessStatusCode)
         {
-            return new ObjectResult("Error from Gemini API: " + responseString)
-            {
-                StatusCode = (int)response.StatusCode
-            };
+            return new AiChatMessageResult(AiChatStatus.Error, ErrorMessage: "Error from Gemini API: " + responseString);
         }
 
         // ── 6. Parse response ───────────────────────────────────────────────
@@ -177,7 +171,7 @@ public class AiChatCommandService : IAiChatCommandService
         _context.AiChatInteractions.Add(interaction);
         await _context.SaveChangesAsync();
 
-        return new OkObjectResult(new { reply = aiResponseText });
+        return new AiChatMessageResult(AiChatStatus.Success, Reply: aiResponseText);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

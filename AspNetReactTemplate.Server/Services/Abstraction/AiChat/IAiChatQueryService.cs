@@ -1,5 +1,4 @@
 using AspNetReactTemplate.Server.Models.DTOs.AiChat;
-using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AspNetReactTemplate.Server.Services.Abstraction.AiChat;
@@ -11,5 +10,5 @@ public interface IAiChatQueryService
     /// </summary>
     /// <param name="manualId"></param>
     /// <returns></returns>
-    Task<ActionResult<IEnumerable<AiChatInteractionDto>>> GetHistory(int manualId, ClaimsPrincipal user);
+    Task<AiChatHistoryResult> GetHistory(int manualId, ClaimsPrincipal user);
 }

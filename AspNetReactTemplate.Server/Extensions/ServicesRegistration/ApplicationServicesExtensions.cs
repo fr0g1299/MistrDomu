@@ -10,6 +10,8 @@ using AspNetReactTemplate.Server.Services.Abstraction.AiChat;
 using AspNetReactTemplate.Server.Services.Implementation.AiChat;
 using AspNetReactTemplate.Server.Services.Abstraction.Payments;
 using AspNetReactTemplate.Server.Services.Implementation.Payments;
+using AspNetReactTemplate.Server.Services.Abstraction.Steps;
+using AspNetReactTemplate.Server.Services.Implementation.Steps;
 
 namespace AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 
@@ -27,6 +29,8 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IPaymentsQueryService, PaymentsQueryService>();
         services.AddScoped<IAiChatCommandService, AiChatCommandService>();
         services.AddScoped<IAiChatQueryService, AiChatQueryService>();
+        services.AddScoped<IStepsCommandService, StepsCommandService>();
+        services.AddScoped<IStepsQueryService, StepsQueryService>();
 
         services.AddHttpContextAccessor();
         services.AddHttpClient();

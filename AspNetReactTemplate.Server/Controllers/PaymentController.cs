@@ -22,9 +22,31 @@ namespace AspNetReactTemplate.Server.Controllers
         /// <summary>Creates a Stripe Checkout session for purchasing AI access to a manual.</summary>
         [HttpPost("checkout")]
         [Authorize]
-        public async Task<ActionResult> CreateCheckout([FromBody] CheckoutRequest request)
+        public async Task<ActionResult> CreateCheckout([FromBody] CheckoutRequestDto request)
         {
-            return await _commandService.CreateCheckout(request, User);
+            var result = await _commandService.CreateCheckout(request, User);
+
+            if (result.Status == PaymentServiceStatus.Unauthorized)
+            {
+                return Unauthorized();
+            }
+
+            if (result.Status == PaymentServiceStatus.NotFound)
+            {
+                return NotFound(result.ErrorMessage);
+            }
+
+            if (result.Status == PaymentServiceStatus.Error)
+            {
+                return StatusCode(500, result.ErrorMessage);
+            }
+
+            if (result.AlreadyPaid)
+            {
+                return Ok(new { alreadyPaid = true });
+            }
+
+            return Ok(new { url = result.Url });
         }
 
         // ── POST /api/payment/webhook ─────────────────────────────────────────
@@ -44,18 +66,17 @@ namespace AspNetReactTemplate.Server.Controllers
         {
             var result = await _queryService.CheckPaymentStatus(manualId, User);
 
-            if (result is OkObjectResult okResult)
+            if (result.Status == PaymentServiceStatus.Unauthorized)
             {
-                return Ok(okResult.Value);
+                return Unauthorized();
             }
-            else if (result is ObjectResult errorResult)
+
+            if (result.Status == PaymentServiceStatus.Success)
             {
-                return StatusCode(errorResult.StatusCode ?? 500, errorResult.Value);
+                return Ok(new { hasPaid = result.HasPaid });
             }
-            else
-            {
-                return StatusCode(500, "Unexpected error checking payment status.");
-            }
+
+            return StatusCode(500, result.ErrorMessage ?? "Unexpected error checking payment status.");
         }
 
         // ── GET /api/payment/admin/paid-access ───────────────────────────────
@@ -66,18 +87,12 @@ namespace AspNetReactTemplate.Server.Controllers
         {
             var result = await _queryService.GetPaidAccess();
 
-            if (result.Result is OkObjectResult okResult)
+            if (result.Status == PaymentServiceStatus.Success)
             {
-                return Ok(okResult.Value);
+                return Ok(result.Records ?? Array.Empty<PaidAccessDto>());
             }
-            else if (result.Result is ObjectResult errorResult)
-            {
-                return StatusCode(errorResult.StatusCode ?? 500, errorResult.Value);
-            }
-            else
-            {
-                return StatusCode(500, "Unexpected error retrieving paid access records.");
-            }
+
+            return StatusCode(500, result.ErrorMessage ?? "Unexpected error retrieving paid access records.");
         }
     }
 }

@@ -11,5 +11,5 @@ public interface IAiChatCommandService
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    Task<ActionResult> PostMessage([FromBody] AiChatRequestDto request, ClaimsPrincipal user);
+    Task<AiChatMessageResult> PostMessage([FromBody] AiChatRequestDto request, ClaimsPrincipal user);
 }
