@@ -31,6 +31,8 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IAiChatQueryService, AiChatQueryService>();
         services.AddScoped<IStepsCommandService, StepsCommandService>();
         services.AddScoped<IStepsQueryService, StepsQueryService>();
+        services.AddScoped<IExpertManualHelpCommandService, ExpertManualHelpCommandService>();
+        services.AddScoped<IExpertManualHelpQueryService, ExpertManualHelpQueryService>();
 
         services.AddHttpContextAccessor();
         services.AddHttpClient();

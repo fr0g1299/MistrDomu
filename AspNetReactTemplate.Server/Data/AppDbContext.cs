@@ -25,6 +25,7 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<UserCompletedStep> UserCompletedSteps { get; set; }
         public DbSet<ManualPayment> ManualPayments { get; set; }
+        public DbSet<ExpertManualHelp> ExpertManualHelps { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -88,6 +89,21 @@ namespace AspNetReactTemplate.Server.Data
                 .HasOne(u => u.Step)
                 .WithMany()
                 .HasForeignKey(u => u.StepId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExpertManualHelp>()
+                .HasKey(s => new { s.ExpertId, s.ManualId });
+
+            modelBuilder.Entity<ExpertManualHelp>()
+                .HasOne(s => s.Expert)
+                .WithMany()
+                .HasForeignKey(s => s.ExpertId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExpertManualHelp>()
+                .HasOne(s => s.Manual)
+                .WithMany()
+                .HasForeignKey(s => s.ManualId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ManualPayments: unique per (UserId, ManualId)

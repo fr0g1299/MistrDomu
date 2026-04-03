@@ -1,6 +1,7 @@
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Models.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 namespace AspNetReactTemplate.Server.Extensions.ServicesRegistration;
@@ -15,6 +16,8 @@ public static class IdentityExtensions
             .AddDefaultTokenProviders();
 
         services.AddAuthorization(options => options.AddCustomPolicies());
+        services.AddScoped<IAuthorizationHandler, AdminOrSelfExpertHandler>();
+        services.AddScoped<IAuthorizationHandler, AdminOrAssignedManualHandler>();
 
         services.ConfigureApplicationCookie(options =>
         {

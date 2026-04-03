@@ -79,6 +79,7 @@ namespace AspNetReactTemplate.Server.Controllers
 
                 var userDto = new CurrentUserDto
                 {
+                    Id = appUser.Id,
                     IsAuthenticated = true,
                     Email = appUser.Email,
                     FirstName = appUser.FirstName,
