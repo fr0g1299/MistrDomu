@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, Loader2, Settings } from "lucide-react";
+import { BookOpen, LogOut, Loader2, Settings } from "lucide-react";
 
 type HeaderProps = {
   onNavigateHome: () => void;
@@ -24,7 +24,7 @@ type HeaderProps = {
 export default function Header({ onNavigateHome }: HeaderProps) {
   const navigate = useNavigate();
   
-  const { user, isAdmin, isAuthenticated, logout, fetchUser } = useAuth();
+  const { user, isAdmin, isExpert, isAuthenticated, logout, fetchUser } = useAuth();
   
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -59,9 +59,20 @@ export default function Header({ onNavigateHome }: HeaderProps) {
         </Link>
 
         <div className="flex items-center gap-2 md:gap-4 text-sm font-medium">
+
+          <Button
+            asChild
+            variant="ghost"
+            className="h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2"
+          >
+            <Link to="/search">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden md:inline">Návody</span>
+            </Link>
+          </Button>
           
-          {/* SEKCE SPRÁVA - uvidí ji jen Admin */}
-          {isAdmin && (
+          {/* SEKCE SPRÁVA - pro Admina i budoucího Experta */}
+          {(isAdmin || isExpert) && (
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -73,14 +84,36 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" sideOffset={10}>
-                <DropdownMenuLabel>Administrace</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => navigate("/tools-management")} 
-                  className="cursor-pointer"
-                >
-                  Nástroje
-                </DropdownMenuItem>
+                {isAdmin ? (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/tools-management")}
+                      className="cursor-pointer"
+                    >
+                      Nástroje
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/admin/manual-help-management")}
+                      className="cursor-pointer"
+                    >
+                      Pomoc s návody (admin)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/manual-help-management")}
+                      className="cursor-pointer"
+                    >
+                      Spravovat mé návody
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={() => navigate("/manual-help-management")}
+                    className="cursor-pointer"
+                  >
+                    Spravovat mé návody
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

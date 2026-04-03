@@ -1,6 +1,16 @@
 import { Tool } from "@/types/tool";
 import { Manual, GuideStep } from "../types/manual";
 
+export type ExpertForManualRead = {
+  expertId: number;
+  expertName: string;
+};
+
+export type ManualForExpertRead = {
+  manualId: number;
+  manualTitle: string;
+};
+
 const API_BASE_URL = "/api";
 
 async function requestJson<T>(path: string): Promise<T> {
@@ -96,5 +106,58 @@ export const apiService = {
       method: "DELETE",
       credentials: "include",
     });
+  },
+
+  async registerAsManualHelper(
+    manualId: number,
+    expertId: number,
+  ): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/ExpertManualHelp`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ manualId, expertId }),
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Request failed (${response.status})`);
+    }
+  },
+
+  async getExpertsForManual(manualId: number): Promise<ExpertForManualRead[]> {
+    return requestJson<ExpertForManualRead[]>(
+      `/ExpertManualHelp/manual/${manualId}/experts`,
+    );
+  },
+
+  async getManualsForExpert(expertId: number): Promise<ManualForExpertRead[]> {
+    return requestJson<ManualForExpertRead[]>(
+      `/ExpertManualHelp/expert/${expertId}/manuals`,
+    );
+  },
+
+  async addManualToExpert(manualId: number, expertId: number): Promise<void> {
+    return apiService.registerAsManualHelper(manualId, expertId);
+  },
+
+  async removeManualFromExpert(
+    manualId: number,
+    expertId: number,
+  ): Promise<void> {
+    const response = await fetch(
+      `${API_BASE_URL}/ExpertManualHelp/manual/${manualId}/expert/${expertId}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Request failed (${response.status})`);
+    }
   },
 };

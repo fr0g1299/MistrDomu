@@ -14,6 +14,8 @@ import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/Search";
 import GuidePage from "./pages/Guide";
 import ToolsManagement from "./pages/ToolsManagement";
+import ManualHelpManagement from "./pages/ManualHelpManagement";
+import AdminManualHelpManagement from "./pages/AdminManualHelpManagement";
 import AdminPaidAccess from "./pages/AdminPaidAccess";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
@@ -23,6 +25,15 @@ const AdminRoute = ({ children }: { children: JSX.Element }) => {
 
   if (loading) return null;
   if (!isAuthenticated || !isAdmin) return <Navigate to="/" replace />;
+
+  return children;
+};
+
+const ManagementRoute = ({ children }: { children: JSX.Element }) => {
+  const { isAdmin, isExpert, loading, isAuthenticated } = useAuth();
+
+  if (loading) return null;
+  if (!isAuthenticated || (!isAdmin && !isExpert)) return <Navigate to="/" replace />;
 
   return children;
 };
@@ -70,6 +81,24 @@ function App() {
               element={
                 <AdminRoute>
                   <ToolsManagement />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/manual-help-management"
+              element={
+                <ManagementRoute>
+                  <ManualHelpManagement />
+                </ManagementRoute>
+              }
+            />
+
+            <Route
+              path="/admin/manual-help-management"
+              element={
+                <AdminRoute>
+                  <AdminManualHelpManagement />
                 </AdminRoute>
               }
             />

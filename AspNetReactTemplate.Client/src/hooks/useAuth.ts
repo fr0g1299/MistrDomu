@@ -9,8 +9,15 @@ export const useAuth = () => {
     throw new Error("useAuth musí být použit uvnitř AuthProvideru");
   }
 
-  const { user, loading, logout, isAdmin, isAuthenticated, fetchUser } =
-    context;
+  const {
+    user,
+    loading,
+    logout,
+    isAdmin,
+    isExpert,
+    isAuthenticated,
+    fetchUser,
+  } = context;
 
   const hasRole = (role: Role) => {
     return user?.roles?.includes(role) ?? false;
@@ -21,6 +28,7 @@ export const useAuth = () => {
     loading,
     isAuthenticated,
     isAdmin,
+    isExpert,
     hasRole,
     logout,
     fetchUser,

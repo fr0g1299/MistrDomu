@@ -5,6 +5,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  isExpert: boolean;
   isAuthenticated: boolean;
   setUser: (user: User | null) => void;
   logout: () => Promise<boolean>;
@@ -43,6 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchUser]);
 
   const isAdmin = user?.roles?.includes(Role.Admin) ?? false;
+  const isExpert = user?.roles?.includes(Role.Expert) ?? false;
   const isAuthenticated = !!user && user.isAuthenticated;
 
   const logout = async () => {
@@ -65,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     loading,
     isAdmin,
+    isExpert,
     isAuthenticated,
     setUser,
     logout,

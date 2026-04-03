@@ -8,6 +8,9 @@ import { apiService } from "@/lib/apiService";
 
 import { Manual, GuideStep, TableOfContentsItem } from "@/types/manual";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { CheckCircle2, UserPlus } from "lucide-react";
 
 type ToolRead = { id: number; name: string; url?: string };
 
@@ -38,7 +41,9 @@ const mapStepsToLocalSequence = (steps: GuideStep[]): GuideStep[] => {
 };
 
 export default function Guide() {
+  const { user, isExpert, isAdmin } = useAuth();
   const { manualId } = useParams<{ manualId: string }>();
+  const userId = user?.id;
   const location = useLocation();
   const locationState = location.state as { manual?: Manual } | null;
   const manualFromState = locationState?.manual;
@@ -68,6 +73,13 @@ export default function Guide() {
   );
   const [activeSectionId, setActiveSectionId] =
     useState<string>("introduction");
+  const [helperEnrollLoading, setHelperEnrollLoading] = useState(false);
+  const [helperStatusLoading, setHelperStatusLoading] = useState(false);
+  const [helperAlreadyEnrolled, setHelperAlreadyEnrolled] = useState(false);
+  const [helperEnrollMessage, setHelperEnrollMessage] = useState<string | null>(
+    null,
+  );
+  const [helperEnrollError, setHelperEnrollError] = useState<string | null>(null);
 
   useEffect(() => {
     const parsedManualId = Number(manualId);
@@ -188,6 +200,49 @@ export default function Guide() {
     };
   }, [manualId]);
 
+  useEffect(() => {
+    const parsedManualId = Number(manualId);
+    if (
+      !userId ||
+      (!isExpert && !isAdmin) ||
+      !Number.isInteger(parsedManualId) ||
+      parsedManualId <= 0
+    ) {
+      setHelperAlreadyEnrolled(false);
+      setHelperStatusLoading(false);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchHelperStatus = async () => {
+      setHelperStatusLoading(true);
+
+      try {
+        const manuals = await apiService.getManualsForExpert(userId);
+        if (isCancelled) return;
+
+        setHelperAlreadyEnrolled(
+          manuals.some((manual) => manual.manualId === parsedManualId),
+        );
+      } catch {
+        if (!isCancelled) {
+          setHelperAlreadyEnrolled(false);
+        }
+      } finally {
+        if (!isCancelled) {
+          setHelperStatusLoading(false);
+        }
+      }
+    };
+
+    fetchHelperStatus();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [manualId, userId, isExpert, isAdmin]);
+
   // Load completed steps from the server once steps are available
   useEffect(() => {
     const parsedManualId = Number(manualId);
@@ -257,6 +312,42 @@ export default function Guide() {
     setActiveSectionId(sectionId);
   }, []);
 
+  const handleEnrollAsHelper = useCallback(async () => {
+    const parsedManualId = Number(manualId);
+    if (!Number.isInteger(parsedManualId) || parsedManualId <= 0) {
+      return;
+    }
+
+    if (helperAlreadyEnrolled) {
+      setHelperEnrollMessage("Jste už zapsáni jako pomocník pro tento návod.");
+      setHelperEnrollError(null);
+      return;
+    }
+
+    if (!userId) {
+      setHelperEnrollError("Nepodařilo se určit vaše uživatelské ID.");
+      return;
+    }
+
+    setHelperEnrollLoading(true);
+    setHelperEnrollError(null);
+    setHelperEnrollMessage(null);
+
+    try {
+      await apiService.registerAsManualHelper(parsedManualId, userId);
+      setHelperAlreadyEnrolled(true);
+      setHelperEnrollMessage("Byli jste zapsáni jako pomocník pro tento návod.");
+    } catch (err: unknown) {
+      setHelperEnrollError(
+        err instanceof Error
+          ? err.message
+          : "Nepodařilo se zapsat jako pomocník.",
+      );
+    } finally {
+      setHelperEnrollLoading(false);
+    }
+  }, [manualId, userId, helperAlreadyEnrolled]);
+
   useEffect(() => {
     const updateActiveSection = () => {
       const offset = 140;
@@ -311,6 +402,46 @@ export default function Guide() {
         )}
         {stepsError && (
           <p className="mb-4 text-sm text-destructive">{stepsError}</p>
+        )}
+        {(isExpert || isAdmin) && (
+          <div className="mb-6 rounded-xl border border-border bg-card p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold">Expert pomocník</p>
+                <p className="text-sm text-muted-foreground">
+                  Pokud chcete pomáhat s tímto návodem, zapište se jako pomocník.
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleEnrollAsHelper}
+                disabled={helperEnrollLoading || helperStatusLoading || helperAlreadyEnrolled}
+                variant={helperAlreadyEnrolled ? "secondary" : "default"}
+              >
+                {helperStatusLoading ? (
+                  "Kontroluji stav..."
+                ) : helperAlreadyEnrolled ? (
+                  <span className="inline-flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Jste pomocník
+                  </span>
+                ) : helperEnrollLoading ? (
+                  "Zapisuji..."
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Zapsat se jako pomocník
+                  </span>
+                )}
+              </Button>
+            </div>
+            {helperEnrollMessage && (
+              <p className="mt-3 text-sm text-emerald-600">{helperEnrollMessage}</p>
+            )}
+            {helperEnrollError && (
+              <p className="mt-3 text-sm text-destructive">{helperEnrollError}</p>
+            )}
+          </div>
         )}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
           <GuideSteps
