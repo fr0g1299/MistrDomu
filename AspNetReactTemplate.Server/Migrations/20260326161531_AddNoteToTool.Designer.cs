@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260403154658_AddExpertRole")]
-    partial class AddExpertRole
+    [Migration("20260326161531_AddNoteToTool")]
+    partial class AddNoteToTool
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,13 +69,6 @@ namespace AspNetReactTemplate.Server.Migrations
                             ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f158",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f155",
-                            Name = "Expert",
-                            NormalizedName = "EXPERT"
                         });
                 });
 
@@ -202,11 +195,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<string>("RequiredTools")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
                     b.PrimitiveCollection<List<string>>("Tags")
                         .IsRequired()
                         .HasColumnType("text[]");
@@ -241,6 +229,10 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Property<int>("ManualId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("Order");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -248,9 +240,39 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManualId");
+                    b.HasIndex("ManualId", "OrderNumber")
+                        .IsUnique();
 
                     b.ToTable("Steps");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Tool", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tools");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.WaitlistEmail", b =>
@@ -272,6 +294,21 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WaitlistEmails");
+                });
+
+            modelBuilder.Entity("ManualTools", b =>
+                {
+                    b.Property<int>("ManualId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ToolId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ManualId", "ToolId");
+
+                    b.HasIndex("ToolId");
+
+                    b.ToTable("ManualTools", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -393,6 +430,21 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Manual");
+                });
+
+            modelBuilder.Entity("ManualTools", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", null)
+                        .WithMany()
+                        .HasForeignKey("ManualId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Tool", null)
+                        .WithMany()
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

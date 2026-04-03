@@ -24,6 +24,91 @@ namespace AspNetReactTemplate.Server.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.AiChatInteraction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AiResponse")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ManualId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserMessage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ManualId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AiChatInteractions");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.AppSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Value")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("AppSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Key = "GeminiApiKey",
+                            Description = "API klíč pro Google Gemini. Pokud je nastaven, má přednost před proměnnou prostředí GEMINI_API_KEY.",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Key = "GeminiModel",
+                            Description = "Název modelu Gemini, který se má používat (např. gemini-2.5-flash-lite, gemini-1.5-pro).",
+                            Value = "gemini-2.5-flash-lite"
+                        },
+                        new
+                        {
+                            Key = "StripeSecretKey",
+                            Description = "Tajný klíč pro Stripe API. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_SECRET_KEY.",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Key = "StripeWebhookSecret",
+                            Description = "Secret pro Stripe Webhooky. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_WEBHOOK_SECRET.",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Key = "StripePriceId",
+                            Description = "ID ceny ve Stripe, která se má použít pro platby. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_PRICE_ID.",
+                            Value = ""
+                        });
+                });
+
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -173,6 +258,37 @@ namespace AspNetReactTemplate.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.ManualPayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ManualId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("StripeSessionId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ManualId");
+
+                    b.HasIndex("UserId", "ManualId")
+                        .IsUnique();
+
+                    b.ToTable("ManualPayments");
+                });
+
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Manual", b =>
                 {
                     b.Property<int>("Id")
@@ -198,11 +314,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
-
-                    b.Property<string>("RequiredTools")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
 
                     b.PrimitiveCollection<List<string>>("Tags")
                         .IsRequired()
@@ -238,6 +349,10 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Property<int>("ManualId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("Order");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -245,9 +360,62 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManualId");
+                    b.HasIndex("ManualId", "OrderNumber")
+                        .IsUnique();
 
                     b.ToTable("Steps");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Tool", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tools");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.UserCompletedStep", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StepId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ManualId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "StepId");
+
+                    b.HasIndex("ManualId");
+
+                    b.HasIndex("StepId");
+
+                    b.ToTable("UserCompletedSteps");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.WaitlistEmail", b =>
@@ -269,6 +437,21 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WaitlistEmails");
+                });
+
+            modelBuilder.Entity("ManualTools", b =>
+                {
+                    b.Property<int>("ManualId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ToolId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ManualId", "ToolId");
+
+                    b.HasIndex("ToolId");
+
+                    b.ToTable("ManualTools", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -381,6 +564,44 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.AiChatInteraction", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", "Manual")
+                        .WithMany()
+                        .HasForeignKey("ManualId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Manual");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.ManualPayment", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", "Manual")
+                        .WithMany()
+                        .HasForeignKey("ManualId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Manual");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Step", b =>
                 {
                     b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", "Manual")
@@ -390,6 +611,48 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Manual");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.UserCompletedStep", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", "Manual")
+                        .WithMany()
+                        .HasForeignKey("ManualId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Step", "Step")
+                        .WithMany()
+                        .HasForeignKey("StepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Manual");
+
+                    b.Navigation("Step");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ManualTools", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", null)
+                        .WithMany()
+                        .HasForeignKey("ManualId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Tool", null)
+                        .WithMany()
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

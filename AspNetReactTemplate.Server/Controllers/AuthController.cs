@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Auth;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Register;
+using System.Security.Claims;
 
 namespace AspNetReactTemplate.Server.Controllers
 {
@@ -82,6 +83,7 @@ namespace AspNetReactTemplate.Server.Controllers
                     Email = appUser.Email,
                     FirstName = appUser.FirstName,
                     LastName = appUser.LastName,
+                    Roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList()
                 };
 
                 return Ok(userDto);

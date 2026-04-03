@@ -14,6 +14,8 @@ public static class IdentityExtensions
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
+        services.AddAuthorization(options => options.AddCustomPolicies());
+
         services.ConfigureApplicationCookie(options =>
         {
             options.Cookie.Name = "mistrdomu_auth";
@@ -46,7 +48,7 @@ public static class IdentityExtensions
             options.Lockout.AllowedForNewUsers = true;
             options.Lockout.MaxFailedAccessAttempts = 10;
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-            
+
             options.User.RequireUniqueEmail = false;
         });
 

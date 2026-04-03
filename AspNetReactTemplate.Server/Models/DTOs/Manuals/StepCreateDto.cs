@@ -14,6 +14,9 @@ public class StepCreateDto
     [MinLength(10, ErrorMessage = "Obsah kroku musi byt alespon 10 znaku.")]
     public string Content { get; set; } = null!;
 
+    [Required]
+    public int OrderNumber { get; set; }
+
     [StringLength(500, ErrorMessage = "URL nesmi byt delsi nez 500 znaku.")]
     public string? ImageUrl { get; set; }
 }

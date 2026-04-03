@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -197,6 +198,20 @@
   --color-primary-800: oklch(0.4732 0.1247 46.2);
   --color-primary-900: oklch(0.4137 0.1054 45.9);
   --color-primary-950: oklch(0.2791 0.0742 45.64);
+
+  /* Bounce Animation */
+  --animate-bounce: bounce 2s ease-in-out infinite;
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(-8%);
+      animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+    }
+    50% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);
+    }
+  }
 }
 
 @layer base {
@@ -232,6 +247,44 @@
   }
   75% {
     opacity: 1;
+  }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Prose Utility */
+@utility prose {
+  --tw-prose-invert-body: var(--foreground);
+  /* TODO: Maybe remove color for headings */
+  --tw-prose-invert-headings: var(--color-primary-400);
+  --tw-prose-invert-links: var(--primary);
+  --tw-prose-invert-bullets: var(--color-primary-800);
+}
+
+/* ! May do problem in the future */
+@layer components {
+  .prose-sm {
+    font-size: 0.875rem !important;
+    line-height: 1rem !important;
+  }
+  .prose-sm ul > li,
+  .prose-sm ol > li {
+    margin-top: 0.125rem !important;
+    margin-bottom: 0.125rem !important;
+  }
+  .prose-sm ul,
+  .prose-sm ol {
+    padding-left: 1rem !important;
+  }
+
+  .prose-sm h3 {
+    margin-top: 1em !important;
   }
 }
 

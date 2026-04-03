@@ -25,7 +25,4 @@ public class ManualUpdateDto
     public Difficulty Difficulty { get; set; }
 
     public int EstimatedTimeMinutes { get; set; }
-
-    [StringLength(1000, ErrorMessage = "Nastroje nesmi byt delsi nez 1000 znaku.")]
-    public string RequiredTools { get; set; } = null!;
 }

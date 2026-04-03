@@ -1,5 +1,7 @@
 export interface GuideStep {
   id: number;
+  /** Original DB step ID — preserved before the local-sequence remapper overwrites id. */
+  dbId?: number;
   title: string;
   content: string;
   imageUrl?: string;
@@ -14,7 +16,6 @@ export interface Manual {
   description: string;
   difficulty: number;
   estimatedTimeMinutes: number;
-  requiredTools: string;
   steps?: GuideStep[];
   createdAt: string;
 }

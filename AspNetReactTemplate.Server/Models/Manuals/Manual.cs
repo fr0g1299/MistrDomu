@@ -20,17 +20,17 @@ namespace AspNetReactTemplate.Server.Models.Manuals
         [MinLength(1, ErrorMessage = "Musí být alespoň jeden krok.")]
         public virtual ICollection<Step> Steps { get; set; } = new List<Step>();
 
-        //[Required]
-        //[MinLength(1, ErrorMessage = "Musí být alespoň jeden tag.")]
+        [Required]
+        [MinLength(1, ErrorMessage = "Musí být alespoň jeden tag.")]
         public List<string> Tags { get; set; } = new List<string>();
 
         public Difficulty Difficulty { get; set; }
 
         public int EstimatedTimeMinutes { get; set; }
 
-        // Pro jednoduchost teď jako jeden řetězec, později může být List<Tool>
-        [StringLength(1000, ErrorMessage = "Nástroje nesmí být delší než 1000 znaků.")]
-        public string RequiredTools { get; set; } = string.Empty;
+        [Required]
+        [MinLength(1, ErrorMessage = "Musí být alespoň jeden nástroj.")]
+        public virtual ICollection<Tool> Tools { get; set; } = new List<Tool>();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

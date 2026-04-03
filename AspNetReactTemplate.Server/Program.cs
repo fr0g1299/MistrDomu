@@ -11,6 +11,8 @@ if (File.Exists(rootEnvPath))
     Env.Load(rootEnvPath);
 }
 
+// Configure Stripe global API key will be done after builder is built to access DB.
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -18,6 +20,7 @@ builder.Services.AddCustomDatabase(builder.Configuration);
 builder.Services.AddCustomIdentity();
 builder.Services.AddApplicationServices();
 builder.Services.AddAuthorization(UserPolicy.AddPolicies);
+
 
 // Configure the HTTP request pipeline.
 var app = builder.Build();
@@ -34,7 +37,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        logger.LogError(ex, "An error occurred while migrating the database or loading settings.");
     }
 }
 app.UseAuthentication();

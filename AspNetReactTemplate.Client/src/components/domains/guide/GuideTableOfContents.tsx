@@ -1,4 +1,6 @@
-import { ArrowRight, CheckCircle2, RotateCcw } from "lucide-react";
+import { CheckCircle2, RotateCcw } from "lucide-react";
+
+import { GuideAiAssistantCard } from "@/components/domains/guide/GuideAiAssistantCard";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +15,7 @@ type GuideTableOfContentsProps = {
   activeSectionId: string;
   onScrollTo: (sectionId: string) => void;
   onResetCompletedSteps: () => void;
+  manualId: number;
 };
 
 export function GuideTableOfContents({
@@ -22,9 +25,10 @@ export function GuideTableOfContents({
   activeSectionId,
   onScrollTo,
   onResetCompletedSteps,
+  manualId,
 }: GuideTableOfContentsProps) {
   return (
-    <aside className="hidden h-fit flex-col gap-4 lg:sticky lg:top-24 lg:col-span-1 lg:flex">
+    <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-1 lg:flex">
       <Card className="gap-4 border-border bg-card p-5">
         <div>
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-primary">
@@ -78,13 +82,14 @@ export function GuideTableOfContents({
                 key={`toc-step-${step.id}`}
                 type="button"
                 onClick={() => onScrollTo(stepSectionId)}
-                className={
+                className={`flex items-center justify-between w-full rounded-md border-l-2 px-3 py-3 transition-colors duration-300
+                ${
                   isActive
-                    ? "flex items-center justify-between rounded-md border-l-2 border-primary bg-primary/10 px-3 py-3 transition-colors duration-300"
+                    ? "border-primary bg-primary/10"
                     : isCompleted
-                      ? "flex items-center justify-between rounded-md border-l-2 border-transparent bg-zinc-300/50 dark:bg-zinc-800/50 px-3 py-3 opacity-80 transition-colors duration-300"
-                      : "flex items-center justify-between rounded-md border-l-2 border-transparent px-3 py-3 hover:bg-zinc-300 dark:hover:bg-zinc-800 transition-colors duration-300"
-                }
+                      ? "border-transparent bg-zinc-300/50 dark:bg-zinc-800/50 opacity-80"
+                      : "border-transparent hover:bg-zinc-300 dark:hover:bg-zinc-800"
+                }`}
               >
                 <div className="flex gap-3 min-w-0 items-center">
                   <span
@@ -141,23 +146,7 @@ export function GuideTableOfContents({
         </Button>
       </Card>
 
-      {/* For future */}
-      <Card className="gap-3 border-primary/30 bg-primary/5 p-5">
-        <h3 className="text-base font-bold">Potřebujete pomoc?</h3>
-        <p className="text-sm text-zinc-400">
-          Naše odborná komunita je k dispozici 24/7, aby odpověděla na vaše
-          otázky k opravám.
-        </p>
-        <button
-          type="button"
-          disabled
-          onClick={() => onScrollTo("introduction")}
-          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-primary hover:underline"
-        >
-          Zeptejte se
-          <ArrowRight className="size-4" />
-        </button>
-      </Card>
+      <GuideAiAssistantCard manualId={manualId} />
     </aside>
   );
 }

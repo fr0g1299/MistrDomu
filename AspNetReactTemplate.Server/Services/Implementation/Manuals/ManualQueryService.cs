@@ -71,6 +71,8 @@ public class ManualQueryService : IManualQueryService
         var steps = await _context.Steps
             .AsNoTracking()
             .Where(s => s.ManualId == manualId)
+            .OrderBy(s => s.OrderNumber)
+            .ThenBy(s => s.Id)
             .ToListAsync();
 
         return steps.Select(step => new StepReadDto
@@ -78,6 +80,7 @@ public class ManualQueryService : IManualQueryService
             Id = step.Id,
             Title = step.Title,
             Content = step.Content,
+            OrderNumber = step.OrderNumber,
             ImageUrl = step.ImageUrl,
             ManualId = step.ManualId
         });
@@ -106,14 +109,16 @@ public class ManualQueryService : IManualQueryService
             Description = manual.Description,
             Difficulty = manual.Difficulty,
             EstimatedTimeMinutes = manual.EstimatedTimeMinutes,
-            RequiredTools = manual.RequiredTools,
             Steps = includeSteps
                 ? manual.Steps
+                    .OrderBy(step => step.OrderNumber)
+                    .ThenBy(step => step.Id)
                     .Select(step => new StepReadDto
                     {
                         Id = step.Id,
                         Title = step.Title,
                         Content = step.Content,
+                        OrderNumber = step.OrderNumber,
                         ImageUrl = step.ImageUrl,
                         ManualId = step.ManualId
                     })

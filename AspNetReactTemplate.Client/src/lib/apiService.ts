@@ -1,3 +1,4 @@
+import { Tool } from "@/types/tool";
 import { Manual, GuideStep } from "../types/manual";
 
 const API_BASE_URL = "/api";
@@ -38,6 +39,7 @@ async function requestJson<T>(path: string): Promise<T> {
 }
 
 export const apiService = {
+  // Manuals
   async getAllManuals(includeSteps = false): Promise<Manual[]> {
     return requestJson<Manual[]>(`/manuals?includeSteps=${includeSteps}`);
   },
@@ -62,5 +64,37 @@ export const apiService = {
 
   async getManualSteps(manualId: number): Promise<GuideStep[]> {
     return requestJson<GuideStep[]>(`/manuals/${manualId}/steps`);
+  },
+
+  // Tools
+  async getTools(): Promise<Tool[]> {
+    return requestJson<Tool[]>(`/tools`);
+  },
+
+  async getTool(id: number): Promise<Tool> {
+    return requestJson<Tool>(`/tools/${id}`);
+  },
+
+  async getManualTools(manualId: number): Promise<Tool[]> {
+    return requestJson<Tool[]>(`/manuals/${manualId}/tools`);
+  },
+
+  // Completed steps
+  async getCompletedSteps(manualId: number): Promise<number[]> {
+    return requestJson<number[]>(`/steps/${manualId}/completed`);
+  },
+
+  async toggleCompletedStep(manualId: number, stepId: number): Promise<void> {
+    await fetch(`${API_BASE_URL}/steps/${manualId}/completed/${stepId}`, {
+      method: "POST",
+      credentials: "include",
+    });
+  },
+
+  async resetCompletedSteps(manualId: number): Promise<void> {
+    await fetch(`${API_BASE_URL}/steps/${manualId}/completed`, {
+      method: "DELETE",
+      credentials: "include",
+    });
   },
 };
