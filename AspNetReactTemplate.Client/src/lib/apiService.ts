@@ -1,15 +1,22 @@
 import { Tool } from "@/types/tool";
 import { Manual, GuideStep } from "../types/manual";
+import type { AdminUsersPage, AdminUsersQuery } from "@/types/adminUser";
+import type { Role } from "@/types/auth";
 
 const API_BASE_URL = "/api";
 
-async function requestJson<T>(path: string): Promise<T> {
+async function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "application/json");
+
+  if (init.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "GET",
     credentials: "include",
-    headers: {
-      Accept: "application/json",
-    },
+    ...init,
+    headers,
   });
 
   if (!response.ok) {
@@ -19,8 +26,24 @@ async function requestJson<T>(path: string): Promise<T> {
       const contentType = response.headers.get("content-type") ?? "";
       if (contentType.includes("application/json")) {
         const body = await response.json();
-        if (body?.message && typeof body.message === "string") {
+        const errors = body?.errors ?? body?.Errors;
+
+        if (typeof body?.message === "string") {
           message = body.message;
+        } else if (typeof body?.Message === "string") {
+          message = body.Message;
+        } else if (Array.isArray(errors) && errors.length > 0) {
+          const fromArray = errors.filter((item): item is string => typeof item === "string");
+          if (fromArray.length > 0) {
+            message = fromArray.join("\n");
+          }
+        } else if (errors && typeof errors === "object") {
+          const flattened = Object.values(errors as Record<string, string[]>)
+            .flat()
+            .filter(Boolean);
+          if (flattened.length > 0) {
+            message = flattened.join("\n");
+          }
         }
       } else {
         const text = await response.text();
@@ -39,6 +62,28 @@ async function requestJson<T>(path: string): Promise<T> {
 }
 
 export const apiService = {
+  // Admin users
+  async getUsers(query: AdminUsersQuery = {}): Promise<AdminUsersPage> {
+    const params = new URLSearchParams();
+
+    if (query.search?.trim()) params.set("search", query.search.trim());
+    if (query.role?.trim()) params.set("role", query.role.trim());
+    if (query.sortDirection) params.set("sortDirection", query.sortDirection);
+    if (query.sortBy) params.set("sortBy", query.sortBy);
+    if (query.page) params.set("page", String(query.page));
+    if (query.pageSize) params.set("pageSize", String(query.pageSize));
+
+    const suffix = params.toString();
+    return requestJson<AdminUsersPage>(`/SelectUser${suffix ? `?${suffix}` : ""}`);
+  },
+
+  async setUserRole(userId: number, role: Role): Promise<{ message: string }> {
+    return requestJson<{ message: string }>(`/EditUser/${userId}/role`, {
+      method: "PUT",
+      body: JSON.stringify({ role }),
+    });
+  },
+
   // Manuals
   async getAllManuals(includeSteps = false): Promise<Manual[]> {
     return requestJson<Manual[]>(`/manuals?includeSteps=${includeSteps}`);

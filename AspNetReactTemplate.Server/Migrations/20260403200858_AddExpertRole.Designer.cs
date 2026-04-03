@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260403162730_AddExpertRole")]
+    [Migration("20260403200858_AddExpertRole")]
     partial class AddExpertRole
     {
         /// <inheritdoc />

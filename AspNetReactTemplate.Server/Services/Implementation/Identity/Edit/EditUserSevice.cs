@@ -1,15 +1,19 @@
-using System.Security.Claims;
 using AspNetReactTemplate.Server.Models.DTOs.System;
 using AspNetReactTemplate.Server.Models.Identity;
-using AspNetReactTemplate.Server.Models.Identity.Enums;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.Identity.Edit;
 
 public class EditUserService : IEditUserService
 {
+    private const string GenericFailureMessage = "Operace se nezdařila.";
+    private const string RoleDoesNotExistMessage = "Požadovaná role neexistuje.";
+    private const string UserNotFoundMessage = "Uživatel nebyl nalezen.";
+    private const string ForbiddenRoleChangeMessage = "Nemáte oprávnění přiřadit uživateli tuto roli.";
+
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly SignInManager<User> _signInManager;
@@ -27,78 +31,92 @@ public class EditUserService : IEditUserService
         _authorizationService = authorizationService;
     }
 
-    public async Task<ServiceResult> SetRoleAsync(ClaimsPrincipal currentUser, string userId, string role)
+    public async Task<ServiceResult> SetRoleAsync(string userId, string role)
     {
         if (string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(userId))
         {
-            return ServiceResult.Failure(ServiceErrorType.Validation, "Operace se nezdařila.");
+            return ServiceResult.Failure(ServiceErrorType.Validation, GenericFailureMessage);
         }
 
-        if (!Enum.TryParse<Roles>(role, ignoreCase: true, out var parsedRole))
+        var requestedRole = role.Trim();
+
+        var existingRole = await _roleManager.Roles
+            .FirstOrDefaultAsync(r => r.Name != null && r.Name.ToLower() == requestedRole.ToLower());
+
+        if (existingRole?.Name == null)
         {
-            return ServiceResult.Failure(ServiceErrorType.Validation, "Požadovaná role neexistuje.");
+            return ServiceResult.Failure(ServiceErrorType.Validation, RoleDoesNotExistMessage);
         }
-
-        var normalizedRole = parsedRole.ToString();
-
-        if (currentUser.Identity is not { IsAuthenticated: true })
+        
+        
+        var actualUser = _signInManager.Context.User;
+        if (actualUser.Identity is not { IsAuthenticated: true })
         {
-            return ServiceResult.Failure(ServiceErrorType.Forbidden, "Pro tuto akci musíte být přihlášen.");
+            return ServiceResult.Failure(ServiceErrorType.Forbidden, ForbiddenRoleChangeMessage);
         }
+
+        var normalizedRole = existingRole.Name;
 
         var authorizationResult = await _authorizationService.AuthorizeAsync(
-            currentUser,
+            actualUser,
             resource: null,
             policyName: $"CanSetRole[{normalizedRole}]");
 
         if (!authorizationResult.Succeeded)
         {
-            return ServiceResult.Failure(ServiceErrorType.Forbidden, "Nemáte oprávnění přiřadit uživateli tuto roli.");
+            return ServiceResult.Failure(ServiceErrorType.Forbidden, ForbiddenRoleChangeMessage);
         }
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return ServiceResult.Failure(ServiceErrorType.NotFound, "Uživatel nebyl nalezen.");
+            return ServiceResult.Failure(ServiceErrorType.NotFound, UserNotFoundMessage);
         }
 
-        if (!await _roleManager.RoleExistsAsync(normalizedRole))
-        {
-            return ServiceResult.Failure(ServiceErrorType.Validation, "Požadovaná role neexistuje.");
-        }
 
         var currentRoles = await _userManager.GetRolesAsync(user);
 
-        if (currentRoles.Count == 1 && string.Equals(currentRoles[0], normalizedRole, StringComparison.OrdinalIgnoreCase))
+        if (currentRoles.Count == 1 &&
+            string.Equals(currentRoles[0], normalizedRole, StringComparison.OrdinalIgnoreCase))
         {
             return ServiceResult.Success();
         }
 
-        if (currentRoles.Count > 0)
+        var rolesToRemove = currentRoles
+            .Where(currentRole => !string.Equals(currentRole, normalizedRole, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (rolesToRemove.Count > 0)
         {
-            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
             if (!removeResult.Succeeded)
             {
-                return ServiceResult.Failure(
-                    ServiceErrorType.Failure,
-                    "Operace se nezdařila.");
+                return ServiceResult.Failure(ServiceErrorType.Failure, GenericFailureMessage);
             }
         }
 
-        var addResult = await _userManager.AddToRoleAsync(user, normalizedRole);
-        if (!addResult.Succeeded)
+        var alreadyInTargetRole = currentRoles
+            .Any(currentRole => string.Equals(currentRole, normalizedRole, StringComparison.OrdinalIgnoreCase));
+
+        if (!alreadyInTargetRole)
         {
-            if (currentRoles.Count > 0)
+            var addResult = await _userManager.AddToRoleAsync(user, normalizedRole);
+            if (!addResult.Succeeded)
             {
-                await _userManager.AddToRolesAsync(user, currentRoles);
-            }
+                if (rolesToRemove.Count > 0)
+                {
+                    var rollbackResult = await _userManager.AddToRolesAsync(user, rolesToRemove);
+                    if (!rollbackResult.Succeeded)
+                    {
+                        return ServiceResult.Failure(ServiceErrorType.Failure, GenericFailureMessage);
+                    }
+                }
 
-            return ServiceResult.Failure(
-                ServiceErrorType.Failure,
-                "Operace se nezdařila.");
+                return ServiceResult.Failure(ServiceErrorType.Failure, GenericFailureMessage);
+            }
         }
 
-        if (string.Equals(currentUser.Identity.Name, user.UserName, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(actualUser.Identity?.Name, user.UserName, StringComparison.OrdinalIgnoreCase))
         {
             await _signInManager.RefreshSignInAsync(user);
         }

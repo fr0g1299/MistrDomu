@@ -81,6 +81,12 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                 >
                   Nástroje
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate("/admin/users")}
+                  className="cursor-pointer"
+                >
+                  Uživatelé
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}

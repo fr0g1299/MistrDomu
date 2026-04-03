@@ -5,5 +5,5 @@ namespace AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
 
 public interface IEditUserService
 {
-    Task<ServiceResult> SetRoleAsync(ClaimsPrincipal currentUser, string userId, string role);
+    Task<ServiceResult> SetRoleAsync(string userId, string role);
 }

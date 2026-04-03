@@ -10,5 +10,22 @@ export interface AdminUserRow {
   roles: string;
 }
 
+export interface AdminUsersQuery {
+  search?: string;
+  role?: string;
+  sortDirection?: "asc" | "desc";
+  sortBy?:  "lastName" | "role";
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AdminUsersPage {
+  items: AdminUserRow[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 export const editableRoles = [Role.User, Role.Admin, Role.Expert] as const;
 

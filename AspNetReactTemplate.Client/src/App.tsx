@@ -15,6 +15,7 @@ import SearchPage from "./pages/Search";
 import GuidePage from "./pages/Guide";
 import ToolsManagement from "./pages/ToolsManagement";
 import AdminPaidAccess from "./pages/AdminPaidAccess";
+import AdminUsers from "./pages/AdminUsers";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 
@@ -79,6 +80,15 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminPaidAccess />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
                 </AdminRoute>
               }
             />
