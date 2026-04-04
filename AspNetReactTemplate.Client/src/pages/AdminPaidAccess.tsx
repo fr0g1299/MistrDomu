@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { CreditCard, ExternalLink, ShieldCheck } from "lucide-react";
+import { CreditCard, ExternalLink } from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type PaidAccessRecord = {
   id: number;
@@ -42,27 +44,6 @@ export default function AdminPaidAccess() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      {/* Header */}
-      <div className="border-b border-border bg-card px-6 py-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
-              <ShieldCheck className="size-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-primary">
-                Admin
-              </p>
-              <h1 className="text-2xl font-bold">Platby za AI přístup</h1>
-            </div>
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Přehled všech uživatelů, kteří zaplatili za AI přístup k návodu.
-          </p>
-        </div>
-      </div>
-
-      {/* Content */}
       <main className="mx-auto max-w-7xl px-6 py-8">
         {loading && (
           <div className="flex items-center justify-center py-20 text-muted-foreground">
@@ -85,17 +66,21 @@ export default function AdminPaidAccess() {
         )}
 
         {!loading && !error && records.length > 0 && (
-          <>
-            {/* Stats badge */}
-            <div className="mb-6 flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                <CreditCard className="size-3" />
-                {records.length} plateb celkem
-              </span>
-            </div>
+          <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
+            <CardHeader className="border-b border-border">
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-lg">Platby za AI přístup</CardTitle>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <CreditCard className="size-3" />
+                  {records.length} plateb celkem
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Přehled všech uživatelů, kteří zaplatili za AI přístup k návodu.
+              </p>
+            </CardHeader>
 
-            {/* Table */}
-            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <CardContent className="p-0">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/40">
@@ -162,8 +147,8 @@ export default function AdminPaidAccess() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </>
+            </CardContent>
+          </Card>
         )}
       </main>
     </div>

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AspNetReactTemplate.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260403200858_AddExpertRole")]
+    partial class AddExpertRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,21 +290,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("ManualPayments");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.ExpertManualHelp", b =>
-                {
-                    b.Property<int>("ExpertId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ManualId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ExpertId", "ManualId");
-
-                    b.HasIndex("ManualId");
-
-                    b.ToTable("ExpertManualHelps");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Manual", b =>
@@ -615,25 +603,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Navigation("Manual");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.ExpertManualHelp", b =>
-                {
-                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "Expert")
-                        .WithMany()
-                        .HasForeignKey("ExpertId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", "Manual")
-                        .WithMany()
-                        .HasForeignKey("ManualId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Expert");
-
-                    b.Navigation("Manual");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Step", b =>

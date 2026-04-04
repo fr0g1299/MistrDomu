@@ -447,7 +447,7 @@ export default function Guide() {
                 <Button
                   type="button"
                   variant="link"
-                  className="h-auto px-0 text-sm"
+                  className="h-auto px-0 text-sm cursor-pointer"
                   onClick={() => navigate("/manual-help-management")}
                 >
                   Přejít do správy mých návodů

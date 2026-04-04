@@ -7,11 +7,13 @@ import {
   ExpertForManualRead,
   ManualForExpertRead,
 } from "@/lib/apiService";
+import type { AdminUserRow } from "@/types/adminUser";
 import { Manual } from "@/types/manual";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 type ExpertOverview = {
   expertId: number;
@@ -28,12 +30,24 @@ type ExpertOverview = {
   manuals: ManualForExpertRead[];
 };
 
+const getExpertDisplayName = (expert: AdminUserRow) => {
+  const parts = [expert.firstName, expert.lastName].filter(Boolean);
+  return parts.length > 0 ? parts.join(" ") : expert.username ?? `Expert #${expert.id}`;
+};
+
+const normalizeForSearch = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 type PendingAdminAction =
   | {
       type: "add";
       manualId: number;
       manualTitle: string;
       expertId: number;
+      expertName: string;
     }
   | {
       type: "remove";
@@ -45,6 +59,7 @@ type PendingAdminAction =
 
 export default function AdminManualHelpManagement() {
   const [manuals, setManuals] = useState<Manual[]>([]);
+  const [experts, setExperts] = useState<AdminUserRow[]>([]);
   const [expertByManual, setExpertByManual] = useState<
     Record<number, ExpertForManualRead[]>
   >({});
@@ -52,6 +67,7 @@ export default function AdminManualHelpManagement() {
   const [error, setError] = useState<string | null>(null);
   const [selectedManualId, setSelectedManualId] = useState<number | null>(null);
   const [selectedExpertId, setSelectedExpertId] = useState<string>("");
+  const [overviewSearch, setOverviewSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAdminAction | null>(
     null,
@@ -63,8 +79,20 @@ export default function AdminManualHelpManagement() {
       setLoading(true);
       setError(null);
 
-      const allManuals = await apiService.getAllManuals();
+      const [allManuals, expertUsers] = await Promise.all([
+        apiService.getAllManuals(),
+        apiService.getUsers({
+          role: "Expert",
+          sortBy: "lastName",
+          sortDirection: "asc",
+          page: 1,
+          pageSize: 100,
+        }),
+      ]);
+
       setManuals(allManuals);
+      setExperts(expertUsers.items);
+
       if (allManuals.length > 0 && selectedManualId == null) {
         setSelectedManualId(allManuals[0].id);
       }
@@ -129,6 +157,23 @@ export default function AdminManualHelpManagement() {
     ? expertByManual[selectedManualId] ?? []
     : [];
 
+  const filteredExpertOverview = useMemo(() => {
+    const needle = normalizeForSearch(overviewSearch.trim());
+    if (!needle) {
+      return expertOverview;
+    }
+
+    return expertOverview.filter((expert) => {
+      const matchesId = expert.expertId.toString().includes(needle);
+      const matchesName = normalizeForSearch(expert.expertName).includes(needle);
+      const matchesManual = expert.manuals.some((manual) =>
+        normalizeForSearch(manual.manualTitle).includes(needle),
+      );
+
+      return matchesId || matchesName || matchesManual;
+    });
+  }, [expertOverview, overviewSearch]);
+
   const assignExpert = async (manualId: number, expertId: number) => {
     try {
       setSaving(true);
@@ -168,17 +213,19 @@ export default function AdminManualHelpManagement() {
     const parsedExpertId = Number(selectedExpertId);
     if (!selectedManualId || !Number.isInteger(parsedExpertId) || parsedExpertId <= 0) {
       setInfoPopupMessage(
-        "Pro přidání experta bude potřeba vybrat experta ze seznamu. Dropdown zatím slouží jako placeholder pro budoucí data.",
+        "Nejprve vyberte experta ze seznamu.",
       );
       return;
     }
 
     const selectedManual = manuals.find((manual) => manual.id === selectedManualId);
+    const selectedExpert = experts.find((expert) => expert.id === parsedExpertId);
     setPendingAction({
       type: "add",
       manualId: selectedManualId,
       manualTitle: selectedManual?.title ?? `Návod ID ${selectedManualId}`,
       expertId: parsedExpertId,
+      expertName: selectedExpert ? getExpertDisplayName(selectedExpert) : `Expert #${parsedExpertId}`,
     });
   };
 
@@ -211,19 +258,13 @@ export default function AdminManualHelpManagement() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <div className="border-b border-border bg-card px-6 py-8">
-        <div className="mx-auto flex max-w-7xl items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
-            <ShieldCheck className="size-5 text-primary" />
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Admin</p>
-            <h1 className="text-2xl font-bold">Pomoc s návody</h1>
-          </div>
-        </div>
-      </div>
-
       <main className="mx-auto max-w-7xl px-6 py-8">
+        <Card className="mb-5 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Správa pomoci s návody</CardTitle>
+          </CardHeader>
+        </Card>
+
         {loading && (
           <div className="flex items-center justify-center py-20 text-muted-foreground">
             <Loader2 className="mr-3 h-5 w-5 animate-spin text-primary" />
@@ -248,6 +289,12 @@ export default function AdminManualHelpManagement() {
               <Card>
                 <CardHeader>
                   <CardTitle>Experti a jejich návody</CardTitle>
+                  <Input
+                    value={overviewSearch}
+                    onChange={(event) => setOverviewSearch(event.target.value)}
+                    placeholder="Hledat podle ID, jména nebo názvu návodu"
+                    className="max-w-lg"
+                  />
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {expertOverview.length === 0 && (
@@ -256,7 +303,13 @@ export default function AdminManualHelpManagement() {
                     </p>
                   )}
 
-                  {expertOverview.map((expert) => (
+                  {expertOverview.length > 0 && filteredExpertOverview.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Pro zadané hledání nebyl nalezen žádný expert.
+                    </p>
+                  )}
+
+                  {filteredExpertOverview.map((expert) => (
                     <div
                       key={expert.expertId}
                       className="rounded-xl border border-border bg-card p-4"
@@ -307,16 +360,33 @@ export default function AdminManualHelpManagement() {
                       className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                       value={selectedExpertId}
                       onChange={(event) => setSelectedExpertId(event.target.value)}
+                      disabled={experts.length === 0}
                     >
                       <option value="" disabled>
-                        Zatím bez výběru experta
+                        {experts.length === 0 ? "Žádní experti nejsou k dispozici" : "Vyberte experta"}
                       </option>
+                      {experts.map((expert) => (
+                        <option key={expert.id} value={expert.id}>
+                          {getExpertDisplayName(expert)} (ID: {expert.id})
+                        </option>
+                      ))}
                     </select>
 
-                    <Button type="button" onClick={openAddPopup} disabled={saving}>
+                    <Button
+                      type="button"
+                      onClick={openAddPopup}
+                      className="cursor-pointer"
+                      disabled={saving || experts.length === 0}
+                    >
                       Přidat experta
                     </Button>
                   </div>
+
+                  {experts.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      V systému zatím není žádný uživatel s rolí Expert.
+                    </p>
+                  )}
 
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Aktuálně přiřazení experti</p>
@@ -337,6 +407,7 @@ export default function AdminManualHelpManagement() {
                         <Button
                           type="button"
                           variant="outline"
+                          className="cursor-pointer"
                           disabled={saving || !selectedManualId}
                           onClick={() =>
                             selectedManualId &&
@@ -383,13 +454,14 @@ export default function AdminManualHelpManagement() {
             </DialogTitle>
             <DialogDescription>
               {pendingAction?.type === "add"
-                ? `Chcete přiřadit experta s ID ${pendingAction.expertId} k návodu ${pendingAction.manualTitle}?`
+                ? `Chcete přiřadit experta ${pendingAction?.expertName} (ID: ${pendingAction?.expertId}) k návodu ${pendingAction?.manualTitle}?`
                 : `Chcete odebrat experta ${pendingAction?.expertName} (ID: ${pendingAction?.expertId}) z návodu ${pendingAction?.manualTitle}?`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               type="button"
+              className="cursor-pointer"
               variant="outline"
               onClick={() => setPendingAction(null)}
             >
@@ -397,6 +469,7 @@ export default function AdminManualHelpManagement() {
             </Button>
             <Button
               type="button"
+              className="cursor-pointer"
               onClick={handleConfirmPendingAction}
               disabled={saving}
             >

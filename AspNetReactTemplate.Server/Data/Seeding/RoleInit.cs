@@ -16,6 +16,14 @@ namespace AspNetReactTemplate.Server.Data.Seeding
                 ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f158"
             };
             
+            Role roleExpert = new Role()
+            {
+                Id = 2,
+                Name = "Expert",
+                NormalizedName = "EXPERT",
+                ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f155"
+            };
+            
             Role roleUser = new Role()
             {
                 Id = 8,
@@ -26,6 +34,7 @@ namespace AspNetReactTemplate.Server.Data.Seeding
             
             roles.Add(roleUser);
             roles.Add(roleAdmin);
+            roles.Add(roleExpert);
 
             return roles;
         }

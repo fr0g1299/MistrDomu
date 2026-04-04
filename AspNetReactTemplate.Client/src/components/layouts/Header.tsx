@@ -79,7 +79,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2"
+                  className="h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2 cursor-pointer"
                 >
                   <Settings className="h-4 w-4" />
                   <span className="hidden md:inline">Správa</span>
@@ -96,16 +96,16 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                       Nástroje
                     </DropdownMenuItem>
                     <DropdownMenuItem
+                      onClick={() => navigate("/admin/users")}
+                      className="cursor-pointer"
+                    >
+                      Uživatelé
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       onClick={() => navigate("/admin/manual-help-management")}
                       className="cursor-pointer"
                     >
-                      Pomoc s návody (admin)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => navigate("/manual-help-management")}
-                      className="cursor-pointer"
-                    >
-                      Mé návody
+                      Experti (pomoc s návody)
                     </DropdownMenuItem>
                   </>
                 ) : (
