@@ -10,6 +10,14 @@ import { Manual, GuideStep, TableOfContentsItem } from "@/types/manual";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle2, UserPlus, X } from "lucide-react";
 
@@ -81,7 +89,32 @@ export default function Guide() {
   const [helperEnrollMessage, setHelperEnrollMessage] = useState<string | null>(
     null,
   );
-  const [helperEnrollError, setHelperEnrollError] = useState<string | null>(null);
+  const [helperEnrollError, setHelperEnrollError] = useState<string | null>(
+    null,
+  );
+  const [isPaymentSuccessDialogOpen, setIsPaymentSuccessDialogOpen] =
+    useState(false);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get("payment") !== "success") {
+      return;
+    }
+
+    setIsPaymentSuccessDialogOpen(true);
+    searchParams.delete("payment");
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: searchParams.toString() ? `?${searchParams.toString()}` : "",
+      },
+      {
+        replace: true,
+        state: location.state,
+      },
+    );
+  }, [location.pathname, location.search, location.state, navigate]);
 
   useEffect(() => {
     if (!helperEnrollMessage) return;
@@ -499,6 +532,33 @@ export default function Guide() {
           />
         </div>
       </main>
+
+      <Dialog
+        open={isPaymentSuccessDialogOpen}
+        onOpenChange={setIsPaymentSuccessDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                Platba proběhla úspěšně
+              </span>
+            </DialogTitle>
+            <DialogDescription>
+              Děkujeme! Pro tento návod nyní máte odemknutý neomezený AI chat.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => setIsPaymentSuccessDialogOpen(false)}
+            >
+              Pokračovat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
