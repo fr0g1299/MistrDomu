@@ -34,3 +34,11 @@ public sealed record PaidAccessResult(
 {
     public bool IsSuccess => Status == PaymentServiceStatus.Success;
 }
+
+public sealed record PaidManualIdsResult(
+    PaymentServiceStatus Status,
+    IReadOnlyList<int>? ManualIds = null,
+    string? ErrorMessage = null)
+{
+    public bool IsSuccess => Status == PaymentServiceStatus.Success;
+}

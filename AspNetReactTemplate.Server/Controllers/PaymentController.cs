@@ -86,6 +86,27 @@ namespace AspNetReactTemplate.Server.Controllers
             return StatusCode(500, result.ErrorMessage ?? "Unexpected error checking payment status.");
         }
 
+        // ── GET /api/payment/check/manual-ids ───────────────────────────────────
+        /// <summary>Returns manual IDs for which the current user has paid unlimited AI chat access.</summary>
+        [HttpGet("check/manual-ids")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<int>>> GetMyPaidManualIds()
+        {
+            var result = await _queryService.GetPaidManualIdsForUser(User);
+
+            if (result.Status == PaymentServiceStatus.Unauthorized)
+            {
+                return Unauthorized();
+            }
+
+            if (result.Status == PaymentServiceStatus.Success)
+            {
+                return Ok(result.ManualIds ?? Array.Empty<int>());
+            }
+
+            return StatusCode(500, result.ErrorMessage ?? "Unexpected error retrieving paid manual IDs.");
+        }
+
         // ── GET /api/payment/admin/paid-access ───────────────────────────────
         /// <summary>Returns all paid access records (Admin only).</summary>
         [HttpGet("admin/paid-access")]

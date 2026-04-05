@@ -17,4 +17,11 @@ public interface IPaymentsQueryService
     /// </summary>
     /// <returns></returns>
     Task<PaidAccessResult> GetPaidAccess();
+
+    /// <summary>
+    /// Gets all manual IDs for which the current user has paid unlimited AI chat access.
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns></returns>
+    Task<PaidManualIdsResult> GetPaidManualIdsForUser(ClaimsPrincipal user);
 }

@@ -6,16 +6,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Clock3 } from "lucide-react";
+import { Clock3, Sparkles } from "lucide-react";
 
 interface Props {
   manual: Manual;
+  hasUnlimitedChat?: boolean;
 }
 
 const FALLBACK_IMAGE = "Place url in the future lol";
 
-export const ManualCard = ({ manual }: Props) => {
+export const ManualCard = ({ manual, hasUnlimitedChat = false }: Props) => {
   const getDifficultyColor = (diff: Difficulty) => {
     if (diff === Difficulty.Easy) return "text-green-600";
     if (diff === Difficulty.Medium) return "text-yellow-400";
@@ -36,6 +38,12 @@ export const ManualCard = ({ manual }: Props) => {
             className="h-full w-full object-cover"
           />
           <div className="hidden md:block absolute inset-0 bg-linear-to-t from-card/80 via-5% via-transparent to-transparent" />
+          {hasUnlimitedChat && (
+            <Badge className="absolute right-3 top-3 z-10 gap-1.5 border-2 border-primary bg-primary/85 text-primary-foreground drop-shadow-lg">
+              <Sparkles className="size-3.5" />
+              Bez limitu
+            </Badge>
+          )}
         </div>
 
         <CardHeader className="mb-3">

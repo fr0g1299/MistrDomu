@@ -3,6 +3,7 @@ import { apiService } from "@/lib/apiService";
 import { Manual } from "@/types/manual";
 import { ManualCard } from "./ManualCard";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   searchQuery: string;
@@ -12,6 +13,8 @@ export const ManualsList = ({ searchQuery }: Props) => {
   const [manuals, setManuals] = useState<Manual[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [paidManualIds, setPaidManualIds] = useState<Set<number>>(new Set());
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const trimmedQuery = searchQuery.trim();
   const isShortQuery = trimmedQuery.length > 0 && trimmedQuery.length < 3;
 
@@ -48,6 +51,39 @@ export const ManualsList = ({ searchQuery }: Props) => {
     return () => clearTimeout(timer);
   }, [trimmedQuery, isShortQuery]); // Reaguje na změnu vyhledávání
 
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setPaidManualIds(new Set());
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchPaidManualIds = async () => {
+      try {
+        const ids = await apiService.getPaidManualIds();
+        if (!isCancelled) {
+          setPaidManualIds(new Set(ids));
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.error("Nepodařilo se načíst zakoupené manuály", err);
+          setPaidManualIds(new Set());
+        }
+      }
+    };
+
+    fetchPaidManualIds();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [authLoading, isAuthenticated]);
+
   if (loading && manuals.length === 0)
     return (
       <div className="flex justify-center py-10">
@@ -67,7 +103,11 @@ export const ManualsList = ({ searchQuery }: Props) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {manuals.map((m) => (
-          <ManualCard key={m.id} manual={m} />
+          <ManualCard
+            key={m.id}
+            manual={m}
+            hasUnlimitedChat={paidManualIds.has(m.id)}
+          />
         ))}
       </div>
 

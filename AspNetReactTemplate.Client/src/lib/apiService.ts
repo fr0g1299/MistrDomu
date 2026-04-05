@@ -121,6 +121,10 @@ export const apiService = {
     return requestJson<GuideStep[]>(`/manuals/${manualId}/steps`);
   },
 
+  async getPaidManualIds(): Promise<number[]> {
+    return requestJson<number[]>(`/payment/check/manual-ids`);
+  },
+
   // Tools
   async getTools(): Promise<Tool[]> {
     return requestJson<Tool[]>(`/tools`);
