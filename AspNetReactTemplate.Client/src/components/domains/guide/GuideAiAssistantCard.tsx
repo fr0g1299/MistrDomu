@@ -1,6 +1,7 @@
 import {
   FormEvent,
   KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -12,6 +13,7 @@ import {
   ArrowUp,
   Minimize,
   Maximize,
+  Sparkles,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
@@ -30,15 +32,15 @@ const initialMessages: ChatMessage[] = [
   {
     id: 1,
     role: "assistant",
-    text: "Ahoj, jsem AI asistent pro tento návod. Zeptej se mě na jakoukoliv otázku ohledně tohoto krok nebo nástroje.",
+    text: "Ahoj, jsem AI asistent pro tento návod. Zeptej se mě na jakoukoliv otázku ohledně nějakého kroku nebo nástroje.",
   },
 ];
-
-
 
 const TYPEWRITER_INTERVAL_MS = 18;
 const TYPEWRITER_CHUNK_SIZE = 2;
 const FREE_USER_MESSAGES_LIMIT = 2;
+const getPendingMessageStorageKey = (manualId: number) =>
+  `guide-ai-pending-message-${manualId}`;
 
 {
   /* TODO: Clean this file up into compoents */
@@ -59,6 +61,37 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
   const typingIntervalRef = useRef<number | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const pendingMessageStorageKey = getPendingMessageStorageKey(manualId);
+
+  const persistPendingMessage = useCallback(
+    (message: string) => {
+      if (!message.trim()) return;
+
+      try {
+        window.sessionStorage.setItem(pendingMessageStorageKey, message);
+      } catch (err) {
+        console.error("Failed to persist pending message", err);
+      }
+    },
+    [pendingMessageStorageKey],
+  );
+
+  const restorePendingMessage = useCallback(() => {
+    try {
+      const pendingMessage = window.sessionStorage.getItem(
+        pendingMessageStorageKey,
+      );
+
+      if (!pendingMessage) return;
+
+      setInputValue((currentValue) =>
+        currentValue.trim().length > 0 ? currentValue : pendingMessage,
+      );
+      window.sessionStorage.removeItem(pendingMessageStorageKey);
+    } catch (err) {
+      console.error("Failed to restore pending message", err);
+    }
+  }, [pendingMessageStorageKey]);
 
   const resizeInput = () => {
     if (!inputRef.current) return;
@@ -98,8 +131,8 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
           method: "GET",
           credentials: "include",
           headers: {
-            "Accept": "application/json"
-          }
+            Accept: "application/json",
+          },
         });
 
         if (response.ok && !isCancelled) {
@@ -123,12 +156,17 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
           method: "GET",
           credentials: "include",
           headers: {
-            "Accept": "application/json"
-          }
+            Accept: "application/json",
+          },
         });
         if (response.ok && !isCancelled) {
           const data = await response.json();
           setHasPaid(data.hasPaid);
+
+          if (data.hasPaid) {
+            setRequiresPayment(false);
+            restorePendingMessage();
+          }
         }
       } catch (err) {
         console.error("Failed to load payment status", err);
@@ -137,13 +175,15 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
 
     fetchHistory();
     checkPayment();
-    return () => { isCancelled = true; };
-  }, [manualId]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [manualId, restorePendingMessage]);
 
   // Handle payment success redirect from Stripe checkout
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.get('payment') === 'success') {
+    if (searchParams.get("payment") === "success") {
       // Re-check payment status after returning from Stripe
       (async () => {
         try {
@@ -151,22 +191,31 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
             method: "GET",
             credentials: "include",
             headers: {
-              "Accept": "application/json"
-            }
+              Accept: "application/json",
+            },
           });
           if (response.ok) {
             const data = await response.json();
             setHasPaid(data.hasPaid);
             setRequiresPayment(false);
+
+            if (data.hasPaid) {
+              restorePendingMessage();
+            }
+
             // Clean up query param from URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname,
+            );
           }
         } catch (err) {
           console.error("Failed to verify payment after checkout", err);
         }
       })();
     }
-  }, [manualId]);
+  }, [manualId, restorePendingMessage]);
 
   useEffect(() => {
     if (!messagesContainerRef.current) return;
@@ -179,7 +228,8 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
   const userMessagesCount = messages.filter(
     (message) => message.role === "user",
   ).length;
-  const hasReachedMessageLimit = !hasPaid && userMessagesCount >= FREE_USER_MESSAGES_LIMIT;
+  const hasReachedFreeMessageLimit =
+    userMessagesCount >= FREE_USER_MESSAGES_LIMIT;
 
   useEffect(() => {
     const el = messagesContainerRef.current;
@@ -231,7 +281,14 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
     event.preventDefault();
 
     const trimmedMessage = inputValue.trim();
-    if (!trimmedMessage || isSending || hasReachedMessageLimit) return;
+    if (!trimmedMessage || isSending) return;
+
+    if (!hasPaid && hasReachedFreeMessageLimit) {
+      setRequiresPayment(true);
+      setPaymentError(null);
+      persistPendingMessage(trimmedMessage);
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: nextMessageIdRef.current,
@@ -252,7 +309,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json",
           },
           body: JSON.stringify({ manualId, message: trimmedMessage }),
         });
@@ -260,6 +317,11 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
         setIsAwaitingReply(false);
 
         if (response.status === 402) {
+          setMessages((prev) =>
+            prev.filter((message) => message.id !== userMessage.id),
+          );
+          setInputValue(trimmedMessage);
+          persistPendingMessage(trimmedMessage);
           setIsSending(false);
           setRequiresPayment(true);
           return;
@@ -272,7 +334,6 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
 
         const data = await response.json();
         const assistantReply = data.reply;
-        
         const assistantMessageId = nextMessageIdRef.current;
         const assistantMessage: ChatMessage = {
           id: assistantMessageId,
@@ -326,7 +387,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
         const userFacingError = errorText.includes("API key is not configured")
           ? "AI není nakonfigurovaná: chybí Gemini API klíč na backendu."
           : errorText;
-        
+
         const errorMessageId = nextMessageIdRef.current;
         const errorMessage: ChatMessage = {
           id: errorMessageId,
@@ -337,7 +398,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
         setMessages((prev) => [...prev, errorMessage]);
       }
     };
-    
+
     fetchAiReply();
   };
 
@@ -359,7 +420,14 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
         }`}
       >
         <div>
-          <h3 className="pr-12 text-base font-bold">AI asistent</h3>
+          <span className="flex items-center gap-2">
+            {hasPaid && (
+              <Sparkles className="size-5 text-primary/90 ml-2 mr-1 inline" />
+            )}
+            <h3 className="pr-12 text-base font-bold">
+              AI asistent {hasPaid ? " (Bez limitu)" : ""}
+            </h3>
+          </span>
           <p className="text-sm text-zinc-700 dark:text-zinc-400">
             Napište dotaz k postupu manuálu.
           </p>
@@ -400,11 +468,10 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
                 className={isUser ? "ml-8 flex justify-end" : "mr-8 flex"}
               >
                 <div
-                  // TODO: Make better background color for user
                   className={
                     isUser
-                      ? "rounded-xl rounded-br-sm bg-primary/90 px-3 py-2 text-sm text-primary-foreground"
-                      : "rounded-xl rounded-bl-sm bg-zinc-200/80 px-3 py-2 text-sm text-zinc-900 dark:bg-zinc-800/90 dark:text-zinc-100"
+                      ? "rounded-xl rounded-br-sm border border-primary/50 bg-primary/10 px-3 py-2 text-sm"
+                      : "rounded-xl rounded-bl-sm border border-zinc-600 bg-zinc-200/80 px-3 py-2 text-sm text-zinc-900 dark:bg-zinc-800/90 dark:text-zinc-100"
                   }
                 >
                   <p className="mb-1 inline-flex items-center gap-1 text-[11px] font-semibold opacity-80">
@@ -421,7 +488,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
                     )}
                   </p>
                   {isUser ? (
-                    <p className="whitespace-pre-wrap wrap-break-word selection:text-primary-50! selection:bg-primary-700!">
+                    <p className="wrap-break-word prose prose-sm dark:prose-invert">
                       {message.text}
                     </p>
                   ) : (
@@ -449,7 +516,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
           )}
         </div>
 
-        {!hasReachedMessageLimit && !requiresPayment && (
+        {!requiresPayment && (
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <textarea
               ref={inputRef}
@@ -457,39 +524,34 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
               onKeyDown={handleInputKeyDown}
-              placeholder={
-                hasReachedMessageLimit
-                  ? "Limit zpráv byl dosažen. Pro pokračování aktivujte placený tarif."
-                  : "Napište dotaz..."
-              }
-              disabled={hasReachedMessageLimit}
+              placeholder="Napište dotaz..."
               className="hide-scrollbar placeholder:text-muted-foreground selection:bg-primary! selection:text-primary-foreground! bg-input/30 border-input min-h-10 w-full rounded-md border px-3 py-2 text-base transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring aria-invalid:border-destructive md:text-sm resize-none"
             />
             <Button
               type="submit"
               size="sm"
               className="h-10 rounded-full"
-              disabled={
-                isSending ||
-                hasReachedMessageLimit ||
-                inputValue.trim().length === 0
-              }
+              disabled={isSending || inputValue.trim().length === 0}
             >
               <SendHorizontal className="size-5" />
             </Button>
           </form>
         )}
 
-        {(hasReachedMessageLimit || requiresPayment) && (
+        {requiresPayment && (
           <div
             className="flex flex-wrap flex-col items-center justify-center rounded-md border border-primary/35 bg-primary/10 p-3 text-sm"
             aria-live="polite"
           >
             <p className="font-semibold text-primary-900 dark:text-primary-100">
-              Dosáhli jste bezplatného limitu 2 zpráv.
+              Chcete se ptát dále?
             </p>
-            <p className="mt-1 text-zinc-700 dark:text-zinc-300">
-              Pro další zprávy si prosím odemkněte přístup k tomuto návodu.
+            <p className="mt-1 text-zinc-300 font-semibold text-center">
+              Vaše dvě zkušební zprávy jsou vyčerpány.
+            </p>
+            <p className="mt-1 text-muted-foreground text-center">
+              Odemkněte si neomezený AI chat pro tento návod a ptejte se na
+              cokoliv, co vás při práci napadne!
             </p>
             {paymentError && (
               <p className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-center text-sm text-destructive">
@@ -522,9 +584,12 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
 
                   const data = await res.json();
                   if (data.alreadyPaid) {
+                    setHasPaid(true);
                     setRequiresPayment(false);
                     setPaymentError(null);
+                    restorePendingMessage();
                   } else if (data.url) {
+                    persistPendingMessage(inputValue);
                     window.location.href = data.url;
                   } else {
                     setPaymentError(
@@ -542,7 +607,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
                 }
               }}
             >
-              {isCheckingOut ? "Přesměrování..." : "Odemknout přístup"}
+              {isCheckingOut ? "Přesměrování..." : "Odemknout neomezený chat"}
             </Button>
           </div>
         )}
