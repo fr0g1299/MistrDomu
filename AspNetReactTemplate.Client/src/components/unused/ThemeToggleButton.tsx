@@ -206,10 +206,11 @@ export const ThemeToggleButton = ({
   );
 };
 // Export a helper hook for using with View Transitions API
+// eslint-disable-next-line react-refresh/only-export-components
 export const useThemeTransition = () => {
   const startTransition = useCallback((updateFn: () => void) => {
     if ("startViewTransition" in document) {
-      (document as any).startViewTransition(updateFn);
+      document.startViewTransition(updateFn);
     } else {
       updateFn();
     }

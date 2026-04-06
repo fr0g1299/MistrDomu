@@ -31,7 +31,12 @@ const normalizeText = (str: string | unknown): string => {
     .toLowerCase();
 };
 
-const multiKeywordFilter: FilterFn<any> = (row, _columnId, filterValue: string) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const multiKeywordFilter: FilterFn<any> = (
+  row,
+  _columnId,
+  filterValue: string,
+) => {
   const keywords = normalizeText(filterValue).split(/\s+/).filter(Boolean);
   if (keywords.length === 0) return true;
 
@@ -98,13 +103,15 @@ export function DataTable<TData, TValue>({
         </div>
 
         <div className="text-xs md:text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 shadow-sm">
-          Zobrazeno <span className="text-foreground">{filteredCount}</span> z <span className="text-foreground">{data.length}</span> nástrojů
+          Zobrazeno <span className="text-foreground">{filteredCount}</span> z{" "}
+          <span className="text-foreground">{data.length}</span> nástrojů
         </div>
       </div>
-      
+
       {data.length > 0 && (
         <p className="text-[11px] px-2 text-muted-foreground text-left italic">
-          Tip: Kliknutím na štítek manuálu v tabulce vyhledáte všechny nástroje v daném manuálu.
+          Tip: Kliknutím na štítek manuálu v tabulce vyhledáte všechny nástroje
+          v daném manuálu.
         </p>
       )}
 
@@ -115,8 +122,8 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead 
-                    key={header.id} 
+                  <TableHead
+                    key={header.id}
                     className="h-12"
                     style={{ width: header.getSize() }}
                   >
@@ -124,7 +131,7 @@ export function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 ))}
@@ -140,15 +147,15 @@ export function DataTable<TData, TValue>({
                   className="group transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell 
-                      key={cell.id} 
+                    <TableCell
+                      key={cell.id}
                       className="py-3"
                       // Aplikace šířky na každou buňku
                       style={{ width: cell.column.getSize() }}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

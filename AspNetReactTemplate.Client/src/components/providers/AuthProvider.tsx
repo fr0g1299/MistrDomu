@@ -12,6 +12,7 @@ interface AuthContextType {
   fetchUser: () => Promise<boolean>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {

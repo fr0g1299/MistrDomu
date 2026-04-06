@@ -2,14 +2,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ToolWithManuals } from "@/types/tool";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Edit2, 
-  ArrowUpDown, 
-  ArrowUp, 
-  ArrowDown, 
-  Link2, 
+import {
+  Edit2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Link2,
   Link2Off,
-  Hash
+  Hash,
 } from "lucide-react";
 import {
   Tooltip,
@@ -17,7 +17,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<ToolWithManuals>[] => [
+export const getColumns = (
+  onEdit: (tool: ToolWithManuals) => void,
+): ColumnDef<ToolWithManuals>[] => [
   {
     accessorKey: "name",
     size: 100,
@@ -52,7 +54,9 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
           {isSorted === "desc" ? (
             <Link2Off className="ml-2 h-4 w-4 text-destructive" />
           ) : (
-            <Link2 className={`ml-2 h-4 w-4 ${isSorted === "asc" ? "text-green-500" : ""}`} />
+            <Link2
+              className={`ml-2 h-4 w-4 ${isSorted === "asc" ? "text-green-500" : ""}`}
+            />
           )}
         </Button>
       );
@@ -65,11 +69,18 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
     cell: ({ row }) => {
       const url = row.getValue("url") as string;
       return url ? (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate block">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline truncate block"
+        >
           {url}
         </a>
-      ) : <span className="text-muted-foreground opacity-50">-</span>;
-    }
+      ) : (
+        <span className="text-muted-foreground opacity-50">-</span>
+      );
+    },
   },
   {
     accessorKey: "note",
@@ -77,22 +88,25 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
     header: () => <span className="font-bold">Poznámka</span>,
     cell: ({ row }) => {
       const note = row.getValue("note") as string;
-      if (!note) return <span className="text-muted-foreground opacity-30">-</span>;
+      if (!note)
+        return <span className="text-muted-foreground opacity-30">-</span>;
       return (
         <Tooltip>
           <TooltipTrigger asChild>
-            <p className="text-muted-foreground italic truncate cursor-help">{note}</p>
+            <p className="text-muted-foreground italic truncate cursor-help">
+              {note}
+            </p>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-[200px] break-words">
             <p className="text-sm">{note}</p>
           </TooltipContent>
         </Tooltip>
       );
-    }
+    },
   },
   {
     accessorKey: "manuals",
-    sortDescFirst: true, 
+    sortDescFirst: true,
     header: ({ column }) => {
       const isSorted = column.getIsSorted();
       return (
@@ -121,9 +135,9 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
         <div className="flex flex-wrap gap-1">
           {manuals.length > 0 ? (
             manuals.map((m) => (
-              <Badge 
-                key={m} 
-                variant="secondary" 
+              <Badge
+                key={m}
+                variant="secondary"
                 className="font-normal cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
                 onClick={() => table.setGlobalFilter(m)}
               >
@@ -131,7 +145,9 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
               </Badge>
             ))
           ) : (
-            <span className="text-muted-foreground text-sm italic">Není přidán</span>
+            <span className="text-muted-foreground text-sm italic">
+              Není přidán
+            </span>
           )}
         </div>
       );
@@ -146,5 +162,5 @@ export const getColumns = (onEdit: (tool: ToolWithManuals) => void): ColumnDef<T
         </Button>
       </div>
     ),
-  }
+  },
 ];
