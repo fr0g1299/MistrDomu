@@ -97,7 +97,7 @@ export const getColumns = (
               {note}
             </p>
           </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-[200px] break-words">
+          <TooltipContent side="top" className="max-w-50 wrap-break-word">
             <p className="text-sm">{note}</p>
           </TooltipContent>
         </Tooltip>
