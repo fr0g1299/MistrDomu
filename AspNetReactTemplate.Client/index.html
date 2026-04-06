@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="scroll-smooth" lang="cs">
+<html class="scroll-smooth dark" lang="cs">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/wrench.svg" />
@@ -9,8 +9,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mistr Domu</title>
   </head>
-  <script>
-  // This script is here because of FOUC for the theme
+  <!-- This script is commented out, because we don't need Themes right now, 
+   in the future also remove dark flag from html class -->
+  <!-- <script>
+    // This script is here because of FOUC for the theme
     try {
       const theme = localStorage.getItem("ui-theme") || "system";
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -23,7 +25,7 @@
     } catch (error) {
       console.error(error);
     }
-  </script>
+  </script> -->
 
   <body>
     <div id="root"></div>
