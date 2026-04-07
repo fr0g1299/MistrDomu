@@ -24,7 +24,7 @@ namespace AspNetReactTemplate.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> JoinWaitlist([FromBody] WaitlistEmailRequest request)
+        public async Task<IActionResult> JoinWaitlist([FromBody] WaitlistEmailRequestDto request)
         {
             try
             {
@@ -54,15 +54,15 @@ namespace AspNetReactTemplate.Server.Controllers
             catch (Exception ex)
             {
                 // Diagnostic: Return the actual error message to the client
-                var errorMessage = ex.InnerException != null 
-                    ? $"{ex.Message} -> {ex.InnerException.Message}" 
+                var errorMessage = ex.InnerException != null
+                    ? $"{ex.Message} -> {ex.InnerException.Message}"
                     : ex.Message;
                 return StatusCode(500, errorMessage);
             }
         }
     }
 
-    public class WaitlistEmailRequest
+    public class WaitlistEmailRequestDto
     {
         public string Email { get; set; } = string.Empty;
     }

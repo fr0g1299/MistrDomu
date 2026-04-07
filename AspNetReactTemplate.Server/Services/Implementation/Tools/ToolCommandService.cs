@@ -19,7 +19,7 @@ public class ToolCommandService : IToolCommandService
         _authorizationService = authorizationService;
     }
 
-    public async Task<ToolCreateDto> CreateToolAsync(int manualId, ToolCreateDto toolDto, ClaimsPrincipal user)
+    public async Task<ToolReadDto> CreateToolAsync(int manualId, ToolCreateDto toolDto, ClaimsPrincipal user)
     {
         var authorizationResult = await _authorizationService.AuthorizeAsync(user, AuthorizationPolicies.CanEditTools);
         if (!authorizationResult.Succeeded)
@@ -45,7 +45,14 @@ public class ToolCommandService : IToolCommandService
         _context.Tools.Add(newTool);
         await _context.SaveChangesAsync();
 
-        return toolDto;
+        return new ToolReadDto
+        {
+            Id = newTool.Id,
+            Name = newTool.Name,
+            Url = newTool.Url,
+            Note = newTool.Note,
+            Manuals = [manual.Title]
+        };
     }
 
     public async Task<ToolUpdateDto> UpdateToolAsync(int id, ToolUpdateDto toolDto, ClaimsPrincipal user)

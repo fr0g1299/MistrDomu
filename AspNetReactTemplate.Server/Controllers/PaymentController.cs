@@ -55,7 +55,14 @@ namespace AspNetReactTemplate.Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> PaymentsWebhook()
         {
-            return await _commandService.PaymentsWebhook();
+            var result = await _commandService.PaymentsWebhook();
+
+            if (result.Success)
+            {
+                return Ok();
+            }
+
+            return BadRequest(result.ErrorMessage ?? "Webhook processing failed.");
         }
 
         // ── GET /api/payment/check/{manualId} ────────────────────────────────

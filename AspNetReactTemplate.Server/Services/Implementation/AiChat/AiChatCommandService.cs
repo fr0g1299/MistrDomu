@@ -3,7 +3,6 @@ using AspNetReactTemplate.Server.Models.DTOs.AiChat;
 using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Services.Abstraction.AiChat;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
@@ -26,7 +25,7 @@ public class AiChatCommandService : IAiChatCommandService
         _httpClient = httpClient;
     }
 
-    public async Task<AiChatMessageResult> PostMessage([FromBody] AiChatRequestDto request, ClaimsPrincipal user)
+    public async Task<AiChatMessageResult> PostMessage(AiChatRequestDto request, ClaimsPrincipal user)
     {
         var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out var userId))

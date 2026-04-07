@@ -3,7 +3,6 @@ using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models.DTOs.Payments;
 using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Services.Abstraction.Payments;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
@@ -23,7 +22,7 @@ public class PaymentsCommandService : IPaymentsCommandService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PaymentCheckoutResult> CreateCheckout([FromBody] CheckoutRequestDto request, ClaimsPrincipal user)
+    public async Task<PaymentCheckoutResult> CreateCheckout(CheckoutRequestDto request, ClaimsPrincipal user)
     {
         var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdClaim, out var userId))
@@ -101,7 +100,7 @@ public class PaymentsCommandService : IPaymentsCommandService
         return new PaymentCheckoutResult(PaymentServiceStatus.Success, Url: session.Url);
     }
 
-    public async Task<IActionResult> PaymentsWebhook()
+    public async Task<PaymentsWebhookResultDto> PaymentsWebhook()
     {
         var webhookSecretSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeWebhookSecret");
         var webhookSecret = !string.IsNullOrEmpty(webhookSecretSetting?.Value)
@@ -111,7 +110,7 @@ public class PaymentsCommandService : IPaymentsCommandService
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext is null)
         {
-            return new ObjectResult("Http context is unavailable.") { StatusCode = 500 };
+            return new PaymentsWebhookResultDto { Success = false, ErrorMessage = "Http context is unavailable." };
         }
 
         string json;
@@ -156,11 +155,11 @@ public class PaymentsCommandService : IPaymentsCommandService
                 }
             }
 
-            return new OkResult();
+            return new PaymentsWebhookResultDto { Success = true };
         }
         catch (StripeException ex)
         {
-            return new BadRequestObjectResult($"Webhook error: {ex.Message}");
+            return new PaymentsWebhookResultDto { Success = false, ErrorMessage = $"Webhook error: {ex.Message}" };
         }
     }
 }

@@ -1,6 +1,5 @@
 using AspNetReactTemplate.Server.Models.DTOs.AiChat;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetReactTemplate.Server.Services.Abstraction.AiChat;
 
@@ -11,5 +10,5 @@ public interface IAiChatCommandService
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    Task<AiChatMessageResult> PostMessage([FromBody] AiChatRequestDto request, ClaimsPrincipal user);
+    Task<AiChatMessageResult> PostMessage(AiChatRequestDto request, ClaimsPrincipal user);
 }

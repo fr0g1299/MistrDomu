@@ -54,13 +54,13 @@ public class ToolsController : ControllerBase
     // POST: api/Tools/manual/{manualId}
     [HttpPost("manual/{manualId:int}")]
     [Authorize(Policy = AuthorizationPolicies.CanEditTools)]
-    public async Task<ActionResult<ToolCreateDto>> CreateTool(int manualId, [FromBody] ToolCreateDto toolDto)
+    public async Task<ActionResult<ToolReadDto>> CreateTool(int manualId, [FromBody] ToolCreateDto toolDto)
     {
         try
         {
             var result = await _toolCommandService.CreateToolAsync(manualId, toolDto, User);
 
-            return CreatedAtAction(nameof(GetTool), new { id = manualId }, result);
+            return CreatedAtAction(nameof(GetTool), new { id = result.Id }, result);
         }
         catch (UnauthorizedAccessException) { return Forbid(); }
         catch (KeyNotFoundException ex) { return NotFound(ex.Message); }

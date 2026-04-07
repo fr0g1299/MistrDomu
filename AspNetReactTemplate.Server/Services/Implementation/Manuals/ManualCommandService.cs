@@ -1,4 +1,5 @@
 using AspNetReactTemplate.Server.Data;
+using AspNetReactTemplate.Server.Models.DTOs.Manuals;
 using AspNetReactTemplate.Server.Models.Manuals;
 using AspNetReactTemplate.Server.Services.Abstraction.Manuals;
 
@@ -13,17 +14,17 @@ public class ManualCommandService : IManualCommandService
         _context = context;
     }
 
-    public Task<Manual> CreateManualAsync(Manual manual)
+    public Task<ManualCreateDto> CreateManualAsync(ManualCreateDto manual)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<ManualUpdateDto> UpdateManualAsync(int id, ManualUpdateDto manual)
     {
         throw new NotImplementedException();
     }
 
     public Task<bool> DeleteManualAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Manual?> UpdateManualAsync(int id, Manual manual)
     {
         throw new NotImplementedException();
     }

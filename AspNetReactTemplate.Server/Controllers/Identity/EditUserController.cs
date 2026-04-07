@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using AspNetReactTemplate.Server.Models.DTOs.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.System;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
 using Microsoft.AspNetCore.Authorization;
@@ -20,9 +20,9 @@ namespace AspNetReactTemplate.Server.Controllers.Identity
 
         [HttpPut("{userId}/role")]
         [Authorize(Policy = "CanSetRole")]
-        public async Task<IActionResult> SetRole([FromRoute] string userId, [FromBody] EditRoleRequest request)
+        public async Task<IActionResult> SetRole([FromRoute] string userId, [FromBody] EditRoleRequestDto request)
         {
-        
+
             var result = await _editUserService.SetRoleAsync(userId, request.Role);
 
             if (result.IsSuccess)
@@ -39,7 +39,4 @@ namespace AspNetReactTemplate.Server.Controllers.Identity
             };
         }
     }
-
-    public sealed record EditRoleRequest([param: Required] string Role);
-
 }

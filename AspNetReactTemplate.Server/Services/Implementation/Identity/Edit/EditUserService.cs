@@ -33,11 +33,11 @@ public class EditUserService : IEditUserService
         _authorizationService = authorizationService;
     }
 
-    public async Task<ServiceResult> SetRoleAsync(string userId, string role)
+    public async Task<ServiceResultDto> SetRoleAsync(string userId, string role)
     {
         if (string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(userId))
         {
-            return ServiceResult.Failure(ServiceErrorType.Validation, GenericFailureMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Validation, GenericFailureMessage);
         }
 
         var requestedRole = role.Trim();
@@ -47,14 +47,14 @@ public class EditUserService : IEditUserService
 
         if (existingRole?.Name == null)
         {
-            return ServiceResult.Failure(ServiceErrorType.Validation, RoleDoesNotExistMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Validation, RoleDoesNotExistMessage);
         }
 
 
         var actualUser = _signInManager.Context.User;
         if (actualUser.Identity is not { IsAuthenticated: true })
         {
-            return ServiceResult.Failure(ServiceErrorType.Forbidden, ForbiddenRoleChangeMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Forbidden, ForbiddenRoleChangeMessage);
         }
 
         var normalizedRole = existingRole.Name;
@@ -66,13 +66,13 @@ public class EditUserService : IEditUserService
 
         if (!authorizationResult.Succeeded)
         {
-            return ServiceResult.Failure(ServiceErrorType.Forbidden, ForbiddenRoleChangeMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Forbidden, ForbiddenRoleChangeMessage);
         }
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return ServiceResult.Failure(ServiceErrorType.NotFound, UserNotFoundMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.NotFound, UserNotFoundMessage);
         }
 
 
@@ -86,13 +86,13 @@ public class EditUserService : IEditUserService
 
         if (isSelfUpdate && currentlyAdmin && !targetIsAdmin)
         {
-            return ServiceResult.Failure(ServiceErrorType.Validation, CannotRemoveOwnAdminRoleMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Validation, CannotRemoveOwnAdminRoleMessage);
         }
 
         if (currentRoles.Count == 1 &&
             string.Equals(currentRoles[0], normalizedRole, StringComparison.OrdinalIgnoreCase))
         {
-            return ServiceResult.Success();
+            return ServiceResultDto.Success();
         }
 
         var rolesToRemove = currentRoles
@@ -104,7 +104,7 @@ public class EditUserService : IEditUserService
             var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
             if (!removeResult.Succeeded)
             {
-                return ServiceResult.Failure(ServiceErrorType.Failure, GenericFailureMessage);
+                return ServiceResultDto.Failure(ServiceErrorType.Failure, GenericFailureMessage);
             }
         }
 
@@ -121,11 +121,11 @@ public class EditUserService : IEditUserService
                     var rollbackResult = await _userManager.AddToRolesAsync(user, rolesToRemove);
                     if (!rollbackResult.Succeeded)
                     {
-                        return ServiceResult.Failure(ServiceErrorType.Failure, GenericFailureMessage);
+                        return ServiceResultDto.Failure(ServiceErrorType.Failure, GenericFailureMessage);
                     }
                 }
 
-                return ServiceResult.Failure(ServiceErrorType.Failure, GenericFailureMessage);
+                return ServiceResultDto.Failure(ServiceErrorType.Failure, GenericFailureMessage);
             }
         }
 
@@ -134,6 +134,6 @@ public class EditUserService : IEditUserService
             await _signInManager.RefreshSignInAsync(user);
         }
 
-        return ServiceResult.Success();
+        return ServiceResultDto.Success();
     }
 }

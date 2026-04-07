@@ -33,36 +33,36 @@ public class UserSelectService : IUserSelectService
         _authorizationService = authorizationService;
     }
 
-    private async Task<ServiceResult> EnsureCanSeeAllUsersAsync()
+    private async Task<ServiceResultDto> EnsureCanSeeAllUsersAsync()
     {
         var userPrincipal = _signInManager.Context.User;
 
         if (userPrincipal.Identity is not { IsAuthenticated: true })
         {
-            return ServiceResult.Failure(ServiceErrorType.Forbidden, MustBeSignedInMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Forbidden, MustBeSignedInMessage);
         }
 
         var currentUserId = _userManager.GetUserId(userPrincipal);
         if (string.IsNullOrWhiteSpace(currentUserId))
         {
-            return ServiceResult.Failure(ServiceErrorType.Validation, SignedInUserNotFoundMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Validation, SignedInUserNotFoundMessage);
         }
 
         var authorizationResult = await _authorizationService.AuthorizeAsync(userPrincipal, CanSeeAllUsersPolicy);
         if (!authorizationResult.Succeeded)
         {
-            return ServiceResult.Failure(ServiceErrorType.Forbidden, NotAllowedToSeeUsersMessage);
+            return ServiceResultDto.Failure(ServiceErrorType.Forbidden, NotAllowedToSeeUsersMessage);
         }
 
-        return ServiceResult.Success();
+        return ServiceResultDto.Success();
     }
 
-    public async Task<ServiceResult<UserListPageDto>> SelectPageAsync(UserListQueryDto queryDto)
+    public async Task<ServiceResultDto<UserListPageDto>> SelectPageAsync(UserListQueryDto queryDto)
     {
         var authCheck = await EnsureCanSeeAllUsersAsync();
         if (!authCheck.IsSuccess)
         {
-            return ServiceResult<UserListPageDto>.Failure(
+            return ServiceResultDto<UserListPageDto>.Failure(
                 authCheck.ErrorType ?? ServiceErrorType.Failure,
                 authCheck.Errors);
         }
@@ -111,7 +111,7 @@ public class UserSelectService : IUserSelectService
             PageSize = pageSize
         };
 
-        return ServiceResult<UserListPageDto>.Success(result);
+        return ServiceResultDto<UserListPageDto>.Success(result);
     }
 
     private IQueryable<User> ApplyFilter(IQueryable<User> query, UserListQueryDto queryDto)
@@ -154,11 +154,11 @@ public class UserSelectService : IUserSelectService
             StringComparison.OrdinalIgnoreCase);
 
         var sortBy = queryDto.SortBy.Trim().ToLowerInvariant();
-        
+
         return sortBy switch
         {
             "role" => ApplyRoleSorting(query, isDescending),
-            
+
             _ => isDescending
                 ? query.OrderByDescending(u => u.LastName).ThenByDescending(u => u.FirstName)
                 : query.OrderBy(u => u.LastName).ThenBy(u => u.FirstName)

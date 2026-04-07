@@ -5,6 +5,6 @@ namespace AspNetReactTemplate.Server.Services.Abstraction.Identity.Select;
 
 public interface IUserSelectService
 {
-    Task<ServiceResult<UserListPageDto>> SelectPageAsync(UserListQueryDto query);
+    Task<ServiceResultDto<UserListPageDto>> SelectPageAsync(UserListQueryDto query);
 
 }

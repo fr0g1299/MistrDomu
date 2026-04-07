@@ -11,7 +11,7 @@ public interface IToolCommandService
     /// <param name="manualId"></param>
     /// <param name="tool"></param>
     /// <returns></returns>
-    Task<ToolCreateDto> CreateToolAsync(int manualId, ToolCreateDto tool, ClaimsPrincipal user);
+    Task<ToolReadDto> CreateToolAsync(int manualId, ToolCreateDto tool, ClaimsPrincipal user);
 
     /// <summary>
     /// Aktualizuje nastroj podle ID.
