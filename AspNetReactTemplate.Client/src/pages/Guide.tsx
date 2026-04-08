@@ -7,10 +7,11 @@ import { GuideTableOfContents } from "@/components/domains/guide/GuideTableOfCon
 import { apiService } from "@/lib/apiService";
 
 import { Manual, GuideStep, TableOfContentsItem } from "@/types/manual";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { CheckCircle2, UserPlus } from "lucide-react";
+import { CheckCircle2, UserPlus, X } from "lucide-react";
 
 type ToolRead = { id: number; name: string; url?: string };
 
@@ -81,6 +82,12 @@ export default function Guide() {
     null,
   );
   const [helperEnrollError, setHelperEnrollError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!helperEnrollMessage) return;
+    const timer = window.setTimeout(() => setHelperEnrollMessage(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [helperEnrollMessage]);
 
   useEffect(() => {
     const parsedManualId = Number(manualId);
@@ -380,6 +387,27 @@ export default function Guide() {
 
   return (
     <div className="min-h-screen bg-background text-zinc-950 dark:text-zinc-50 antialiased">
+      {helperEnrollMessage && (
+        <div className="fixed bottom-4 right-4 z-100 w-full max-w-sm">
+          <Alert
+            variant="default"
+            className="border-primary/50 bg-primary/70 text-black shadow-lg shadow-primary/20 [&_svg]:text-black"
+          >
+            <AlertDescription className="flex items-start justify-between gap-3 !text-black">
+              <span className="whitespace-pre-line !text-black">{helperEnrollMessage}</span>
+              <button
+                type="button"
+                onClick={() => setHelperEnrollMessage(null)}
+                className="rounded-sm opacity-80 transition hover:opacity-100 !text-black"
+                aria-label="Zavřít oznámení"
+              >
+                <X className="size-4" />
+              </button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       <GuideIntroduction manual={manual} tools={manualTools} />
       <Separator className="mb-8 bg-linear-to-r from-background to-primary/50" />
 
@@ -404,7 +432,7 @@ export default function Guide() {
         {stepsError && (
           <p className="mb-4 text-sm text-destructive">{stepsError}</p>
         )}
-        {(isExpert || isAdmin) && (
+        {isExpert && (
           <div className="mb-6 rounded-xl border border-border bg-card p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -436,9 +464,6 @@ export default function Guide() {
                 )}
               </Button>
             </div>
-            {helperEnrollMessage && (
-              <p className="mt-3 text-sm text-emerald-600">{helperEnrollMessage}</p>
-            )}
             {helperEnrollError && (
               <p className="mt-3 text-sm text-destructive">{helperEnrollError}</p>
             )}

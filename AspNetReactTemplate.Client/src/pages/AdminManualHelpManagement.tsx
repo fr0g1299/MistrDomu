@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   apiService,
   ExpertForManualRead,
@@ -58,6 +58,7 @@ type PendingAdminAction =
     };
 
 export default function AdminManualHelpManagement() {
+  const [searchParams] = useSearchParams();
   const [manuals, setManuals] = useState<Manual[]>([]);
   const [experts, setExperts] = useState<AdminUserRow[]>([]);
   const [expertByManual, setExpertByManual] = useState<
@@ -69,6 +70,7 @@ export default function AdminManualHelpManagement() {
   const [selectedExpertId, setSelectedExpertId] = useState<string>("");
   const [overviewSearch, setOverviewSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "manage">("overview");
   const [pendingAction, setPendingAction] = useState<PendingAdminAction | null>(
     null,
   );
@@ -93,7 +95,24 @@ export default function AdminManualHelpManagement() {
       setManuals(allManuals);
       setExperts(expertUsers.items);
 
-      if (allManuals.length > 0 && selectedManualId == null) {
+      // Pokus se nastavit selectedManualId z query parametrů
+      const manualIdFromUrl = searchParams.get("manualId");
+      const tabFromUrl = searchParams.get("tab") as "overview" | "manage" | null;
+
+      if (manualIdFromUrl) {
+        const manualIdNum = parseInt(manualIdFromUrl, 10);
+        if (!isNaN(manualIdNum) && allManuals.some((m) => m.id === manualIdNum)) {
+          setSelectedManualId(manualIdNum);
+          setActiveTab("manage");
+        } else if (allManuals.length > 0) {
+          setSelectedManualId(allManuals[0].id);
+        }
+      } else if (tabFromUrl && tabFromUrl === "manage") {
+        setActiveTab("manage");
+        if (allManuals.length > 0) {
+          setSelectedManualId(allManuals[0].id);
+        }
+      } else if (allManuals.length > 0 && selectedManualId == null) {
         setSelectedManualId(allManuals[0].id);
       }
 
@@ -122,7 +141,7 @@ export default function AdminManualHelpManagement() {
 
   useEffect(() => {
     loadAll();
-  }, []);
+  }, [searchParams]);
 
   const expertOverview = useMemo<ExpertOverview[]>(() => {
     const map = new Map<number, ExpertOverview>();
@@ -273,7 +292,7 @@ export default function AdminManualHelpManagement() {
         )}
 
         {!loading && (
-          <Tabs defaultValue="overview" className="space-y-5">
+          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as "overview" | "manage")} className="space-y-5">
             <TabsList>
               <TabsTrigger value="overview">Přehled expertů</TabsTrigger>
               <TabsTrigger value="manage">Správa přiřazení</TabsTrigger>
@@ -324,7 +343,7 @@ export default function AdminManualHelpManagement() {
                         {expert.manuals.map((manual) => (
                           <Link
                             key={`${expert.expertId}-${manual.manualId}`}
-                            to={`/guide/${manual.manualId}`}
+                            to={`/admin/manual-help-management?manualId=${manual.manualId}`}
                             className="rounded-md border border-border px-2 py-1 text-xs hover:border-primary/40"
                           >
                             {manual.manualTitle}
@@ -345,7 +364,8 @@ export default function AdminManualHelpManagement() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-3 md:grid-cols-[2fr_1fr_auto]">
                     <select
-                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      style={{ colorScheme: "dark" }}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                       value={selectedManualId ?? ""}
                       onChange={(event) => setSelectedManualId(Number(event.target.value))}
                     >
@@ -357,7 +377,8 @@ export default function AdminManualHelpManagement() {
                     </select>
 
                     <select
-                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      style={{ colorScheme: "dark" }}
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                       value={selectedExpertId}
                       onChange={(event) => setSelectedExpertId(event.target.value)}
                       disabled={experts.length === 0}

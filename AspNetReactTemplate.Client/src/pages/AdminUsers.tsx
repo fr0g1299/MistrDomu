@@ -14,6 +14,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AdminUserRoleEditor from "@/components/domains/admin/AdminUserRoleEditor";
 import { apiService } from "@/lib/apiService";
 import { editableRoles, type AdminUserRow } from "@/types/adminUser";
@@ -22,6 +30,14 @@ import { useUserFilters } from "@/hooks/useUserFilters";
 import { useAuth } from "@/hooks/useAuth";
 
 type NoticeType = "success" | "error";
+
+type PendingRoleChange = {
+  userId: number;
+  userName: string;
+  currentRole: Role;
+  nextRole: Role;
+  confirmationStep: number; // 0 = closed, 1 = first confirm (or direct save if not admin), 2 = second confirm (only for admin changes)
+};
 
 const PAGE_SIZE = 10;
 const SORT_BY_OPTIONS = ["lastName", "role"] as const;
@@ -46,6 +62,7 @@ export default function AdminUsers() {
   const [notice, setNotice] = useState<{ type: NoticeType; message: string } | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [pendingRoleChange, setPendingRoleChange] = useState<PendingRoleChange | null>(null);
 
   const { filters, setSearch, setRole, setSortDirection, setSortBy, setPage } = useUserFilters();
   const [searchInput, setSearchInput] = useState(filters.search);
@@ -120,23 +137,77 @@ export default function AdminUsers() {
   const pageStart = totalItems === 0 ? 0 : (filters.page - 1) * PAGE_SIZE + 1;
   const pageEnd = Math.min(filters.page * PAGE_SIZE, totalItems);
 
-  const handleSave = async (userId: number) => {
+  const handleSave = (userId: number) => {
     const nextRole = draftRoles[userId];
-    if (!nextRole) return;
+    const user = users.find((u) => u.id === userId);
+    if (!nextRole || !user) return;
 
+    const currentRole = getCurrentRole(user.roles);
+
+    setPendingRoleChange({
+      userId,
+      userName: getDisplayName(user),
+      currentRole,
+      nextRole,
+      confirmationStep: 1,
+    });
+  };
+
+  const handleConfirmRoleChange = async () => {
+    if (!pendingRoleChange) return;
+
+    const isAdminChange =
+      pendingRoleChange.nextRole === Role.Admin ||
+      pendingRoleChange.currentRole === Role.Admin;
+    const isExpertRemoval =
+      pendingRoleChange.currentRole === Role.Expert &&
+      pendingRoleChange.nextRole !== Role.Expert;
+    const requiresDoubleConfirmation = isAdminChange || isExpertRemoval;
+
+    // Sensitive change - require double confirmation
+    if (requiresDoubleConfirmation && pendingRoleChange.confirmationStep === 1) {
+      setPendingRoleChange((prev) =>
+        prev ? { ...prev, confirmationStep: 2 } : null,
+      );
+      return;
+    }
+
+    // Save role change
     try {
-      setSavingId(userId);
+      setSavingId(pendingRoleChange.userId);
       setNotice(null);
-      const response = await apiService.setUserRole(userId, nextRole);
+
+      if (isExpertRemoval) {
+        const assignedManuals = await apiService.getManualsForExpert(
+          pendingRoleChange.userId,
+        );
+
+        await Promise.all(
+          assignedManuals.map((manual) =>
+            apiService.removeManualFromExpert(manual.manualId, pendingRoleChange.userId),
+          ),
+        );
+      }
+
+      const response = await apiService.setUserRole(
+        pendingRoleChange.userId,
+        pendingRoleChange.nextRole,
+      );
       setUsers((prev) =>
         prev.map((user) =>
-          user.id === userId ? { ...user, roles: nextRole } : user,
+          user.id === pendingRoleChange.userId
+            ? { ...user, roles: pendingRoleChange.nextRole }
+            : user,
         ),
       );
       void loadUsers();
       setNotice({
         type: "success",
-        message: response.message || "Role byla úspěšně nastavena.",
+        message:
+          response.message ||
+          (isExpertRemoval
+            ? "Role byla úspěšně nastavena a všechna přiřazení experta byla odstraněna."
+            : "Role byla úspěšně nastavena."),
       });
     } catch (err) {
       const message =
@@ -144,21 +215,42 @@ export default function AdminUsers() {
       setNotice({ type: "error", message });
     } finally {
       setSavingId(null);
+      setPendingRoleChange(null);
     }
   };
+
+  const isAdminRoleChange =
+    pendingRoleChange?.nextRole === Role.Admin ||
+    pendingRoleChange?.currentRole === Role.Admin;
+  const isExpertRoleRemoval =
+    pendingRoleChange?.currentRole === Role.Expert &&
+    pendingRoleChange?.nextRole !== Role.Expert;
+  const isExpertToAdminChange =
+    pendingRoleChange?.currentRole === Role.Expert &&
+    pendingRoleChange?.nextRole === Role.Admin;
+  const requiresDoubleConfirmation =
+    Boolean(pendingRoleChange) && (isAdminRoleChange || isExpertRoleRemoval);
+  const roleChange = pendingRoleChange;
 
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       {notice && (
-        <div className="fixed right-4 top-4 z-100 w-full max-w-sm">
-          <Alert variant={notice.type === "error" ? "destructive" : "default"}>
-            <AlertDescription className="flex items-start justify-between gap-3">
-              <span className="whitespace-pre-line">{notice.message}</span>
+        <div className="fixed bottom-4 right-4 z-100 w-full max-w-sm">
+          <Alert
+            variant={notice.type === "error" ? "destructive" : "default"}
+            className={
+              notice.type === "error"
+                ? undefined
+                : "border-primary/50 bg-primary/70 text-black shadow-lg shadow-primary/20 [&_svg]:text-black"
+            }
+          >
+            <AlertDescription className="flex items-start justify-between gap-3 !text-black">
+              <span className="whitespace-pre-line !text-black">{notice.message}</span>
               <button
                 type="button"
                 onClick={() => setNotice(null)}
-                className="rounded-sm opacity-80 transition hover:opacity-100"
+                className="rounded-sm opacity-80 transition hover:opacity-100 !text-black"
                 aria-label="Zavřít oznámení"
               >
                 <X className="size-4" />
@@ -194,7 +286,8 @@ export default function AdminUsers() {
                       setRole(event.target.value);
                       setPage(1);
                     }}
-                    className="h-9 min-w-40 rounded-md border border-input bg-transparent px-3 text-sm"
+                    style={{ colorScheme: "dark" }}
+                    className="h-9 min-w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                   >
                     <option value="">Všechny role</option>
                     {editableRoles.map((role) => (
@@ -215,7 +308,8 @@ export default function AdminUsers() {
                       setSortBy(nextSortBy);
                       setPage(1);
                     }}
-                    className="h-9 min-w-40 rounded-md border border-input bg-transparent px-3 text-sm"
+                    style={{ colorScheme: "dark" }}
+                    className="h-9 min-w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                   >
                     <option value="lastName">Řadit dle příjmení</option>
                     <option value="role">Řadit dle role</option>
@@ -389,6 +483,166 @@ export default function AdminUsers() {
             </CardContent>
           </Card>
       </main>
+
+      {/* Popup for role changes - idk if it is well done */}
+      <Dialog
+        open={Boolean(pendingRoleChange && pendingRoleChange.confirmationStep > 0)}
+        onOpenChange={() => setPendingRoleChange(null)}
+      >
+        <DialogContent>
+          {roleChange && (
+            <>
+              <DialogHeader>
+                <DialogTitle>
+                  {roleChange.confirmationStep === 2
+                    ? isExpertRoleRemoval
+                      ? "Potvrzení odebrání role Expert"
+                      : "Potvrzení Admin role"
+                    : isExpertRoleRemoval
+                      ? "Potvrzení změny role Expert"
+                      : "Potvrzení změny role"}
+                </DialogTitle>
+                <DialogDescription>
+                  {roleChange.confirmationStep === 1 ? (
+                    <>
+                      <p className="mb-2">
+                        Chcete změnit roli uživatele{" "}
+                        <strong>{roleChange.userName}</strong>?
+                      </p>
+                      <p className="text-sm">
+                        Z: <strong>{roleChange.currentRole}</strong> →
+                        Na: <strong>{roleChange.nextRole}</strong>
+                      </p>
+                      {requiresDoubleConfirmation && !isExpertToAdminChange && (
+                        <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                          ⚠️ <strong>Upozornění!</strong>{" "}
+                          {isExpertRoleRemoval
+                            ? "Tímto se odebere role Expert a smažou se všechna přiřazení tohoto uživatele k návodům."
+                            : "Jedná se o změnu Admin role. Tato akce vyžaduje dodatečné potvrzení."}
+                        </div>
+                      )}
+                      {isExpertToAdminChange && (
+                        <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                          ⚠️ <strong>Upozornění!</strong> Přechod z Expert na Admin je
+                          citlivá změna. Uživatel získá plná administrátorská práva a
+                          zároveň přijde o všechna přiřazení experta k návodům.
+                        </div>
+                      )}
+                    </>
+                  ) : isExpertToAdminChange ? (
+                    <>
+                      <p className="mb-3 font-semibold text-destructive">
+                        ⚠️ Souhrn změny z Expert na Admin
+                      </p>
+                      <p className="mb-2">
+                        Opravdu chcete změnit roli uživatele{" "}
+                        <strong>{roleChange.userName}</strong>?
+                      </p>
+                      <p className="mb-3 text-sm">
+                        Z: <strong>{roleChange.currentRole}</strong> →
+                        Na: <strong>{roleChange.nextRole}</strong>
+                      </p>
+                      <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/15 p-3">
+                        <p className="text-sm font-semibold text-destructive">
+                          Tato změna provede vše níže:
+                        </p>
+                        <ul className="list-disc space-y-1 ps-5 text-sm text-destructive">
+                          <li>Uživatel získá administrátorská práva.</li>
+                          <li>Bude moci spravovat uživatele, návody i nástroje.</li>
+                          <li>Současně se smažou všechna jeho expertní přiřazení k návodům.</li>
+                          <li>Expert přiřazení nebude možné vrátit bez ručního znovupřiřazení.</li>
+                        </ul>
+                      </div>
+                    </>
+                  ) : isExpertRoleRemoval ? (
+                    <>
+                      <p className="mb-3 font-semibold text-destructive">
+                        ⚠️ Finální potvrzení odebrání role Expert
+                      </p>
+                      <p className="mb-2">
+                        Opravdu chcete změnit roli uživatele{" "}
+                        <strong>{roleChange.userName}</strong>?
+                      </p>
+                      <p className="mb-3 text-sm">
+                        Z: <strong>{roleChange.currentRole}</strong> →
+                        Na: <strong>{roleChange.nextRole}</strong>
+                      </p>
+                      <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/15 p-3">
+                        <p className="text-sm font-semibold text-destructive">
+                          Tato akce smaže všechna přiřazení experta k návodům:
+                        </p>
+                        <ul className="list-disc space-y-1 ps-5 text-sm text-destructive">
+                          <li>Uživatel přestane být vedený jako expert</li>
+                          <li>Budou odstraněna všechna jeho přiřazení k návodům</li>
+                          <li>Přiřazení nebude možné obnovit bez ručního znovupřiřazení</li>
+                        </ul>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-3 font-semibold text-destructive">
+                        ⚠️ Finální potvrzení změny Admin role
+                      </p>
+                      <p className="mb-2">
+                        Opravdu chcete změnit roli uživatele{" "}
+                        <strong>{roleChange.userName}</strong>?
+                      </p>
+                      <p className="mb-3 text-sm">
+                        Z: <strong>{roleChange.currentRole}</strong> →
+                        Na: <strong>{roleChange.nextRole}</strong>
+                      </p>
+                      <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/15 p-3">
+                        <p className="text-sm font-semibold text-destructive">
+                          Admin má zpřístupněnou správu systému, což zahrnuje:
+                        </p>
+                        <ul className="list-disc space-y-1 ps-5 text-sm text-destructive">
+                          <li>Správu všech uživatelů a jejich rolí</li>
+                          <li>Správu návodů a přiřazení expertů</li>
+                          <li>Správu nástrojů v systému</li>
+                        </ul>
+                      </div>
+                    </>
+                  )}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPendingRoleChange(null)}
+                >
+                  Zrušit
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleConfirmRoleChange}
+                  disabled={savingId !== null}
+                  variant={
+                    isAdminRoleChange || isExpertRoleRemoval
+                      ? "destructive"
+                      : "default"
+                  }
+                >
+                  {savingId !== null ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin mr-2" />
+                      Ukládám...
+                    </>
+                  ) : roleChange.confirmationStep === 2 ? (
+                    isExpertToAdminChange
+                      ? "Potvrzuji změnu Expert → Admin"
+                      : isExpertRoleRemoval
+                        ? "Potvrzuji odebrání role Expert"
+                        : "Potvrzuji změnu Admin role"
+                  ) : (
+                    "Potvrdit"
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
