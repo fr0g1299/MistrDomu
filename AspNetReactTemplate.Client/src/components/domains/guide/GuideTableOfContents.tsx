@@ -1,6 +1,7 @@
-import { CheckCircle2, RotateCcw } from "lucide-react";
+import { CheckCircle2, RotateCcw, Video } from "lucide-react";
 
 import { GuideAiAssistantCard } from "@/components/domains/guide/GuideAiAssistantCard";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,6 +30,21 @@ export function GuideTableOfContents({
 }: GuideTableOfContentsProps) {
   return (
     <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-1 lg:flex">
+      {/* TODO: Update link */}
+      <Link to="/todo" className="w-full">
+        <Button
+          type="button"
+          aria-label="Potřebujete pomoc? Zavolat odborníkovi přes videohovor"
+          className="w-full rounded-lg border border-primary/30 bg-primary/10 py-10 flex-col gap-1 font-semibold hover:bg-primary/6 transition-colors duration-200"
+        >
+          <span className="text-lg text-primary-600 items-center justify-center gap-2 flex">
+            <Video className="size-5" /> Potřebujete pomoc?
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Zavolat odborníkovi přes videohovor
+          </p>
+        </Button>
+      </Link>
       <Card className="gap-4 border-border bg-card p-5">
         <div>
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-primary">
