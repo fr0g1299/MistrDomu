@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ImageZoom } from "@/components/shared/ImageZoom";
-// import { ClickToEnlargeImage } from "@/components/shared/ClickToEnlargeImage"; // Second version of image zoom
 
 import type { GuideStep } from "@/types/manual";
 
@@ -22,7 +21,7 @@ export function GuideSteps({
   onToggleStep,
 }: GuideStepsProps) {
   return (
-    <section id={sectionId} className="space-y-6 lg:col-span-3">
+    <section id={sectionId} className="space-y-6 lg:col-span-23 xl:col-span-20">
       {steps.map((step) => {
         const isCompleted = completedStepIds.has(step.id);
         const cardClassName = isCompleted
@@ -108,11 +107,6 @@ export function GuideSteps({
 
                         {step.imageUrl && (
                           <>
-                            {/* <ClickToEnlargeImage
-                              src={step.image}
-                              alt={step.title}
-                            /> */}
-
                             <ImageZoom zoomOnHover={false}>
                               <img
                                 src={step.imageUrl}

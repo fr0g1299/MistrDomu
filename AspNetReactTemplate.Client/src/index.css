@@ -261,6 +261,19 @@
   scrollbar-width: none;
 }
 
+@theme {
+  --breakpoint-3xl: 105rem;
+  --breakpoint-4xl: 112rem;
+}
+
+.solid-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(76.856% 0.16472 70.113 / 0.3);
+}
+
+.solid-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(76.856% 0.16472 70.113 / 0.5);
+}
+
 /* Prose Utility */
 @utility prose {
   --tw-prose-invert-body: var(--foreground);

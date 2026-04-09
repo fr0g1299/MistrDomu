@@ -56,7 +56,7 @@ export function GuideIntroduction({
       </div>
 
       <div className="relative flex min-h-[50vh] py-0 lg:min-h-[60vh]">
-        <div className="lg:ml-8 2xl:ml-30 w-full max-w-screen lg:max-w-3xl 2xl:max-w-5xl px-4 sm:pl-6 lg:px-8 lg:pr-16 xl:pr-24">
+        <div className="lg:ml-8 2xl:ml-15 w-full max-w-screen lg:max-w-3xl 2xl:max-w-5xl px-4 sm:pl-6 lg:px-8 lg:pr-16 xl:pr-24">
           <div className="rounded-r-3xl z-10 bg-linear-to-r from-background/95 via-background/85 to-transparent px-2 pt-2 md:pt-14 pb-0 md:pb-6 backdrop-blur-[2px] sm:px-4 lg:px-6 h-full flex flex-col justify-center">
             <div className="flex gap-5 items-center mb-5">
               <button

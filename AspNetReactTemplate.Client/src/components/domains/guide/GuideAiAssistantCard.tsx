@@ -36,7 +36,7 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-const TYPEWRITER_INTERVAL_MS = 18;
+const TYPEWRITER_INTERVAL_MS = 25;
 const TYPEWRITER_CHUNK_SIZE = 2;
 const FREE_USER_MESSAGES_LIMIT = 2;
 const getPendingMessageStorageKey = (manualId: number) =>
@@ -413,7 +413,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
       )}
 
       <Card
-        className={`relative gap-3 p-5 transition-all duration-200 ${
+        className={`relative gap-3 2xl:p-5 px-3 py-5 transition-all duration-200 ${
           isExpandedModalOpen
             ? "bg-card/95 border-primary/15 fixed left-1/2 top-[53%] z-50 h-[85vh] w-[min(92vw,76rem)] -translate-x-1/2 -translate-y-1/2"
             : "bg-primary/5 border-primary/30 flex-1 min-h-0"
@@ -454,7 +454,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
 
         <div
           ref={messagesContainerRef}
-          className={`space-y-3 overflow-y-auto rounded-md hide-scrollbar bg-transparent p-2 ${
+          className={`space-y-3 overflow-y-auto rounded-md solid-scrollbar bg-transparent py-2 px-1 ${
             isExpandedModalOpen ? "h-[calc(88vh-13.5rem)]" : "h-128"
           }`}
           aria-live="polite"
@@ -525,7 +525,7 @@ export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
               onChange={(event) => setInputValue(event.target.value)}
               onKeyDown={handleInputKeyDown}
               placeholder="Napište dotaz..."
-              className="hide-scrollbar placeholder:text-muted-foreground selection:bg-primary! selection:text-primary-foreground! bg-input/30 border-input min-h-10 w-full rounded-md border px-3 py-2 text-base transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring aria-invalid:border-destructive md:text-sm resize-none"
+              className="solid-scrollbar placeholder:text-muted-foreground selection:bg-primary! selection:text-primary-foreground! bg-input/30 border-input min-h-10 w-full rounded-md border px-3 py-2 text-base transition-all outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:border-ring aria-invalid:border-destructive md:text-sm resize-none"
             />
             <Button
               type="submit"

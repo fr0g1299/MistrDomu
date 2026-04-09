@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { GuideIntroduction } from "@/components/domains/guide/GuideIntroduction";
+import { GuideSupportPanel } from "@/components/domains/guide/GuideSupportPanel";
 import { GuideSteps } from "@/components/domains/guide/GuideSteps";
 import { GuideTableOfContents } from "@/components/domains/guide/GuideTableOfContents";
 import { apiService } from "@/lib/apiService";
@@ -426,12 +427,14 @@ export default function Guide() {
             variant="default"
             className="border-primary/50 bg-primary/70 text-black shadow-lg shadow-primary/20 [&_svg]:text-black"
           >
-            <AlertDescription className="flex items-start justify-between gap-3 !text-black">
-              <span className="whitespace-pre-line !text-black">{helperEnrollMessage}</span>
+            <AlertDescription className="flex items-start justify-between gap-3 text-black!">
+              <span className="whitespace-pre-line text-black!">
+                {helperEnrollMessage}
+              </span>
               <button
                 type="button"
                 onClick={() => setHelperEnrollMessage(null)}
-                className="rounded-sm opacity-80 transition hover:opacity-100 !text-black"
+                className="rounded-sm opacity-80 transition hover:opacity-100 text-black!"
                 aria-label="Zavřít oznámení"
               >
                 <X className="size-4" />
@@ -445,7 +448,7 @@ export default function Guide() {
       <Separator className="mb-8 bg-linear-to-r from-background to-primary/50" />
 
       <main
-        className="mx-auto w-full xl:max-w-[95vw] 2xl:max-w-[85vw] px-4 pb-20 sm:px-6"
+        className="mx-auto w-full xl:max-w-[100vw] 2xl:max-w-[95vw] px-4 pb-20 sm:px-6"
         data-manual-id={manualId}
       >
         {/* TODO: In the future add Skeletons */}
@@ -465,6 +468,7 @@ export default function Guide() {
         {stepsError && (
           <p className="mb-4 text-sm text-destructive">{stepsError}</p>
         )}
+        {/* TODO: Cleanup into a component */}
         {isExpert && (
           <div className="mb-6 rounded-xl border border-border bg-card p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -514,15 +518,8 @@ export default function Guide() {
             )}
           </div>
         )}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
-          <GuideSteps
-            steps={steps}
-            completedStepIds={completedStepIds}
-            onToggleStep={handleToggleStep}
-          />
-
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-32 3xl:gap-6 4xl:gap-8">
           <GuideTableOfContents
-            manualId={Number(manualId)}
             tableOfContents={tableOfContents}
             steps={steps}
             completedStepIds={completedStepIds}
@@ -530,6 +527,14 @@ export default function Guide() {
             onScrollTo={handleScrollTo}
             onResetCompletedSteps={handleResetCompletedSteps}
           />
+
+          <GuideSteps
+            steps={steps}
+            completedStepIds={completedStepIds}
+            onToggleStep={handleToggleStep}
+          />
+
+          <GuideSupportPanel manualId={Number(manualId)} />
         </div>
       </main>
 
