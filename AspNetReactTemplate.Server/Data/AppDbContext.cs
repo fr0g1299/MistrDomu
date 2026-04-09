@@ -2,6 +2,7 @@ using AspNetReactTemplate.Server.Data.Seeding;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Models;
+using AspNetReactTemplate.Server.Models.Calls;
 using AspNetReactTemplate.Server.Models.Manuals;
 using AspNetReactTemplate.Server.Models.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -28,6 +29,8 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<ExpertManualHelp> ExpertManualHelps { get; set; }
         public DbSet<RoleRequest> RoleRequests { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<ManualCallLog> ManualCallLogs { get; set; }
+        public DbSet<ExpertWaitingLog> ExpertWaitingLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -133,6 +136,31 @@ namespace AspNetReactTemplate.Server.Data
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ManualCallLog>()
+                .HasOne(log => log.ParticipantUser)
+                .WithMany()
+                .HasForeignKey(log => log.ParticipantUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ManualCallLog>()
+                .HasOne(log => log.CounterpartyUser)
+                .WithMany()
+                .HasForeignKey(log => log.CounterpartyUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ManualCallLog>()
+                .HasIndex(log => new { log.RoomName, log.ParticipantUserId })
+                .IsUnique();
+
+            modelBuilder.Entity<ExpertWaitingLog>()
+                .HasOne(log => log.ExpertUser)
+                .WithMany()
+                .HasForeignKey(log => log.ExpertUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExpertWaitingLog>()
+                .HasIndex(log => new { log.ExpertUserId, log.StartedAtUtc });
 
             // ManualPayments: unique per (UserId, ManualId)
             modelBuilder.Entity<ManualPayment>()

@@ -8,6 +8,8 @@ export interface AdminUserRow {
   email?: string;
   phone?: string;
   roles: string;
+  totalCallDurationSeconds: number;
+  totalWaitingDurationSeconds: number;
 }
 
 export interface AdminUsersQuery {

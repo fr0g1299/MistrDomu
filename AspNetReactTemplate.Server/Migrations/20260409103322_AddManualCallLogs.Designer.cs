@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AspNetReactTemplate.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409103322_AddManualCallLogs")]
+    partial class AddManualCallLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,33 +112,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ExpertWaitingLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DurationSeconds")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset?>("EndedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ExpertUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("StartedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpertUserId", "StartedAtUtc");
-
-                    b.ToTable("ExpertWaitingLogs");
-                });
-
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ManualCallLog", b =>
                 {
                     b.Property<int>("Id")
@@ -173,42 +149,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("ManualCallLogs");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "IsRead");
-
-                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Role", b =>
@@ -261,52 +201,6 @@ namespace AspNetReactTemplate.Server.Migrations
                             Name = "Expert",
                             NormalizedName = "EXPERT"
                         });
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.RoleRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AdminNote")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<DateTime>("RequestedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RequestedRole")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("ReviewedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ReviewedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserNote")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReviewedByUserId");
-
-                    b.HasIndex("UserId", "RequestedRole", "Status")
-                        .HasFilter("\"Status\" = 0");
-
-                    b.ToTable("RoleRequests");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.User", b =>
@@ -746,17 +640,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ExpertWaitingLog", b =>
-                {
-                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "ExpertUser")
-                        .WithMany()
-                        .HasForeignKey("ExpertUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ExpertUser");
-                });
-
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ManualCallLog", b =>
                 {
                     b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "CounterpartyUser")
@@ -774,35 +657,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Navigation("CounterpartyUser");
 
                     b.Navigation("ParticipantUser");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
-                {
-                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.RoleRequest", b =>
-                {
-                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "ReviewedByUser")
-                        .WithMany()
-                        .HasForeignKey("ReviewedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ReviewedByUser");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.ManualPayment", b =>

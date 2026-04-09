@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddCustomDatabase(builder.Configuration);
-builder.Services.AddCustomIdentity();
+builder.Services.AddCustomIdentity(builder.Environment);
 builder.Services.AddApplicationServices();
 
 

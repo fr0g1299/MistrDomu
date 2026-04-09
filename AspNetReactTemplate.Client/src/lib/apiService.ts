@@ -27,6 +27,39 @@ export type ManualForExpertRead = {
   manualTitle: string;
 };
 
+export type AvailableExpertRead = {
+  expertId: number;
+  expertName: string;
+};
+
+export type StartedManualCallRead = {
+  roomUrl: string;
+  roomName: string;
+  expertId: number;
+  expertName: string;
+};
+
+export type PendingManualCallRead = {
+  roomUrl: string;
+  roomName: string;
+  manualId: number;
+  manualTitle: string;
+  callerUserId: number;
+  callerDisplayName?: string | null;
+};
+
+export type ManualCallLogCreate = {
+  manualId: number;
+  counterpartyUserId: number;
+  roomName: string;
+  durationSeconds: number;
+};
+
+export type ExpertWaitingStatusRead = {
+  isWaiting: boolean;
+  waitingSinceUtc?: string | null;
+};
+
 const API_BASE_URL = "/api";
 
 function normalizePendingRoleRequestsResponse(
@@ -399,6 +432,100 @@ export const apiService = {
     if (!response.ok) {
       const message = await response.text();
       throw new Error(message || `Request failed (${response.status})`);
+    }
+  },
+
+  async getAvailableExpertsForManual(
+    manualId: number,
+  ): Promise<AvailableExpertRead[]> {
+    return requestJson<AvailableExpertRead[]>(
+      `/calls/manual/${manualId}/available-experts`,
+    );
+  },
+
+  async startManualCall(manualId: number): Promise<StartedManualCallRead> {
+    const response = await fetch(`${API_BASE_URL}/calls/manual/${manualId}/start`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+
+    return response.json() as Promise<StartedManualCallRead>;
+  },
+
+  async setExpertWaiting(isWaiting: boolean): Promise<void> {
+    const suffix = isWaiting ? "start" : "stop";
+    const response = await fetch(
+      `${API_BASE_URL}/calls/waiting/${suffix}`,
+      {
+        method: "POST",
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+  },
+
+  async sendExpertWaitingHeartbeat(): Promise<void> {
+    const response = await fetch(
+      `${API_BASE_URL}/calls/waiting/heartbeat`,
+      {
+        method: "POST",
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+  },
+
+  async getNextWaitingCall(): Promise<PendingManualCallRead | null> {
+    const response = await fetch(
+      `${API_BASE_URL}/calls/waiting/next`,
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    );
+
+    if (response.status === 204) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+
+    return response.json() as Promise<PendingManualCallRead>;
+  },
+
+  async getExpertWaitingStatus(): Promise<ExpertWaitingStatusRead> {
+    return requestJson<ExpertWaitingStatusRead>("/calls/waiting/status");
+  },
+
+  async logManualCallDuration(payload: ManualCallLogCreate): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/calls/log`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
     }
   },
 };

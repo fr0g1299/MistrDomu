@@ -22,6 +22,8 @@ using AspNetReactTemplate.Server.Services.Implementation.Identity.RoleRequest;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 
+using AspNetReactTemplate.Server.Services.Abstraction.Calls;
+using AspNetReactTemplate.Server.Services.Implementation.Calls;
 
 namespace AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 
@@ -49,6 +51,8 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IUserRoleRequestService, UserRoleRequestService>();
         services.AddScoped<IAdminRoleRequestService, AdminRoleRequestService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IDailyPrebuiltService, DailyPrebuiltService>();
+        services.AddSingleton<ICallPresenceService, CallPresenceService>();
 
         services.AddHttpContextAccessor();
         services.AddHttpClient();

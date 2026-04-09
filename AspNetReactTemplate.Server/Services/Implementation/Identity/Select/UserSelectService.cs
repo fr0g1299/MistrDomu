@@ -103,6 +103,8 @@ public class UserSelectService : IUserSelectService
             .ToListAsync();
 
         await FillRolesAsync(users);
+        await FillCallDurationsAsync(users);
+        await FillWaitingDurationsAsync(users);
 
         var result = new UserListPageDto
         {
@@ -228,6 +230,58 @@ public class UserSelectService : IUserSelectService
             user.Roles = roleMap.TryGetValue(user.Id, out var roles)
                 ? roles
                 : string.Empty;
+        }
+    }
+
+    private async Task FillCallDurationsAsync(List<UserListDto> users)
+    {
+        var userIds = users.Select(u => u.Id).ToList();
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        var durationMap = await _dbContext.ManualCallLogs
+            .Where(log => userIds.Contains(log.ParticipantUserId))
+            .GroupBy(log => log.ParticipantUserId)
+            .Select(group => new
+            {
+                UserId = group.Key,
+                TotalSeconds = group.Sum(x => x.DurationSeconds)
+            })
+            .ToDictionaryAsync(x => x.UserId, x => x.TotalSeconds);
+
+        foreach (var user in users)
+        {
+            user.TotalCallDurationSeconds = durationMap.TryGetValue(user.Id, out var totalSeconds)
+                ? totalSeconds
+                : 0;
+        }
+    }
+
+    private async Task FillWaitingDurationsAsync(List<UserListDto> users)
+    {
+        var userIds = users.Select(u => u.Id).ToList();
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        var waitingMap = await _dbContext.ExpertWaitingLogs
+            .Where(log => userIds.Contains(log.ExpertUserId))
+            .GroupBy(log => log.ExpertUserId)
+            .Select(group => new
+            {
+                UserId = group.Key,
+                TotalSeconds = group.Sum(x => x.DurationSeconds)
+            })
+            .ToDictionaryAsync(x => x.UserId, x => x.TotalSeconds);
+
+        foreach (var user in users)
+        {
+            user.TotalWaitingDurationSeconds = waitingMap.TryGetValue(user.Id, out var totalSeconds)
+                ? totalSeconds
+                : 0;
         }
     }
 }

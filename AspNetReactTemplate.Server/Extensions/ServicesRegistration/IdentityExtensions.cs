@@ -9,7 +9,7 @@ namespace AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 
 public static class IdentityExtensions
 {
-    public static IServiceCollection AddCustomIdentity(this IServiceCollection services)
+    public static IServiceCollection AddCustomIdentity(this IServiceCollection services, IWebHostEnvironment environment)
     {
         services.AddIdentity<User, Role>()
             .AddErrorDescriber<IdentityErrorDescriberCs>()
@@ -29,7 +29,9 @@ public static class IdentityExtensions
             options.Cookie.Name = "mistrdomu_auth";
             options.Cookie.HttpOnly = true;
             options.ExpireTimeSpan = TimeSpan.FromDays(14);
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.SecurePolicy = environment.IsDevelopment()
+                ? CookieSecurePolicy.None
+                : CookieSecurePolicy.Always;
             options.Cookie.SameSite = SameSiteMode.Strict;
             options.SlidingExpiration = true;
             options.Events.OnRedirectToLogin = context =>

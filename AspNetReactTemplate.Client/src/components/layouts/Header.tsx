@@ -23,7 +23,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, BookOpen, LogOut, Loader2, Settings, X } from "lucide-react";
+import {
+  Bell,
+  BookOpen,
+  LogOut,
+  Loader2,
+  PhoneCall,
+  Settings,
+  X,
+} from "lucide-react";
 
 type HeaderProps = {
   onNavigateHome: () => void;
@@ -44,6 +52,36 @@ export default function Header({ onNavigateHome }: HeaderProps) {
   const [isLoadingMoreInbox, setIsLoadingMoreInbox] = useState(false);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showExpertStandbyButton, setShowExpertStandbyButton] = useState(false);
+
+  useEffect(() => {
+    const userId = user?.id;
+    if (!isAuthenticated || !isExpert || !userId) {
+      setShowExpertStandbyButton(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadExpertManualAssignments = async () => {
+      try {
+        const manuals = await apiService.getManualsForExpert(userId);
+        if (!cancelled) {
+          setShowExpertStandbyButton(manuals.length > 0);
+        }
+      } catch {
+        if (!cancelled) {
+          setShowExpertStandbyButton(false);
+        }
+      }
+    };
+
+    void loadExpertManualAssignments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, isExpert, user?.id]);
 
   const unreadCount = inboxUnreadCount;
   const hasMoreInboxItems = inboxCurrentPage < inboxTotalPages;
@@ -60,7 +98,10 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     }
 
     try {
-      const notifications = await apiService.getMyNotifications({ page: 1, pageSize: INBOX_PAGE_SIZE });
+      const notifications = await apiService.getMyNotifications({
+        page: 1,
+        pageSize: INBOX_PAGE_SIZE,
+      });
       setInboxItems(notifications.items);
       setInboxUnreadCount(notifications.unreadCount);
       setInboxCurrentPage(notifications.currentPage);
@@ -97,7 +138,9 @@ export default function Header({ onNavigateHome }: HeaderProps) {
 
       setInboxItems((current) => {
         const knownIds = new Set(current.map((item) => item.id));
-        const newItems = notifications.items.filter((item) => !knownIds.has(item.id));
+        const newItems = notifications.items.filter(
+          (item) => !knownIds.has(item.id),
+        );
         return [...current, ...newItems];
       });
       setInboxUnreadCount(notifications.unreadCount);
@@ -108,7 +151,12 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     } finally {
       setIsLoadingMoreInbox(false);
     }
-  }, [hasMoreInboxItems, inboxCurrentPage, isAuthenticated, isLoadingMoreInbox]);
+  }, [
+    hasMoreInboxItems,
+    inboxCurrentPage,
+    isAuthenticated,
+    isLoadingMoreInbox,
+  ]);
 
   const deleteAllInboxItems = useCallback(() => {
     if (inboxItems.length === 0) {
@@ -126,36 +174,48 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     void apiService.deleteAllNotifications().catch((error) => {
       setInboxItems(previousItems);
       setInboxUnreadCount(previousUnreadCount);
-      toast.error(error instanceof Error ? error.message : "Smazání všech notifikací se nezdařilo.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Smazání všech notifikací se nezdařilo.",
+      );
       void refreshHeaderNotifications();
     });
   }, [inboxItems, inboxUnreadCount, refreshHeaderNotifications]);
 
-  const deleteInboxItem = useCallback((id: number) => {
-    const previousItems = inboxItems;
-    const previousUnreadCount = inboxUnreadCount;
-    const target = previousItems.find((item) => item.id === id);
+  const deleteInboxItem = useCallback(
+    (id: number) => {
+      const previousItems = inboxItems;
+      const previousUnreadCount = inboxUnreadCount;
+      const target = previousItems.find((item) => item.id === id);
 
-    if (!target) {
-      return;
-    }
+      if (!target) {
+        return;
+      }
 
-    setInboxItems((current) => current.filter((item) => item.id !== id));
-    if (!target.isRead) {
-      setInboxUnreadCount((prev) => Math.max(0, prev - 1));
-    }
+      setInboxItems((current) => current.filter((item) => item.id !== id));
+      if (!target.isRead) {
+        setInboxUnreadCount((prev) => Math.max(0, prev - 1));
+      }
 
-    void apiService.deleteNotification(id)
-      .then(() => {
-        // Re-sync unread counter and first-page items with backend truth.
-        void refreshHeaderNotifications();
-      })
-      .catch((error) => {
-        setInboxItems(previousItems);
-        setInboxUnreadCount(previousUnreadCount);
-        toast.error(error instanceof Error ? error.message : "Smazání zprávy se nezdařilo.");
-      });
-  }, [inboxItems, inboxUnreadCount, refreshHeaderNotifications]);
+      void apiService
+        .deleteNotification(id)
+        .then(() => {
+          // Re-sync unread counter and first-page items with backend truth.
+          void refreshHeaderNotifications();
+        })
+        .catch((error) => {
+          setInboxItems(previousItems);
+          setInboxUnreadCount(previousUnreadCount);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Smazání zprávy se nezdařilo.",
+          );
+        });
+    },
+    [inboxItems, inboxUnreadCount, refreshHeaderNotifications],
+  );
 
   useEffect(() => {
     void refreshHeaderNotifications();
@@ -219,6 +279,19 @@ export default function Header({ onNavigateHome }: HeaderProps) {
               <Link to="/search">
                 <BookOpen className="h-4 w-4" />
                 <span className="hidden md:inline">Návody</span>
+              </Link>
+            </Button>
+          )}
+
+          {isAuthenticated && isExpert && showExpertStandbyButton && (
+            <Button
+              asChild
+              variant="ghost"
+              className="h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2"
+            >
+              <Link to="/expert-standby">
+                <PhoneCall className="h-4 w-4" />
+                <span className="hidden md:inline">Čekání na hovory</span>
               </Link>
             </Button>
           )}
@@ -321,7 +394,11 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     </Button>
                   </DropdownMenuTrigger>
 
-                  <DropdownMenuContent className="w-80" align="end" sideOffset={10}>
+                  <DropdownMenuContent
+                    className="w-80"
+                    align="end"
+                    sideOffset={10}
+                  >
                     <DropdownMenuLabel className="flex items-center justify-between">
                       <span>Inbox</span>
                       {inboxItems.length > 0 && (
@@ -338,7 +415,9 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {inboxItems.length === 0 && (
-                      <DropdownMenuItem disabled>Zatím žádné notifikace.</DropdownMenuItem>
+                      <DropdownMenuItem disabled>
+                        Zatím žádné notifikace.
+                      </DropdownMenuItem>
                     )}
                     {inboxItems.length > 0 && (
                       <div className="max-h-60 overflow-y-auto">
@@ -347,19 +426,26 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                             <div className="flex w-full items-start justify-between gap-2 rounded-sm">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-medium">{item.title}</span>
-                                  <Badge variant="outline" className="text-[10px]">
+                                  <span className="text-xs font-medium">
+                                    {item.title}
+                                  </span>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px]"
+                                  >
                                     {getInboxTypeLabel(item.type)}
                                   </Badge>
                                   {!item.isRead && (
                                     <span className="h-2 w-2 rounded-full bg-primary" />
                                   )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">{item.message}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {item.message}
+                                </p>
                               </div>
                               <button
                                 type="button"
-                                  aria-label="Smazat zprávu"
+                                aria-label="Smazat zprávu"
                                 className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                                 onClick={(event) => {
                                   event.preventDefault();
@@ -414,42 +500,42 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     align="end"
                     sideOffset={10}
                   >
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        Můj účet
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground truncate">
-                        {user?.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {!isAdmin && (
-                    <>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => navigate("/my-requests")}
-                      >
-                        Mé žádosti
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem
-                    className="text-red-500 focus:bg-red-50 dark:focus:bg-red-950 focus:text-red-500 cursor-pointer"
-                    onClick={handleLogout}
-                    disabled={isLoggingOut}
-                  >
-                    {isLoggingOut ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <LogOut className="mr-2 h-4 w-4" />
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          Můj účet
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {!isAdmin && (
+                      <>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => navigate("/my-requests")}
+                        >
+                          Mé žádosti
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
                     )}
-                    <span>
-                      {isLoggingOut ? "Odhlašování..." : "Odhlásit se"}
-                    </span>
-                  </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-500 focus:bg-red-50 dark:focus:bg-red-950 focus:text-red-500 cursor-pointer"
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                    >
+                      {isLoggingOut ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogOut className="mr-2 h-4 w-4" />
+                      )}
+                      <span>
+                        {isLoggingOut ? "Odhlašování..." : "Odhlásit se"}
+                      </span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
