@@ -288,7 +288,12 @@ export default function Guide() {
   // Load completed steps from the server once steps are available
   useEffect(() => {
     const parsedManualId = Number(manualId);
-    if (steps.length === 0 || !Number.isInteger(parsedManualId) || parsedManualId <= 0) return;
+    if (
+      steps.length === 0 ||
+      !Number.isInteger(parsedManualId) ||
+      parsedManualId <= 0
+    )
+      return;
 
     let isCancelled = false;
 
@@ -378,7 +383,9 @@ export default function Guide() {
     try {
       await apiService.registerAsManualHelper(parsedManualId, userId);
       setHelperAlreadyEnrolled(true);
-      setHelperEnrollMessage("Byli jste zapsáni jako pomocník pro tento návod.");
+      setHelperEnrollMessage(
+        "Byli jste zapsáni jako pomocník pro tento návod.",
+      );
     } catch (err: unknown) {
       setHelperEnrollError(
         err instanceof Error
@@ -475,13 +482,18 @@ export default function Guide() {
               <div>
                 <p className="text-sm font-semibold">Expert pomocník</p>
                 <p className="text-sm text-muted-foreground">
-                  Pokud chcete pomáhat s tímto návodem, zapište se jako pomocník.
+                  Pokud chcete pomáhat s tímto návodem, zapište se jako
+                  pomocník.
                 </p>
               </div>
               <Button
                 type="button"
                 onClick={handleEnrollAsHelper}
-                disabled={helperEnrollLoading || helperStatusLoading || helperAlreadyEnrolled}
+                disabled={
+                  helperEnrollLoading ||
+                  helperStatusLoading ||
+                  helperAlreadyEnrolled
+                }
                 variant={helperAlreadyEnrolled ? "secondary" : "default"}
               >
                 {helperStatusLoading ? (
@@ -502,7 +514,9 @@ export default function Guide() {
               </Button>
             </div>
             {helperEnrollError && (
-              <p className="mt-3 text-sm text-destructive">{helperEnrollError}</p>
+              <p className="mt-3 text-sm text-destructive">
+                {helperEnrollError}
+              </p>
             )}
             {isExpert && helperAlreadyEnrolled && (
               <div className="mt-3">

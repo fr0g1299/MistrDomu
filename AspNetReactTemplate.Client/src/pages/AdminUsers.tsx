@@ -59,12 +59,17 @@ export default function AdminUsers() {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [draftRoles, setDraftRoles] = useState<Record<number, Role>>({});
-  const [notice, setNotice] = useState<{ type: NoticeType; message: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    type: NoticeType;
+    message: string;
+  } | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [pendingRoleChange, setPendingRoleChange] = useState<PendingRoleChange | null>(null);
+  const [pendingRoleChange, setPendingRoleChange] =
+    useState<PendingRoleChange | null>(null);
 
-  const { filters, setSearch, setRole, setSortDirection, setSortBy, setPage } = useUserFilters();
+  const { filters, setSearch, setRole, setSortDirection, setSortBy, setPage } =
+    useUserFilters();
   const [searchInput, setSearchInput] = useState(filters.search);
 
   useEffect(() => {
@@ -131,7 +136,9 @@ export default function AdminUsers() {
 
   const getDisplayName = (user: AdminUserRow) => {
     const parts = [user.firstName, user.lastName].filter(Boolean);
-    return parts.length > 0 ? parts.join(" ") : user.username ?? `Uživatel #${user.id}`;
+    return parts.length > 0
+      ? parts.join(" ")
+      : (user.username ?? `Uživatel #${user.id}`);
   };
 
   const pageStart = totalItems === 0 ? 0 : (filters.page - 1) * PAGE_SIZE + 1;
@@ -165,7 +172,10 @@ export default function AdminUsers() {
     const requiresDoubleConfirmation = isAdminChange || isExpertRemoval;
 
     // Sensitive change - require double confirmation
-    if (requiresDoubleConfirmation && pendingRoleChange.confirmationStep === 1) {
+    if (
+      requiresDoubleConfirmation &&
+      pendingRoleChange.confirmationStep === 1
+    ) {
       setPendingRoleChange((prev) =>
         prev ? { ...prev, confirmationStep: 2 } : null,
       );
@@ -184,7 +194,10 @@ export default function AdminUsers() {
 
         await Promise.all(
           assignedManuals.map((manual) =>
-            apiService.removeManualFromExpert(manual.manualId, pendingRoleChange.userId),
+            apiService.removeManualFromExpert(
+              manual.manualId,
+              pendingRoleChange.userId,
+            ),
           ),
         );
       }
@@ -232,7 +245,6 @@ export default function AdminUsers() {
     Boolean(pendingRoleChange) && (isAdminRoleChange || isExpertRoleRemoval);
   const roleChange = pendingRoleChange;
 
-
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       {notice && (
@@ -246,7 +258,9 @@ export default function AdminUsers() {
             }
           >
             <AlertDescription className="flex items-start justify-between gap-3 !text-black">
-              <span className="whitespace-pre-line !text-black">{notice.message}</span>
+              <span className="whitespace-pre-line !text-black">
+                {notice.message}
+              </span>
               <button
                 type="button"
                 onClick={() => setNotice(null)}
@@ -262,231 +276,255 @@ export default function AdminUsers() {
 
       <main className="mx-auto max-w-7xl px-6 py-8">
         <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
-            <CardHeader className="border-b border-border">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <CardTitle className="text-2xl font-bold">
-                  Správa uživatelů
-                  {isRefreshing && <Loader2 className="ml-2 inline size-4 animate-spin text-muted-foreground" />}
-                </CardTitle>
+          <CardHeader className="border-b border-border">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <CardTitle className="text-2xl font-bold">
+                Správa uživatelů
+                {isRefreshing && (
+                  <Loader2 className="ml-2 inline size-4 animate-spin text-muted-foreground" />
+                )}
+              </CardTitle>
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <div className="relative w-full sm:w-72">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      value={searchInput}
-                      onChange={(event) => setSearchInput(event.target.value)}
-                      placeholder="Hledat jméno, email, telefon..."
-                      className="pl-9 text-foreground caret-foreground selection:bg-primary/60 selection:text-foreground"
-                    />
-                  </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative w-full sm:w-72">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
+                    placeholder="Hledat jméno, email, telefon..."
+                    className="pl-9 text-foreground caret-foreground selection:bg-primary/60 selection:text-foreground"
+                  />
+                </div>
 
-                  <select
-                    value={filters.role}
-                    onChange={(event) => {
-                      setRole(event.target.value);
-                      setPage(1);
-                    }}
-                    style={{ colorScheme: "dark" }}
-                    className="h-9 min-w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                <select
+                  value={filters.role}
+                  onChange={(event) => {
+                    setRole(event.target.value);
+                    setPage(1);
+                  }}
+                  style={{ colorScheme: "dark" }}
+                  className="h-9 min-w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                >
+                  <option value="">Všechny role</option>
+                  {editableRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={filters.sortBy}
+                  onChange={(event) => {
+                    const nextSortBy = event.target.value;
+                    if (!isSortByOption(nextSortBy)) {
+                      return;
+                    }
+
+                    setSortBy(nextSortBy);
+                    setPage(1);
+                  }}
+                  style={{ colorScheme: "dark" }}
+                  className="h-9 min-w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                >
+                  <option value="lastName">Řadit dle příjmení</option>
+                  <option value="role">Řadit dle role</option>
+                </select>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label={
+                    filters.sortDirection === "asc"
+                      ? "Přepnout směr řazení na sestupně"
+                      : "Přepnout směr řazení na vzestupně"
+                  }
+                  onClick={() => {
+                    setSortDirection(
+                      filters.sortDirection === "asc" ? "desc" : "asc",
+                    );
+                    setPage(1);
+                  }}
+                >
+                  {filters.sortDirection === "asc" ? (
+                    <ArrowDownAZ className="size-4" />
+                  ) : (
+                    <ArrowUpAZ className="size-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10 bg-muted/40">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Uživatel
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      E-mail
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Telefon
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Role
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Akce
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isInitialLoading && users.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-8 text-center text-sm text-muted-foreground"
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="size-4 animate-spin" />
+                          Načítám uživatele...
+                        </span>
+                      </td>
+                    </tr>
+                  )}
+
+                  {users.map((user, idx) => {
+                    const currentRole =
+                      draftRoles[user.id] ?? getCurrentRole(user.roles);
+                    const changed = currentRole !== getCurrentRole(user.roles);
+                    const isSelf = loggedInUser?.id === user.id;
+
+                    return (
+                      <tr
+                        key={user.id}
+                        className={`border-b border-border last:border-0 transition-colors hover:bg-muted/30 ${
+                          idx % 2 === 0 ? "" : "bg-muted/10"
+                        }`}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                              {getDisplayName(user).charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-medium">
+                                {getDisplayName(user)}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {user.email || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {user.phone || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <AdminUserRoleEditor
+                            userId={user.id}
+                            draftRole={currentRole}
+                            editableRoles={editableRoles}
+                            disabled={isSelf}
+                            onDraftRoleChange={(targetUserId, role) =>
+                              setDraftRoles((prev) => ({
+                                ...prev,
+                                [targetUserId]: role,
+                              }))
+                            }
+                          />
+                          {isSelf && (
+                            <p className="mt-1 text-xs text-muted-foreground px-1">
+                              Nemůžete si změnit vlastní roli.
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={isSelf ? "secondary" : "default"}
+                            className={
+                              isSelf
+                                ? "bg-muted text-muted-foreground"
+                                : undefined
+                            }
+                            disabled={
+                              savingId === user.id || !changed || isSelf
+                            }
+                            onClick={() => handleSave(user.id)}
+                          >
+                            {savingId === user.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Save className="size-4" />
+                            )}
+                            Uložit
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {!isInitialLoading && users.length === 0 && (
+              <div className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
+                Pro zadané filtry nebyl nalezen žádný uživatel.
+              </div>
+            )}
+
+            {totalItems > 0 && (
+              <div className="flex flex-col gap-3 border-t border-border px-4 py-3 text-sm md:flex-row md:items-center md:justify-between">
+                <span className="text-muted-foreground">
+                  Zobrazeno {pageStart}-{pageEnd} z {totalItems}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(Math.max(1, filters.page - 1))}
+                    disabled={filters.page <= 1}
                   >
-                    <option value="">Všechny role</option>
-                    {editableRoles.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
+                    <ChevronLeft className="size-4" />
+                    Předchozí
+                  </Button>
 
-                  <select
-                    value={filters.sortBy}
-                    onChange={(event) => {
-                      const nextSortBy = event.target.value;
-                      if (!isSortByOption(nextSortBy)) {
-                        return;
-                      }
-
-                      setSortBy(nextSortBy);
-                      setPage(1);
-                    }}
-                    style={{ colorScheme: "dark" }}
-                    className="h-9 min-w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                  >
-                    <option value="lastName">Řadit dle příjmení</option>
-                    <option value="role">Řadit dle role</option>
-                  </select>
+                  <span className="min-w-24 text-center text-muted-foreground">
+                    Strana {filters.page} / {totalPages}
+                  </span>
 
                   <Button
                     type="button"
                     variant="outline"
-                    size="icon"
-                    aria-label={
-                      filters.sortDirection === "asc"
-                        ? "Přepnout směr řazení na sestupně"
-                        : "Přepnout směr řazení na vzestupně"
+                    size="sm"
+                    onClick={() =>
+                      setPage(Math.min(totalPages, filters.page + 1))
                     }
-                    onClick={() => {
-                      setSortDirection(filters.sortDirection === "asc" ? "desc" : "asc");
-                      setPage(1);
-                    }}
+                    disabled={filters.page >= totalPages}
                   >
-                    {filters.sortDirection === "asc" ? (
-                      <ArrowDownAZ className="size-4" />
-                    ) : (
-                      <ArrowUpAZ className="size-4" />
-                    )}
+                    Další
+                    <ChevronRight className="size-4" />
                   </Button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 z-10 bg-muted/40">
-                    <tr className="border-b border-border">
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                        Uživatel
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                        E-mail
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                        Telefon
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                        Role
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                        Akce
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isInitialLoading && users.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                          <span className="inline-flex items-center gap-2">
-                            <Loader2 className="size-4 animate-spin" />
-                            Načítám uživatele...
-                          </span>
-                        </td>
-                      </tr>
-                    )}
-
-                    {users.map((user, idx) => {
-                      const currentRole = draftRoles[user.id] ?? getCurrentRole(user.roles);
-                      const changed = currentRole !== getCurrentRole(user.roles);
-                      const isSelf = loggedInUser?.id === user.id;
-
-                      return (
-                        <tr
-                          key={user.id}
-                          className={`border-b border-border last:border-0 transition-colors hover:bg-muted/30 ${
-                            idx % 2 === 0 ? "" : "bg-muted/10"
-                          }`}
-                        >
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                                {getDisplayName(user).charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <div className="font-medium">{getDisplayName(user)}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">{user.email || "—"}</td>
-                          <td className="px-4 py-3 text-muted-foreground">{user.phone || "—"}</td>
-                          <td className="px-4 py-3">
-                            <AdminUserRoleEditor
-                              userId={user.id}
-                              draftRole={currentRole}
-                              editableRoles={editableRoles}
-                              disabled={isSelf}
-                              onDraftRoleChange={(targetUserId, role) =>
-                                setDraftRoles((prev) => ({
-                                  ...prev,
-                                  [targetUserId]: role,
-                                }))
-                              }
-                            />
-                            {isSelf && (
-                              <p className="mt-1 text-xs text-muted-foreground px-1">
-                                Nemůžete si změnit vlastní roli.
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant={isSelf ? "secondary" : "default"}
-                              className={isSelf ? "bg-muted text-muted-foreground" : undefined}
-                              disabled={savingId === user.id || !changed || isSelf}
-                              onClick={() => handleSave(user.id)}
-                            >
-                              {savingId === user.id ? (
-                                <Loader2 className="size-4 animate-spin" />
-                              ) : (
-                                <Save className="size-4" />
-                              )}
-                              Uložit
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {!isInitialLoading && users.length === 0 && (
-                <div className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
-                  Pro zadané filtry nebyl nalezen žádný uživatel.
-                </div>
-              )}
-
-              {totalItems > 0 && (
-                <div className="flex flex-col gap-3 border-t border-border px-4 py-3 text-sm md:flex-row md:items-center md:justify-between">
-                  <span className="text-muted-foreground">
-                    Zobrazeno {pageStart}-{pageEnd} z {totalItems}
-                  </span>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(Math.max(1, filters.page - 1))}
-                      disabled={filters.page <= 1}
-                    >
-                      <ChevronLeft className="size-4" />
-                      Předchozí
-                    </Button>
-
-                    <span className="min-w-24 text-center text-muted-foreground">
-                      Strana {filters.page} / {totalPages}
-                    </span>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPage(Math.min(totalPages, filters.page + 1))}
-                      disabled={filters.page >= totalPages}
-                    >
-                      Další
-                      <ChevronRight className="size-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
       </main>
 
       {/* Popup for role changes - idk if it is well done */}
       <Dialog
-        open={Boolean(pendingRoleChange && pendingRoleChange.confirmationStep > 0)}
+        open={Boolean(
+          pendingRoleChange && pendingRoleChange.confirmationStep > 0,
+        )}
         onOpenChange={() => setPendingRoleChange(null)}
       >
         <DialogContent>
@@ -510,8 +548,8 @@ export default function AdminUsers() {
                         <strong>{roleChange.userName}</strong>?
                       </p>
                       <p className="text-sm">
-                        Z: <strong>{roleChange.currentRole}</strong> →
-                        Na: <strong>{roleChange.nextRole}</strong>
+                        Z: <strong>{roleChange.currentRole}</strong> → Na:{" "}
+                        <strong>{roleChange.nextRole}</strong>
                       </p>
                       {requiresDoubleConfirmation && !isExpertToAdminChange && (
                         <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -523,9 +561,10 @@ export default function AdminUsers() {
                       )}
                       {isExpertToAdminChange && (
                         <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-                          ⚠️ <strong>Upozornění!</strong> Přechod z Expert na Admin je
-                          citlivá změna. Uživatel získá plná administrátorská práva a
-                          zároveň přijde o všechna přiřazení experta k návodům.
+                          ⚠️ <strong>Upozornění!</strong> Přechod z Expert na
+                          Admin je citlivá změna. Uživatel získá plná
+                          administrátorská práva a zároveň přijde o všechna
+                          přiřazení experta k návodům.
                         </div>
                       )}
                     </>
@@ -539,8 +578,8 @@ export default function AdminUsers() {
                         <strong>{roleChange.userName}</strong>?
                       </p>
                       <p className="mb-3 text-sm">
-                        Z: <strong>{roleChange.currentRole}</strong> →
-                        Na: <strong>{roleChange.nextRole}</strong>
+                        Z: <strong>{roleChange.currentRole}</strong> → Na:{" "}
+                        <strong>{roleChange.nextRole}</strong>
                       </p>
                       <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/15 p-3">
                         <p className="text-sm font-semibold text-destructive">
@@ -548,9 +587,17 @@ export default function AdminUsers() {
                         </p>
                         <ul className="list-disc space-y-1 ps-5 text-sm text-destructive">
                           <li>Uživatel získá administrátorská práva.</li>
-                          <li>Bude moci spravovat uživatele, návody i nástroje.</li>
-                          <li>Současně se smažou všechna jeho expertní přiřazení k návodům.</li>
-                          <li>Expert přiřazení nebude možné vrátit bez ručního znovupřiřazení.</li>
+                          <li>
+                            Bude moci spravovat uživatele, návody i nástroje.
+                          </li>
+                          <li>
+                            Současně se smažou všechna jeho expertní přiřazení k
+                            návodům.
+                          </li>
+                          <li>
+                            Expert přiřazení nebude možné vrátit bez ručního
+                            znovupřiřazení.
+                          </li>
                         </ul>
                       </div>
                     </>
@@ -564,8 +611,8 @@ export default function AdminUsers() {
                         <strong>{roleChange.userName}</strong>?
                       </p>
                       <p className="mb-3 text-sm">
-                        Z: <strong>{roleChange.currentRole}</strong> →
-                        Na: <strong>{roleChange.nextRole}</strong>
+                        Z: <strong>{roleChange.currentRole}</strong> → Na:{" "}
+                        <strong>{roleChange.nextRole}</strong>
                       </p>
                       <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/15 p-3">
                         <p className="text-sm font-semibold text-destructive">
@@ -573,8 +620,13 @@ export default function AdminUsers() {
                         </p>
                         <ul className="list-disc space-y-1 ps-5 text-sm text-destructive">
                           <li>Uživatel přestane být vedený jako expert</li>
-                          <li>Budou odstraněna všechna jeho přiřazení k návodům</li>
-                          <li>Přiřazení nebude možné obnovit bez ručního znovupřiřazení</li>
+                          <li>
+                            Budou odstraněna všechna jeho přiřazení k návodům
+                          </li>
+                          <li>
+                            Přiřazení nebude možné obnovit bez ručního
+                            znovupřiřazení
+                          </li>
                         </ul>
                       </div>
                     </>
@@ -588,8 +640,8 @@ export default function AdminUsers() {
                         <strong>{roleChange.userName}</strong>?
                       </p>
                       <p className="mb-3 text-sm">
-                        Z: <strong>{roleChange.currentRole}</strong> →
-                        Na: <strong>{roleChange.nextRole}</strong>
+                        Z: <strong>{roleChange.currentRole}</strong> → Na:{" "}
+                        <strong>{roleChange.nextRole}</strong>
                       </p>
                       <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/15 p-3">
                         <p className="text-sm font-semibold text-destructive">
@@ -629,11 +681,13 @@ export default function AdminUsers() {
                       Ukládám...
                     </>
                   ) : roleChange.confirmationStep === 2 ? (
-                    isExpertToAdminChange
-                      ? "Potvrzuji změnu Expert → Admin"
-                      : isExpertRoleRemoval
-                        ? "Potvrzuji odebrání role Expert"
-                        : "Potvrzuji změnu Admin role"
+                    isExpertToAdminChange ? (
+                      "Potvrzuji změnu Expert → Admin"
+                    ) : isExpertRoleRemoval ? (
+                      "Potvrzuji odebrání role Expert"
+                    ) : (
+                      "Potvrzuji změnu Admin role"
+                    )
                   ) : (
                     "Potvrdit"
                   )}
@@ -646,4 +700,3 @@ export default function AdminUsers() {
     </div>
   );
 }
-

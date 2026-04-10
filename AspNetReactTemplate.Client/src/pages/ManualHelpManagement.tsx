@@ -5,10 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { apiService } from "@/lib/apiService";
 import { Manual, getDifficultyLabel } from "@/types/manual";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,9 +46,8 @@ export default function ManualHelpManagement() {
     () => new Set(),
   );
   const [savingManualId, setSavingManualId] = useState<number | null>(null);
-  const [pendingAction, setPendingAction] = useState<PendingExpertAction | null>(
-    null,
-  );
+  const [pendingAction, setPendingAction] =
+    useState<PendingExpertAction | null>(null);
 
   const fetchData = async () => {
     if (!user?.id) {
@@ -97,7 +93,8 @@ export default function ManualHelpManagement() {
         .toLowerCase();
 
       const matchesSearch =
-        normalizedSearch.length === 0 || searchableText.includes(normalizedSearch);
+        normalizedSearch.length === 0 ||
+        searchableText.includes(normalizedSearch);
 
       const isSelected = selectedManualIds.has(manual.id);
       const matchesVisibility =
@@ -253,7 +250,9 @@ export default function ManualHelpManagement() {
                 <Badge variant="secondary">
                   Zobrazeno: {filteredManuals.length}
                 </Badge>
-                <Badge variant="secondary">Jsem pomocník: {selectedCount}</Badge>
+                <Badge variant="secondary">
+                  Jsem pomocník: {selectedCount}
+                </Badge>
               </div>
             </div>
 
@@ -369,7 +368,10 @@ export default function ManualHelpManagement() {
         </Card>
       </main>
 
-      <Dialog open={Boolean(pendingAction)} onOpenChange={() => setPendingAction(null)}>
+      <Dialog
+        open={Boolean(pendingAction)}
+        onOpenChange={() => setPendingAction(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>

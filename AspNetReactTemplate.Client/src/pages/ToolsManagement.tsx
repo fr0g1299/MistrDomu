@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Import local table logic
-import { DataTable } from "../components/ui/data-table"; 
+import { DataTable } from "../components/ui/data-table";
 import { getColumns } from "../components/ui/columns";
 
 export default function ToolsManagement() {
@@ -36,7 +36,7 @@ export default function ToolsManagement() {
       });
 
       if (!response.ok) throw new Error("Failed to save tool");
-      
+
       // Refresh data after successful update
       await refetch();
     } catch (err) {
@@ -57,7 +57,9 @@ export default function ToolsManagement() {
       <div className="container mx-auto px-4 py-5">
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Správa nástrojů</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Správa nástrojů
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
@@ -65,11 +67,8 @@ export default function ToolsManagement() {
                 {error}
               </div>
             )}
-            
-            <DataTable 
-              columns={getColumns(handleEditClick)} 
-              data={tools} 
-            />
+
+            <DataTable columns={getColumns(handleEditClick)} data={tools} />
           </CardContent>
         </Card>
 

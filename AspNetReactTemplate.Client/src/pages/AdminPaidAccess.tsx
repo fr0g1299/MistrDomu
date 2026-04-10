@@ -61,7 +61,9 @@ export default function AdminPaidAccess() {
         {!loading && !error && records.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
             <CreditCard className="mb-3 size-10 opacity-30" />
-            <p className="text-lg font-medium">Žádné platby zatím neproběhly.</p>
+            <p className="text-lg font-medium">
+              Žádné platby zatím neproběhly.
+            </p>
           </div>
         )}
 

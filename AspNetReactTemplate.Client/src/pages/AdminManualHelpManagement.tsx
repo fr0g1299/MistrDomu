@@ -32,7 +32,9 @@ type ExpertOverview = {
 
 const getExpertDisplayName = (expert: AdminUserRow) => {
   const parts = [expert.firstName, expert.lastName].filter(Boolean);
-  return parts.length > 0 ? parts.join(" ") : expert.username ?? `Expert #${expert.id}`;
+  return parts.length > 0
+    ? parts.join(" ")
+    : (expert.username ?? `Expert #${expert.id}`);
 };
 
 const normalizeForSearch = (value: string) =>
@@ -97,11 +99,17 @@ export default function AdminManualHelpManagement() {
 
       // Pokus se nastavit selectedManualId z query parametrů
       const manualIdFromUrl = searchParams.get("manualId");
-      const tabFromUrl = searchParams.get("tab") as "overview" | "manage" | null;
+      const tabFromUrl = searchParams.get("tab") as
+        | "overview"
+        | "manage"
+        | null;
 
       if (manualIdFromUrl) {
         const manualIdNum = parseInt(manualIdFromUrl, 10);
-        if (!isNaN(manualIdNum) && allManuals.some((m) => m.id === manualIdNum)) {
+        if (
+          !isNaN(manualIdNum) &&
+          allManuals.some((m) => m.id === manualIdNum)
+        ) {
           setSelectedManualId(manualIdNum);
           setActiveTab("manage");
         } else if (allManuals.length > 0) {
@@ -173,7 +181,7 @@ export default function AdminManualHelpManagement() {
   }, [manuals, expertByManual]);
 
   const selectedManualExperts = selectedManualId
-    ? expertByManual[selectedManualId] ?? []
+    ? (expertByManual[selectedManualId] ?? [])
     : [];
 
   const filteredExpertOverview = useMemo(() => {
@@ -184,7 +192,9 @@ export default function AdminManualHelpManagement() {
 
     return expertOverview.filter((expert) => {
       const matchesId = expert.expertId.toString().includes(needle);
-      const matchesName = normalizeForSearch(expert.expertName).includes(needle);
+      const matchesName = normalizeForSearch(expert.expertName).includes(
+        needle,
+      );
       const matchesManual = expert.manuals.some((manual) =>
         normalizeForSearch(manual.manualTitle).includes(needle),
       );
@@ -230,21 +240,29 @@ export default function AdminManualHelpManagement() {
 
   const openAddPopup = () => {
     const parsedExpertId = Number(selectedExpertId);
-    if (!selectedManualId || !Number.isInteger(parsedExpertId) || parsedExpertId <= 0) {
-      setInfoPopupMessage(
-        "Nejprve vyberte experta ze seznamu.",
-      );
+    if (
+      !selectedManualId ||
+      !Number.isInteger(parsedExpertId) ||
+      parsedExpertId <= 0
+    ) {
+      setInfoPopupMessage("Nejprve vyberte experta ze seznamu.");
       return;
     }
 
-    const selectedManual = manuals.find((manual) => manual.id === selectedManualId);
-    const selectedExpert = experts.find((expert) => expert.id === parsedExpertId);
+    const selectedManual = manuals.find(
+      (manual) => manual.id === selectedManualId,
+    );
+    const selectedExpert = experts.find(
+      (expert) => expert.id === parsedExpertId,
+    );
     setPendingAction({
       type: "add",
       manualId: selectedManualId,
       manualTitle: selectedManual?.title ?? `Návod ID ${selectedManualId}`,
       expertId: parsedExpertId,
-      expertName: selectedExpert ? getExpertDisplayName(selectedExpert) : `Expert #${parsedExpertId}`,
+      expertName: selectedExpert
+        ? getExpertDisplayName(selectedExpert)
+        : `Expert #${parsedExpertId}`,
     });
   };
 
@@ -280,7 +298,9 @@ export default function AdminManualHelpManagement() {
       <main className="mx-auto max-w-7xl px-6 py-8">
         <Card className="mb-5 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Správa pomoci s návody</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Správa pomoci s návody
+            </CardTitle>
           </CardHeader>
         </Card>
 
@@ -292,7 +312,11 @@ export default function AdminManualHelpManagement() {
         )}
 
         {!loading && (
-          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as "overview" | "manage")} className="space-y-5">
+          <Tabs
+            value={activeTab}
+            onValueChange={(val) => setActiveTab(val as "overview" | "manage")}
+            className="space-y-5"
+          >
             <TabsList>
               <TabsTrigger value="overview">Přehled expertů</TabsTrigger>
               <TabsTrigger value="manage">Správa přiřazení</TabsTrigger>
@@ -322,11 +346,12 @@ export default function AdminManualHelpManagement() {
                     </p>
                   )}
 
-                  {expertOverview.length > 0 && filteredExpertOverview.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      Pro zadané hledání nebyl nalezen žádný expert.
-                    </p>
-                  )}
+                  {expertOverview.length > 0 &&
+                    filteredExpertOverview.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Pro zadané hledání nebyl nalezen žádný expert.
+                      </p>
+                    )}
 
                   {filteredExpertOverview.map((expert) => (
                     <div
@@ -335,9 +360,14 @@ export default function AdminManualHelpManagement() {
                     >
                       <div className="mb-2 flex items-center justify-between gap-3">
                         <p className="font-semibold">
-                          {expert.expertName} <span className="text-muted-foreground">(ID: {expert.expertId})</span>
+                          {expert.expertName}{" "}
+                          <span className="text-muted-foreground">
+                            (ID: {expert.expertId})
+                          </span>
                         </p>
-                        <Badge variant="secondary">{expert.manuals.length} návodů</Badge>
+                        <Badge variant="secondary">
+                          {expert.manuals.length} návodů
+                        </Badge>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {expert.manuals.map((manual) => (
@@ -367,7 +397,9 @@ export default function AdminManualHelpManagement() {
                       style={{ colorScheme: "dark" }}
                       className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                       value={selectedManualId ?? ""}
-                      onChange={(event) => setSelectedManualId(Number(event.target.value))}
+                      onChange={(event) =>
+                        setSelectedManualId(Number(event.target.value))
+                      }
                     >
                       {manuals.map((manual) => (
                         <option key={manual.id} value={manual.id}>
@@ -380,11 +412,15 @@ export default function AdminManualHelpManagement() {
                       style={{ colorScheme: "dark" }}
                       className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground"
                       value={selectedExpertId}
-                      onChange={(event) => setSelectedExpertId(event.target.value)}
+                      onChange={(event) =>
+                        setSelectedExpertId(event.target.value)
+                      }
                       disabled={experts.length === 0}
                     >
                       <option value="" disabled>
-                        {experts.length === 0 ? "Žádní experti nejsou k dispozici" : "Vyberte experta"}
+                        {experts.length === 0
+                          ? "Žádní experti nejsou k dispozici"
+                          : "Vyberte experta"}
                       </option>
                       {experts.map((expert) => (
                         <option key={expert.id} value={expert.id}>
@@ -410,7 +446,9 @@ export default function AdminManualHelpManagement() {
                   )}
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Aktuálně přiřazení experti</p>
+                    <p className="text-sm font-medium">
+                      Aktuálně přiřazení experti
+                    </p>
                     {selectedManualExperts.length === 0 && (
                       <p className="text-sm text-muted-foreground">
                         Pro vybraný návod zatím není žádný expert.
@@ -423,7 +461,10 @@ export default function AdminManualHelpManagement() {
                         className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
                       >
                         <p className="text-sm">
-                          {expert.expertName} <span className="text-muted-foreground">(ID: {expert.expertId})</span>
+                          {expert.expertName}{" "}
+                          <span className="text-muted-foreground">
+                            (ID: {expert.expertId})
+                          </span>
                         </p>
                         <Button
                           type="button"
@@ -451,7 +492,10 @@ export default function AdminManualHelpManagement() {
         )}
       </main>
 
-      <Dialog open={Boolean(infoPopupMessage)} onOpenChange={() => setInfoPopupMessage(null)}>
+      <Dialog
+        open={Boolean(infoPopupMessage)}
+        onOpenChange={() => setInfoPopupMessage(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Informace</DialogTitle>
@@ -465,7 +509,10 @@ export default function AdminManualHelpManagement() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(pendingAction)} onOpenChange={() => setPendingAction(null)}>
+      <Dialog
+        open={Boolean(pendingAction)}
+        onOpenChange={() => setPendingAction(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -494,7 +541,9 @@ export default function AdminManualHelpManagement() {
               onClick={handleConfirmPendingAction}
               disabled={saving}
             >
-              {pendingAction?.type === "add" ? "Potvrdit přidání" : "Potvrdit odebrání"}
+              {pendingAction?.type === "add"
+                ? "Potvrdit přidání"
+                : "Potvrdit odebrání"}
             </Button>
           </DialogFooter>
         </DialogContent>
