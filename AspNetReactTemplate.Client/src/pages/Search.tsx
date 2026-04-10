@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, BookOpen, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { BookOpen, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -8,20 +7,10 @@ import { ManualsList } from "@/components/domains/search/ManualsList";
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
 
   return (
     // Also at_50% looks good
     <section className="relative bg-radial-[at_5%_90%] from-primary/3 to-primary/1 z-10 px-4 pt-4 pb-8 md:pt-10 md:pb-10 min-h-screen">
-      <button
-        type="button"
-        aria-label="Zpět"
-        onClick={() => navigate(-1)}
-        className="hidden md:flex absolute left-2 top-3 z-20 h-12 w-12 items-center justify-center rounded-full text-primary transition-colors duration-300 hover:bg-zinc-200 hover:text-primary-600 dark:hover:bg-card md:left-8 md:top-9"
-      >
-        <ArrowLeft className="size-9" />
-      </button>
-
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h2 className="flex items-center justify-center gap-3 text-3xl font-bold md:text-4xl">

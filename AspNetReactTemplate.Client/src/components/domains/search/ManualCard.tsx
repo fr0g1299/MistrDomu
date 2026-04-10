@@ -30,7 +30,7 @@ export const ManualCard = ({ manual, hasUnlimitedChat = false }: Props) => {
       state={{ manual }}
       className="block h-full"
     >
-      <Card className="h-full flex flex-col bg-card/80 overflow-hidden gap-3 border-0 pt-0 shadow-none transition-transform duration-400 hover:scale-[1.02]">
+      <Card className="h-full flex flex-col bg-card/80 overflow-hidden gap-3 pt-0 shadow-none border border-transparent hover:border-border hover:bg-card transition-colors duration-200">
         <div className="relative aspect-video w-full overflow-hidden">
           <img
             src={manual.imageUrl || FALLBACK_IMAGE}

@@ -415,7 +415,7 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
       <Card
         className={`relative gap-3 2xl:p-5 px-3 py-5 transition-all duration-200 ${
           isExpandedModalOpen
-            ? "bg-card/95 border-primary/15 fixed left-1/2 top-[53%] z-50 h-[85vh] w-[min(92vw,76rem)] -translate-x-1/2 -translate-y-1/2"
+            ? "bg-card/95 border-primary/15 fixed left-1/2 top-[50%] z-50 h-[80vh] w-[min(92vw,76rem)] -translate-x-1/2 -translate-y-1/2"
             : "bg-primary/5 border-primary/30 flex-1 min-h-0"
         }`}
       >
@@ -455,7 +455,11 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
         <div
           ref={messagesContainerRef}
           className={`space-y-3 overflow-y-auto rounded-md solid-scrollbar bg-transparent py-2 px-1 ${
-            isExpandedModalOpen ? "h-[calc(88vh-13.5rem)]" : "h-128"
+            isExpandedModalOpen
+              ? "h-[calc(88vh-13.5rem)]"
+              : "h-[calc(75vh-13.5rem)]"
+            // TODO: It can be expanding with the code below
+            // : "min-h-128 max-h-[calc(75vh-13.5rem)]"
           }`}
           aria-live="polite"
         >

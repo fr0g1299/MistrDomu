@@ -107,6 +107,12 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     >
                       Experti (pomoc s návody)
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/admin/paid-access")}
+                      className="cursor-pointer"
+                    >
+                      Seznam plateb
+                    </DropdownMenuItem>
                   </>
                 ) : (
                   <DropdownMenuItem
