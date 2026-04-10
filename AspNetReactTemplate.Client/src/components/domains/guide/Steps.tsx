@@ -7,19 +7,19 @@ import { ImageZoom } from "@/components/shared/ImageZoom";
 
 import type { GuideStep } from "@/types/manual";
 
-type GuideStepsProps = {
+type StepsProps = {
   sectionId?: string;
   steps: GuideStep[];
   completedStepIds: Set<number>;
   onToggleStep: (stepId: number) => void;
 };
 
-export function GuideSteps({
+export function Steps({
   sectionId = "steps",
   steps,
   completedStepIds,
   onToggleStep,
-}: GuideStepsProps) {
+}: StepsProps) {
   return (
     <section id={sectionId} className="space-y-6 lg:col-span-23 xl:col-span-20">
       {steps.map((step) => {

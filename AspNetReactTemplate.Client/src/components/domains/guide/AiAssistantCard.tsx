@@ -45,7 +45,7 @@ const getPendingMessageStorageKey = (manualId: number) =>
 {
   /* TODO: Clean this file up into compoents */
 }
-export function GuideAiAssistantCard({ manualId }: { manualId: number }) {
+export function AiAssistantCard({ manualId }: { manualId: number }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { GuideIntroduction } from "@/components/domains/guide/GuideIntroduction";
-import { GuideSupportPanel } from "@/components/domains/guide/GuideSupportPanel";
-import { GuideSteps } from "@/components/domains/guide/GuideSteps";
-import { GuideTableOfContents } from "@/components/domains/guide/GuideTableOfContents";
+import { Introduction } from "@/components/domains/guide/Introduction";
+import { SupportPanel } from "@/components/domains/guide/SupportPanel";
+import { Steps } from "@/components/domains/guide/Steps";
+import { TableOfContents } from "@/components/domains/guide/TableOfContents";
 import { ExpertHelperCard } from "@/components/domains/guide/ExpertHelperCard";
 import { apiService } from "@/lib/apiService";
 
@@ -329,7 +329,7 @@ export default function Guide() {
 
   return (
     <div className="min-h-screen bg-background text-zinc-950 dark:text-zinc-50 antialiased">
-      <GuideIntroduction manual={manual} tools={manualTools} />
+      <Introduction manual={manual} tools={manualTools} />
       <Separator className="mb-8 bg-linear-to-r from-background to-primary/50" />
 
       <main
@@ -355,7 +355,7 @@ export default function Guide() {
         )}
         <ExpertHelperCard manualId={manualId} />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-32 3xl:gap-6 4xl:gap-8">
-          <GuideTableOfContents
+          <TableOfContents
             tableOfContents={tableOfContents}
             steps={steps}
             completedStepIds={completedStepIds}
@@ -364,16 +364,17 @@ export default function Guide() {
             onResetCompletedSteps={handleResetCompletedSteps}
           />
 
-          <GuideSteps
+          <Steps
             steps={steps}
             completedStepIds={completedStepIds}
             onToggleStep={handleToggleStep}
           />
 
-          <GuideSupportPanel manualId={Number(manualId)} />
+          <SupportPanel manualId={Number(manualId)} />
         </div>
       </main>
 
+      {/* TODO: Maybe create a reusable dialog component */}
       <Dialog
         open={isPaymentSuccessDialogOpen}
         onOpenChange={setIsPaymentSuccessDialogOpen}

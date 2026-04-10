@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 
 import type { GuideStep, TableOfContentsItem } from "@/types/manual";
 
-type GuideTableOfContentsProps = {
+type TableOfContentsProps = {
   tableOfContents: TableOfContentsItem[];
   steps: GuideStep[];
   completedStepIds: Set<number>;
@@ -15,14 +15,14 @@ type GuideTableOfContentsProps = {
   onResetCompletedSteps: () => void;
 };
 
-export function GuideTableOfContents({
+export function TableOfContents({
   tableOfContents,
   steps,
   completedStepIds,
   activeSectionId,
   onScrollTo,
   onResetCompletedSteps,
-}: GuideTableOfContentsProps) {
+}: TableOfContentsProps) {
   return (
     <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 xl:sticky xl:top-24 xl:col-span-5 xl:flex">
       <Card className="gap-4 border-border bg-card pl-3 pr-2 py-5">

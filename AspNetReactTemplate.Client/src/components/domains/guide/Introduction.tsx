@@ -12,7 +12,7 @@ type GuideTool = {
   url?: string;
 };
 
-type GuideIntroductionProps = {
+type IntroductionProps = {
   sectionId?: string;
   toolsSectionId?: string;
   manual?: Manual | null;
@@ -21,12 +21,12 @@ type GuideIntroductionProps = {
 
 const FALLBACK_IMAGE = "Place url in the future lol";
 
-export function GuideIntroduction({
+export function Introduction({
   sectionId = "introduction",
   toolsSectionId = "tools-required",
   manual,
   tools = [],
-}: GuideIntroductionProps) {
+}: IntroductionProps) {
   const navigate = useNavigate();
 
   const handleBack = (e: MouseEvent) => {

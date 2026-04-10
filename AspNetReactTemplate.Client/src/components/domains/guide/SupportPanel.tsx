@@ -1,14 +1,14 @@
 import { Video } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { GuideAiAssistantCard } from "@/components/domains/guide/GuideAiAssistantCard";
+import { AiAssistantCard } from "@/components/domains/guide/AiAssistantCard";
 import { Button } from "@/components/ui/button";
 
 type GuideSupportPanelProps = {
   manualId: number;
 };
 
-export function GuideSupportPanel({ manualId }: GuideSupportPanelProps) {
+export function SupportPanel({ manualId }: GuideSupportPanelProps) {
   return (
     <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-9 xl:col-span-7 lg:flex">
       {/* TODO: Update link */}
@@ -29,7 +29,7 @@ export function GuideSupportPanel({ manualId }: GuideSupportPanelProps) {
 
       {/* TODO: Right now this fetches even on small screens, where it still isn't even displayed,
                 maybe add media query hook, so it lazy loads (and Suspense) */}
-      <GuideAiAssistantCard manualId={manualId} />
+      <AiAssistantCard manualId={manualId} />
     </aside>
   );
 }
