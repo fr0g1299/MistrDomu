@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 type ExpertOverview = {
   expertId: number;
@@ -210,6 +211,9 @@ export default function AdminManualHelpManagement() {
       await apiService.addManualToExpert(manualId, expertId);
       setSelectedExpertId("");
       await loadAll();
+      toast.success(
+        `Expert ${pendingAction?.expertName} byl přiřazen k návodu.`,
+      );
     } catch (err) {
       setError(
         err instanceof Error
@@ -227,6 +231,9 @@ export default function AdminManualHelpManagement() {
       setError(null);
       await apiService.removeManualFromExpert(manualId, expertId);
       await loadAll();
+      toast.success(
+        `Expert ${pendingAction?.expertName} byl odebrán z návodu.`,
+      );
     } catch (err) {
       setError(
         err instanceof Error
@@ -297,7 +304,7 @@ export default function AdminManualHelpManagement() {
     <div className="min-h-screen bg-background text-foreground antialiased">
       <main className="mx-auto max-w-7xl px-6 py-8">
         <Card className="mb-5 shadow-sm">
-          <CardHeader>
+          <CardHeader className="flex">
             <CardTitle className="text-2xl font-bold">
               Správa pomoci s návody
             </CardTitle>

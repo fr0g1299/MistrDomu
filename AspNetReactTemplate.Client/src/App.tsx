@@ -20,6 +20,7 @@ import AdminPaidAccess from "./pages/AdminPaidAccess";
 import AdminUsers from "./pages/AdminUsers";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
+import { Toaster } from "./components/ui/sonner";
 
 const AdminRoute = ({ children }: { children: JSX.Element }) => {
   const { isAdmin, loading, isAuthenticated } = useAuth();
@@ -34,7 +35,8 @@ const ManagementRoute = ({ children }: { children: JSX.Element }) => {
   const { isAdmin, isExpert, loading, isAuthenticated } = useAuth();
 
   if (loading) return null;
-  if (!isAuthenticated || (!isAdmin && !isExpert)) return <Navigate to="/" replace />;
+  if (!isAuthenticated || (!isAdmin && !isExpert))
+    return <Navigate to="/" replace />;
 
   return children;
 };
@@ -125,6 +127,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+
+        <Toaster position="bottom-right" />
 
         <Footer />
       </div>

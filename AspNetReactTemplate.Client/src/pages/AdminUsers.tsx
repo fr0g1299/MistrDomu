@@ -7,10 +7,8 @@ import {
   Loader2,
   Save,
   Search,
-  X,
 } from "lucide-react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,8 +26,7 @@ import { editableRoles, type AdminUserRow } from "@/types/adminUser";
 import { Role } from "@/types/auth";
 import { useUserFilters } from "@/hooks/useUserFilters";
 import { useAuth } from "@/hooks/useAuth";
-
-type NoticeType = "success" | "error";
+import { toast } from "sonner";
 
 type PendingRoleChange = {
   userId: number;
@@ -59,10 +56,6 @@ export default function AdminUsers() {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [draftRoles, setDraftRoles] = useState<Record<number, Role>>({});
-  const [notice, setNotice] = useState<{
-    type: NoticeType;
-    message: string;
-  } | null>(null);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [pendingRoleChange, setPendingRoleChange] =
@@ -71,12 +64,6 @@ export default function AdminUsers() {
   const { filters, setSearch, setRole, setSortDirection, setSortBy, setPage } =
     useUserFilters();
   const [searchInput, setSearchInput] = useState(filters.search);
-
-  useEffect(() => {
-    if (!notice) return;
-    const timer = window.setTimeout(() => setNotice(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [notice]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -123,7 +110,7 @@ export default function AdminUsers() {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Nepodařilo se načíst uživatele.";
-      setNotice({ type: "error", message });
+      toast.error(message);
     } finally {
       setIsInitialLoading(false);
       setIsRefreshing(false);
@@ -185,7 +172,6 @@ export default function AdminUsers() {
     // Save role change
     try {
       setSavingId(pendingRoleChange.userId);
-      setNotice(null);
 
       if (isExpertRemoval) {
         const assignedManuals = await apiService.getManualsForExpert(
@@ -214,18 +200,16 @@ export default function AdminUsers() {
         ),
       );
       void loadUsers();
-      setNotice({
-        type: "success",
-        message:
-          response.message ||
+      toast.success(
+        response.message ||
           (isExpertRemoval
             ? "Role byla úspěšně nastavena a všechna přiřazení experta byla odstraněna."
             : "Role byla úspěšně nastavena."),
-      });
+      );
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Změna role se nezdařila.";
-      setNotice({ type: "error", message });
+      toast.error(message);
     } finally {
       setSavingId(null);
       setPendingRoleChange(null);
@@ -247,33 +231,6 @@ export default function AdminUsers() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      {notice && (
-        <div className="fixed bottom-4 right-4 z-100 w-full max-w-sm">
-          <Alert
-            variant={notice.type === "error" ? "destructive" : "default"}
-            className={
-              notice.type === "error"
-                ? undefined
-                : "border-primary/50 bg-primary/70 text-black shadow-lg shadow-primary/20 [&_svg]:text-black"
-            }
-          >
-            <AlertDescription className="flex items-start justify-between gap-3 !text-black">
-              <span className="whitespace-pre-line !text-black">
-                {notice.message}
-              </span>
-              <button
-                type="button"
-                onClick={() => setNotice(null)}
-                className="rounded-sm opacity-80 transition hover:opacity-100 !text-black"
-                aria-label="Zavřít oznámení"
-              >
-                <X className="size-4" />
-              </button>
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
-
       <main className="mx-auto max-w-7xl px-6 py-8">
         <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
           <CardHeader className="border-b border-border">
