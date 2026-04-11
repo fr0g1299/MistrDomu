@@ -26,6 +26,8 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<UserCompletedStep> UserCompletedSteps { get; set; }
         public DbSet<ManualPayment> ManualPayments { get; set; }
         public DbSet<ExpertManualHelp> ExpertManualHelps { get; set; }
+        public DbSet<RoleRequest> RoleRequests { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -104,6 +106,32 @@ namespace AspNetReactTemplate.Server.Data
                 .HasOne(s => s.Manual)
                 .WithMany()
                 .HasForeignKey(s => s.ManualId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RoleRequest>()
+                .HasIndex(r => new { r.UserId, r.RequestedRole, r.Status })
+                .HasFilter("\"Status\" = 0");
+
+            modelBuilder.Entity<RoleRequest>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RoleRequest>()
+                .HasOne(r => r.ReviewedByUser)
+                .WithMany()
+                .HasForeignKey(r => r.ReviewedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => new { n.UserId, n.IsRead });
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ManualPayments: unique per (UserId, ManualId)

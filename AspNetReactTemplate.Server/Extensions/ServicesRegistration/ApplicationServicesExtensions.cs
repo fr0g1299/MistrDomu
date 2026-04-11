@@ -11,11 +11,16 @@ using AspNetReactTemplate.Server.Services.Abstraction.Tools;
 using AspNetReactTemplate.Server.Services.Implementation.Tools;
 using AspNetReactTemplate.Server.Services.Abstraction.AiChat;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
+using AspNetReactTemplate.Server.Services.Abstraction.Identity;
 using AspNetReactTemplate.Server.Services.Implementation.AiChat;
 using AspNetReactTemplate.Server.Services.Abstraction.Payments;
 using AspNetReactTemplate.Server.Services.Implementation.Payments;
 using AspNetReactTemplate.Server.Services.Abstraction.Steps;
 using AspNetReactTemplate.Server.Services.Implementation.Steps;
+using AspNetReactTemplate.Server.Services.Abstraction.Identity.RoleRequest;
+using AspNetReactTemplate.Server.Services.Implementation.Identity.RoleRequest;
+using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
+using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 
 
 namespace AspNetReactTemplate.Server.Extensions.ServicesRegistration;
@@ -40,6 +45,10 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IStepsQueryService, StepsQueryService>();
         services.AddScoped<IExpertManualHelpCommandService, ExpertManualHelpCommandService>();
         services.AddScoped<IExpertManualHelpQueryService, ExpertManualHelpQueryService>();
+        services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+        services.AddScoped<IUserRoleRequestService, UserRoleRequestService>();
+        services.AddScoped<IAdminRoleRequestService, AdminRoleRequestService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         services.AddHttpContextAccessor();
         services.AddHttpClient();

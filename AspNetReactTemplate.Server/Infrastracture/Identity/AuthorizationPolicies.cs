@@ -11,6 +11,7 @@ namespace AspNetReactTemplate.Server.Infrastracture.Identity
         public const string CanHelpWithManuals = "CanHelpWithManuals";
         public const string CanSeeAllUsers = "CanSeeAllUsers";
         public const string CanSetRole = "CanSetRole";
+        public const string CanAdministrateRequests = "CanAdministrateRequests";
         public const string AdminOrSelfExpert = "AdminOrSelfExpert";
         public const string AdminOrAssignedManual = "AdminOrAssignedManual";
 
@@ -21,6 +22,7 @@ namespace AspNetReactTemplate.Server.Infrastracture.Identity
             options.AddPolicy(CanEditTools, policy => policy.RequireRole(Roles.Admin.ToString()));
             options.AddPolicy(CanSeeAllUsers, policy => policy.RequireRole(Roles.Admin.ToString()));
             options.AddPolicy(CanSetRole, policy => policy.RequireRole(Roles.Admin.ToString()));
+            options.AddPolicy(CanAdministrateRequests, policy => policy.RequireRole(Roles.Admin.ToString()));
 
             foreach (var role in Enum.GetValues<Roles>())
             {

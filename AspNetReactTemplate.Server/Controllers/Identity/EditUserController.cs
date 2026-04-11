@@ -1,5 +1,6 @@
+using AspNetReactTemplate.Server.Extensions.Controller;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.Identity;
-using AspNetReactTemplate.Server.Models.DTOs.System;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,24 +20,11 @@ namespace AspNetReactTemplate.Server.Controllers.Identity
         }
 
         [HttpPut("{userId}/role")]
-        [Authorize(Policy = "CanSetRole")]
+        [Authorize(Policy = AuthorizationPolicies.CanSetRole)]
         public async Task<IActionResult> SetRole([FromRoute] string userId, [FromBody] EditRoleRequestDto request)
         {
-
             var result = await _editUserService.SetRoleAsync(userId, request.Role);
-
-            if (result.IsSuccess)
-            {
-                return Ok(new { Message = "Role byla úspěšně nastavena." });
-            }
-
-            return result.ErrorType switch
-            {
-                ServiceErrorType.Validation => BadRequest(new { Errors = result.Errors }),
-                ServiceErrorType.Forbidden => Forbid(),
-                ServiceErrorType.NotFound => NotFound(new { Errors = result.Errors }),
-                _ => StatusCode(StatusCodes.Status500InternalServerError, new { Errors = result.Errors })
-            };
+            return this.ToActionResult(result, new { message = "Role byla úspěšně nastavena." });
         }
     }
 }

@@ -5,6 +5,7 @@ import {
   Routes,
   useNavigate,
   useLocation,
+  type Location,
 } from "react-router-dom";
 
 import Header from "./components/layouts/Header";
@@ -18,6 +19,10 @@ import ManualHelpManagement from "./pages/ManualHelpManagement";
 import AdminManualHelpManagement from "./pages/AdminManualHelpManagement";
 import AdminPaidAccess from "./pages/AdminPaidAccess";
 import AdminUsers from "./pages/AdminUsers";
+import AdminExpertRoleRequests from "./pages/AdminExpertRoleRequests";
+import MyRoleRequests from "./pages/MyRoleRequests";
+import MyRoleRequestDetail from "./pages/MyRoleRequestDetail";
+import MyRoleRequestCreate from "./pages/MyRoleRequestCreate";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 import { Toaster } from "./components/ui/sonner";
@@ -41,9 +46,20 @@ const ManagementRoute = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
+const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
+  const { loading, isAuthenticated } = useAuth();
+
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
+
+  return children;
+};
+
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const state = location.state as { backgroundLocation?: Location } | null;
+  const backgroundLocation = state?.backgroundLocation;
 
   const navigateHome = useCallback(() => {
     navigate("/");
@@ -71,66 +87,115 @@ function App() {
   return (
     <AuthProvider>
       <div className="min-h-screen flex flex-col antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
-        <Header onNavigateHome={navigateHome} />
+          <Header onNavigateHome={navigateHome} />
 
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/guide/:manualId" element={<GuidePage />} />
+          <main className="flex-1">
+            <Routes location={backgroundLocation || location}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/guide/:manualId" element={<GuidePage />} />
 
-            <Route
-              path="/tools-management"
-              element={
-                <AdminRoute>
-                  <ToolsManagement />
-                </AdminRoute>
-              }
-            />
+              <Route
+                path="/tools-management"
+                element={
+                  <AdminRoute>
+                    <ToolsManagement />
+                  </AdminRoute>
+                }
+              />
 
-            <Route
-              path="/manual-help-management"
-              element={
-                <ManagementRoute>
-                  <ManualHelpManagement />
-                </ManagementRoute>
-              }
-            />
+              <Route
+                path="/manual-help-management"
+                element={
+                  <ManagementRoute>
+                    <ManualHelpManagement />
+                  </ManagementRoute>
+                }
+              />
 
-            <Route
-              path="/admin/manual-help-management"
-              element={
-                <AdminRoute>
-                  <AdminManualHelpManagement />
-                </AdminRoute>
-              }
-            />
+              <Route
+                path="/admin/manual-help-management"
+                element={
+                  <AdminRoute>
+                    <AdminManualHelpManagement />
+                  </AdminRoute>
+                }
+              />
 
-            <Route
-              path="/admin/paid-access"
-              element={
-                <AdminRoute>
-                  <AdminPaidAccess />
-                </AdminRoute>
-              }
-            />
+              <Route
+                path="/admin/paid-access"
+                element={
+                  <AdminRoute>
+                    <AdminPaidAccess />
+                  </AdminRoute>
+                }
+              />
 
-            <Route
-              path="/admin/users"
-              element={
-                <AdminRoute>
-                  <AdminUsers />
-                </AdminRoute>
-              }
-            />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminRoute>
+                    <AdminUsers />
+                  </AdminRoute>
+                }
+              />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+              <Route
+                path="/admin/expert-role-requests"
+                element={
+                  <AdminRoute>
+                    <AdminExpertRoleRequests />
+                  </AdminRoute>
+                }
+              />
 
-        <Toaster position="bottom-right" />
+              <Route
+                path="/my-requests"
+                element={
+                  <AuthenticatedRoute>
+                    <MyRoleRequests />
+                  </AuthenticatedRoute>
+                }
+              />
 
-        <Footer />
+              <Route
+                path="/my-requests/new"
+                element={
+                  <AuthenticatedRoute>
+                    <MyRoleRequestCreate />
+                  </AuthenticatedRoute>
+                }
+              />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+
+            {backgroundLocation && (
+              <Routes>
+                <Route
+                  path="/my-requests/new"
+                  element={
+                    <AuthenticatedRoute>
+                      <MyRoleRequestCreate />
+                    </AuthenticatedRoute>
+                  }
+                />
+
+                <Route
+                  path="/my-requests/:requestId"
+                  element={
+                    <AuthenticatedRoute>
+                      <MyRoleRequestDetail />
+                    </AuthenticatedRoute>
+                  }
+                />
+              </Routes>
+            )}
+          </main>
+
+          <Toaster position="bottom-right" />
+
+          <Footer />
       </div>
     </AuthProvider>
   );

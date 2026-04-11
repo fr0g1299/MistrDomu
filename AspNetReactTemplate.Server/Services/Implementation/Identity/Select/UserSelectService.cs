@@ -1,4 +1,5 @@
 using AspNetReactTemplate.Server.Data;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.System;
 using AspNetReactTemplate.Server.Models.Identity;
@@ -11,7 +12,6 @@ namespace AspNetReactTemplate.Server.Services.Implementation.Identity.Select;
 
 public class UserSelectService : IUserSelectService
 {
-    private const string CanSeeAllUsersPolicy = "CanSeeAllUsers";
     private const string MustBeSignedInMessage = "Pro zobrazení uživatelů musíte být přihlášen.";
     private const string SignedInUserNotFoundMessage = "Přihlášený uživatel nebyl nalezen.";
     private const string NotAllowedToSeeUsersMessage = "Nemáte oprávnění pro zobrazení uživatelů.";
@@ -48,7 +48,9 @@ public class UserSelectService : IUserSelectService
             return ServiceResultDto.Failure(ServiceErrorType.Validation, SignedInUserNotFoundMessage);
         }
 
-        var authorizationResult = await _authorizationService.AuthorizeAsync(userPrincipal, CanSeeAllUsersPolicy);
+        var authorizationResult = await _authorizationService.AuthorizeAsync(
+            userPrincipal,
+            AuthorizationPolicies.CanSeeAllUsers);
         if (!authorizationResult.Succeeded)
         {
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, NotAllowedToSeeUsersMessage);

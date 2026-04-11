@@ -2,6 +2,20 @@ import { Tool } from "@/types/tool";
 import { Manual, GuideStep } from "../types/manual";
 import type { AdminUsersPage, AdminUsersQuery } from "@/types/adminUser";
 import type { Role } from "@/types/auth";
+import type {
+  AdminRoleRequestItem,
+  AdminRoleRequestsPage,
+  AdminRoleRequestsQuery,
+  CreateRoleRequestPayload,
+  RoleRequestFilter,
+  RoleRequestSummary,
+  UserRoleRequestDetail,
+  UserRoleRequestsPage,
+} from "@/types/roleRequest";
+import type {
+  NotificationListQuery,
+  NotificationPage,
+} from "@/types/notification";
 
 export type ExpertForManualRead = {
   expertId: number;
@@ -14,6 +28,55 @@ export type ManualForExpertRead = {
 };
 
 const API_BASE_URL = "/api";
+
+function normalizePendingRoleRequestsResponse(
+  raw: AdminRoleRequestsPage | AdminRoleRequestItem[] | Record<string, unknown>,
+  requestedPage?: number,
+  requestedPageSize?: number,
+): AdminRoleRequestsPage {
+  if (Array.isArray(raw)) {
+    const page = requestedPage ?? 1;
+    const pageSize = requestedPageSize ?? 10;
+
+    return {
+      items: raw,
+      currentPage: page,
+      pageSize,
+      totalItems: raw.length,
+      totalPages: raw.length === 0 ? 1 : Math.ceil(raw.length / pageSize),
+    };
+  }
+
+  const source = raw as Record<string, unknown>;
+  const items = (source.items ?? source.Items) as AdminRoleRequestItem[] | undefined;
+  const currentPage = (source.currentPage ?? source.CurrentPage) as number | undefined;
+  const pageSize = (source.pageSize ?? source.PageSize) as number | undefined;
+  const totalItems = (source.totalItems ?? source.TotalItems) as number | undefined;
+  const totalPages = (source.totalPages ?? source.TotalPages) as number | undefined;
+
+  if (!Array.isArray(items)) {
+    return {
+      items: [],
+      currentPage: requestedPage ?? 1,
+      pageSize: requestedPageSize ?? 10,
+      totalItems: 0,
+      totalPages: 1,
+    };
+  }
+
+  return {
+    items,
+    currentPage: typeof currentPage === "number" ? currentPage : requestedPage ?? 1,
+    pageSize: typeof pageSize === "number" ? pageSize : requestedPageSize ?? 10,
+    totalItems: typeof totalItems === "number" ? totalItems : items.length,
+    totalPages:
+      typeof totalPages === "number"
+        ? totalPages
+        : items.length === 0
+          ? 1
+          : Math.ceil(items.length / (requestedPageSize ?? 10)),
+  };
+}
 
 async function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
@@ -91,6 +154,133 @@ export const apiService = {
     return requestJson<{ message: string }>(`/EditUser/${userId}/role`, {
       method: "PUT",
       body: JSON.stringify({ role }),
+    });
+  },
+
+  async createExpertRoleRequest(): Promise<RoleRequestSummary> {
+    return requestJson<RoleRequestSummary>("/RoleRequest/expert", {
+      method: "POST",
+    });
+  },
+
+  async createRoleRequest(payload: CreateRoleRequestPayload): Promise<RoleRequestSummary> {
+    return requestJson<RoleRequestSummary>("/RoleRequest", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getMyRoleRequests(
+    query: { page?: number; pageSize?: number; status?: RoleRequestFilter } = {},
+  ): Promise<UserRoleRequestsPage> {
+    const params = new URLSearchParams();
+    if (query.page) params.set("page", String(query.page));
+    if (query.pageSize) params.set("pageSize", String(query.pageSize));
+    if (query.status) params.set("status", query.status);
+
+    const suffix = params.toString();
+    return requestJson<UserRoleRequestsPage>(`/RoleRequest/my${suffix ? `?${suffix}` : ""}`);
+  },
+
+  async getMyRoleRequestDetail(requestId: number): Promise<UserRoleRequestDetail> {
+    return requestJson<UserRoleRequestDetail>(`/RoleRequest/my/${requestId}`);
+  },
+
+  async getMyExpertRoleRequest(): Promise<RoleRequestSummary | null> {
+    const response = await fetch(`${API_BASE_URL}/RoleRequest/my-expert`, {
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (response.status === 204) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Request failed (${response.status})`);
+    }
+
+    return (await response.json()) as RoleRequestSummary;
+  },
+
+  async getPendingExpertRoleRequests(
+    query: AdminRoleRequestsQuery = {},
+  ): Promise<AdminRoleRequestsPage> {
+    const params = new URLSearchParams();
+    if (query.page) params.set("page", String(query.page));
+    if (query.pageSize) params.set("pageSize", String(query.pageSize));
+    if (query.status) params.set("status", query.status);
+
+    const suffix = params.toString();
+    const data = await requestJson<
+      AdminRoleRequestsPage | AdminRoleRequestItem[] | Record<string, unknown>
+    >(
+      `/RoleRequestAdmin/expert/pending${suffix ? `?${suffix}` : ""}`,
+    );
+
+    return normalizePendingRoleRequestsResponse(data, query.page, query.pageSize);
+  },
+
+  async getPendingExpertRoleRequestsCount(): Promise<number> {
+    return requestJson<number>("/RoleRequestAdmin/expert/pending/count");
+  },
+
+  async approveExpertRoleRequest(requestId: number): Promise<void> {
+    await requestJson<{ message: string }>(
+      `/RoleRequestAdmin/expert/${requestId}/approve`,
+      {
+        method: "POST",
+      },
+    );
+  },
+
+  async rejectExpertRoleRequest(requestId: number, note?: string): Promise<void> {
+    await requestJson<{ message: string }>(
+      `/RoleRequestAdmin/expert/${requestId}/reject`,
+      {
+        method: "POST",
+        body: JSON.stringify({ note }),
+      },
+    );
+  },
+
+  async updateExpertRoleRequestNote(requestId: number, note?: string): Promise<void> {
+    await requestJson<{ message: string }>(
+      `/RoleRequestAdmin/expert/${requestId}/note`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ note }),
+      },
+    );
+  },
+
+  async getMyNotifications(query: NotificationListQuery = {}): Promise<NotificationPage> {
+    const params = new URLSearchParams();
+    if (query.page) params.set("page", String(query.page));
+    if (query.pageSize) params.set("pageSize", String(query.pageSize));
+    if (query.unreadOnly) params.set("unreadOnly", "true");
+
+    const suffix = params.toString();
+    return requestJson<NotificationPage>(`/Notification/my${suffix ? `?${suffix}` : ""}`);
+  },
+
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    await requestJson<{ message: string }>(`/Notification/${notificationId}/read`, {
+      method: "PUT",
+    });
+  },
+
+  async markAllNotificationsAsRead(): Promise<void> {
+    await requestJson<{ message: string }>("/Notification/my/read-all", {
+      method: "POST",
+    });
+  },
+
+  async deleteNotification(notificationId: number): Promise<void> {
+    await requestJson<{ message: string }>(`/Notification/${notificationId}`, {
+      method: "DELETE",
     });
   },
 
