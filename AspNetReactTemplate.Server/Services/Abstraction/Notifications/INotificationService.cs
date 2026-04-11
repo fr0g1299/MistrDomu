@@ -9,6 +9,7 @@ public interface INotificationService
     Task<ServiceResultDto> MarkAsReadAsync(int notificationId);
     Task<ServiceResultDto> MarkAllAsReadAsync();
     Task<ServiceResultDto> DeleteMyNotificationAsync(int notificationId);
+    Task<ServiceResultDto> DeleteAllMyNotificationsAsync();
     Task CreateForUserAsync(int userId, string type, string title, string message);
     Task CreateForUsersAsync(IEnumerable<int> userIds, string type, string title, string message);
 }

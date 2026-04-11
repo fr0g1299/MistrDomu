@@ -110,46 +110,58 @@ export default function Header({ onNavigateHome }: HeaderProps) {
       setInboxCurrentPage(notifications.currentPage);
       setInboxTotalPages(notifications.totalPages);
     } catch {
-      toast.error("Nacitani dalsich notifikaci se nezdarilo.");
+      toast.error("Načítání dalších notifikací se nezdařilo.");
     } finally {
       setIsLoadingMoreInbox(false);
     }
   }, [hasMoreInboxItems, inboxCurrentPage, isAuthenticated, isLoadingMoreInbox]);
 
-  const markAllAsRead = useCallback(() => {
+  const deleteAllInboxItems = useCallback(() => {
+    if (inboxItems.length === 0) {
+      return;
+    }
+
     const previousItems = inboxItems;
     const previousUnreadCount = inboxUnreadCount;
 
-    setInboxItems((current) => current.map((item) => ({ ...item, isRead: true })));
+    setInboxItems([]);
     setInboxUnreadCount(0);
+    setInboxCurrentPage(1);
+    setInboxTotalPages(0);
 
-    void apiService.markAllNotificationsAsRead().catch((error) => {
+    void apiService.deleteAllNotifications().catch((error) => {
       setInboxItems(previousItems);
       setInboxUnreadCount(previousUnreadCount);
-      toast.error(error instanceof Error ? error.message : "Oznaceni notifikaci jako prectene selhalo.");
+      toast.error(error instanceof Error ? error.message : "Smazání všech notifikací se nezdařilo.");
       void refreshHeaderNotifications();
     });
   }, [inboxItems, inboxUnreadCount, refreshHeaderNotifications]);
 
   const deleteInboxItem = useCallback((id: number) => {
-    setInboxItems((current) => {
-      const target = current.find((item) => item.id === id);
-      if (!target) {
-        return current;
-      }
+    const previousItems = inboxItems;
+    const previousUnreadCount = inboxUnreadCount;
+    const target = previousItems.find((item) => item.id === id);
 
-      if (!target.isRead) {
-        setInboxUnreadCount((prev) => Math.max(0, prev - 1));
-      }
+    if (!target) {
+      return;
+    }
 
-      return current.filter((item) => item.id !== id);
-    });
+    setInboxItems((current) => current.filter((item) => item.id !== id));
+    if (!target.isRead) {
+      setInboxUnreadCount((prev) => Math.max(0, prev - 1));
+    }
 
-    void apiService.deleteNotification(id).catch((error) => {
-      toast.error(error instanceof Error ? error.message : "Smazani zpravy se nezdarilo.");
-      void refreshHeaderNotifications();
-    });
-  }, [refreshHeaderNotifications]);
+    void apiService.deleteNotification(id)
+      .then(() => {
+        // Re-sync unread counter and first-page items with backend truth.
+        void refreshHeaderNotifications();
+      })
+      .catch((error) => {
+        setInboxItems(previousItems);
+        setInboxUnreadCount(previousUnreadCount);
+        toast.error(error instanceof Error ? error.message : "Smazání zprávy se nezdařilo.");
+      });
+  }, [inboxItems, inboxUnreadCount, refreshHeaderNotifications]);
 
   useEffect(() => {
     const loadMyRequestState = async () => {
@@ -196,7 +208,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
 
   const getInboxTypeLabel = (type?: string) => {
     if (type === "role_request_admin") return "Admin";
-    if (type === "role_request") return "Zadost";
+    if (type === "role_request") return "Žádost";
     return "Info";
   };
 
@@ -338,16 +350,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
             {isAuthenticated ? (
               /* PŘIHLÁŠENÝ UŽIVATEL */
               <>
-                <DropdownMenu
-                  modal={false}
-                  onOpenChange={(open) => {
-                    if (!open || unreadCount === 0) {
-                      return;
-                    }
-
-                    markAllAsRead();
-                  }}
-                >
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
@@ -367,18 +370,20 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     <DropdownMenuLabel className="flex items-center justify-between">
                       <span>Inbox</span>
                       {inboxItems.length > 0 && (
-                        <Button
-                          variant="ghost"
-                          className="h-6 px-2 text-xs"
-                          onClick={markAllAsRead}
-                        >
-                          Oznacit vse jako prectene
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                            onClick={deleteAllInboxItems}
+                          >
+                            Smazat vše
+                          </Button>
+                        </div>
                       )}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {inboxItems.length === 0 && (
-                      <DropdownMenuItem disabled>Zatim zadne notifikace.</DropdownMenuItem>
+                      <DropdownMenuItem disabled>Zatím žádné notifikace.</DropdownMenuItem>
                     )}
                     {inboxItems.length > 0 && (
                       <div className="max-h-60 overflow-y-auto">
@@ -399,7 +404,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                               </div>
                               <button
                                 type="button"
-                                aria-label="Smazat zpravu"
+                                  aria-label="Smazat zprávu"
                                 className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                                 onClick={(event) => {
                                   event.preventDefault();
@@ -424,7 +429,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                           }}
                           disabled={isLoadingMoreInbox}
                         >
-                          {isLoadingMoreInbox ? "Nacitam..." : "Nacist dalsi"}
+                          {isLoadingMoreInbox ? "Načítám..." : "Načíst další"}
                         </Button>
                       </div>
                     )}

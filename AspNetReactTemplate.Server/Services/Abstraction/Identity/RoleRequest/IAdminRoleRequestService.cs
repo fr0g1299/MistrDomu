@@ -7,7 +7,7 @@ public interface IAdminRoleRequestService
 {
     Task<ServiceResultDto<RoleRequestAdminPageDto>> GetPendingExpertRequestsAsync(RoleRequestListQueryDto queryDto);
     Task<ServiceResultDto<int>> GetPendingExpertRequestCountAsync();
-    Task<ServiceResultDto> ApproveExpertRequestAsync(int requestId);
+    Task<ServiceResultDto> ApproveExpertRequestAsync(int requestId, string? note);
     Task<ServiceResultDto> RejectExpertRequestAsync(int requestId, string? note);
     Task<ServiceResultDto> UpdateExpertRoleRequestNoteAsync(int requestId, string? note);
 }

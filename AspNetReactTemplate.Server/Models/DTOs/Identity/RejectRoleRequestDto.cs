@@ -7,4 +7,3 @@ public class RejectRoleRequestDto
     [MaxLength(500)]
     public string? Note { get; set; }
 }
-

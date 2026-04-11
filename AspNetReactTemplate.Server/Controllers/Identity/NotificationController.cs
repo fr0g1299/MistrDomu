@@ -45,5 +45,12 @@ public class NotificationController : ControllerBase
         var result = await _notificationService.DeleteMyNotificationAsync(notificationId);
         return this.ToActionResult(result);
     }
+
+    [HttpDelete("my")]
+    public async Task<IActionResult> DeleteAllMyNotifications()
+    {
+        var result = await _notificationService.DeleteAllMyNotificationsAsync();
+        return this.ToActionResult(result);
+    }
 }
 

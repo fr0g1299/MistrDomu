@@ -8,7 +8,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -19,7 +18,7 @@ import type {
 } from "@/types/roleRequest";
 import { toast } from "sonner";
 
-const NOTE_MAX_LENGTH = 100;
+const NOTE_MAX_LENGTH = 500;
 const PAGE_SIZE = 10;
 
 type ExpertRoleRequestsSectionProps = {
@@ -32,9 +31,6 @@ export default function ExpertRoleRequestsSection({
   const [items, setItems] = useState<AdminRoleRequestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [workingId, setWorkingId] = useState<number | null>(null);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectingRequest, setRejectingRequest] = useState<AdminRoleRequestItem | null>(null);
-  const [rejectNote, setRejectNote] = useState("");
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -149,7 +145,7 @@ export default function ExpertRoleRequestsSection({
   const handleApprove = async (id: number) => {
     try {
       setWorkingId(id);
-      await apiService.approveExpertRoleRequest(id);
+      await apiService.approveExpertRoleRequest(id, noteDraft.trim() || undefined);
       closeDetailDialog();
 
       try {
@@ -168,18 +164,6 @@ export default function ExpertRoleRequestsSection({
     }
   };
 
-  const openRejectDialog = (item: AdminRoleRequestItem) => {
-    setRejectingRequest(item);
-    setRejectNote("");
-    setRejectDialogOpen(true);
-  };
-
-  const closeRejectDialog = () => {
-    setRejectDialogOpen(false);
-    setRejectingRequest(null);
-    setRejectNote("");
-  };
-
   const openDetailDialog = (item: AdminRoleRequestItem) => {
     setSelectedRequest(item);
     setNoteDraft(item.adminNote ?? "");
@@ -192,18 +176,14 @@ export default function ExpertRoleRequestsSection({
     setNoteDraft("");
   };
 
-  const handleRejectConfirm = async () => {
-    if (!rejectingRequest) {
+  const handleReject = async (id: number) => {
+    if (!selectedRequest) {
       return;
     }
 
     try {
-      setWorkingId(rejectingRequest.id);
-      await apiService.rejectExpertRoleRequest(
-        rejectingRequest.id,
-        rejectNote.trim() || undefined,
-      );
-      closeRejectDialog();
+      setWorkingId(id);
+      await apiService.rejectExpertRoleRequest(id, noteDraft.trim() || undefined);
       closeDetailDialog();
 
       try {
@@ -231,8 +211,14 @@ export default function ExpertRoleRequestsSection({
       setWorkingId(selectedRequest.id);
       const normalizedNote = noteDraft.trim() || undefined;
       await apiService.updateExpertRoleRequestNote(selectedRequest.id, normalizedNote);
-      await loadRequests(page, { silent: true });
-      setSelectedRequest((prev) => (prev ? { ...prev, adminNote: normalizedNote ?? null } : prev));
+      closeDetailDialog();
+
+      try {
+        await loadRequests(page, { silent: true });
+      } catch {
+        toast.error("Poznámka byla uložena, ale seznam se nepodařilo obnovit.");
+      }
+
       toast.success("Poznámka byla uložena.");
     } catch (error) {
       toast.error(
@@ -437,74 +423,6 @@ export default function ExpertRoleRequestsSection({
       </CardContent>
 
       <Dialog
-        open={rejectDialogOpen}
-        onOpenChange={(open) => {
-          if (open) {
-            setRejectDialogOpen(true);
-            return;
-          }
-
-          closeRejectDialog();
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Zamítnout žádost o roli Expert</DialogTitle>
-            <DialogDescription>
-              {rejectingRequest
-                ? `Napište volitelnou poznámku pro uživatele ${rejectingRequest.userName}.`
-                : "Napište volitelnou poznámku pro uživatele."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-2 py-2">
-            <label
-              htmlFor="reject-note"
-              className="text-sm font-medium text-foreground"
-            >
-              Poznámka
-            </label>
-            <textarea
-              id="reject-note"
-              value={rejectNote}
-              onChange={(event) => setRejectNote(event.target.value)}
-              maxLength={NOTE_MAX_LENGTH}
-              rows={5}
-              placeholder="Například: chybí zkušenosti, doplňte prosím referenci..."
-              className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-            />
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Poznámka je volitelná.</span>
-              <span>
-                {rejectNote.length}/{NOTE_MAX_LENGTH}
-              </span>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={closeRejectDialog}>
-              Zrušit
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleRejectConfirm}
-              disabled={workingId !== null}
-            >
-              {workingId !== null ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Odesílám...
-                </>
-              ) : (
-                "Zamítnout"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
         open={detailDialogOpen}
         onOpenChange={(open) => {
           if (open) {
@@ -622,7 +540,7 @@ export default function ExpertRoleRequestsSection({
                     type="button"
                     variant="destructive"
                     disabled={workingId === selectedRequest.id}
-                    onClick={() => openRejectDialog(selectedRequest)}
+                    onClick={() => handleReject(selectedRequest.id)}
                   >
                     <X className="size-4" />
                     Zamítnout

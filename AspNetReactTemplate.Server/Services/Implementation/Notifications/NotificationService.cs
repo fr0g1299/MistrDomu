@@ -164,6 +164,29 @@ public class NotificationService : INotificationService
         return ServiceResultDto.Success();
     }
 
+    public async Task<ServiceResultDto> DeleteAllMyNotificationsAsync()
+    {
+        var currentUser = await _currentUserAccessor.GetCurrentUserAsync();
+        if (currentUser == null)
+        {
+            return ServiceResultDto.Failure(ServiceErrorType.Forbidden, MustBeSignedInMessage);
+        }
+
+        var items = await _dbContext.Notifications
+            .Where(n => n.UserId == currentUser.Id)
+            .ToListAsync();
+
+        if (items.Count == 0)
+        {
+            return ServiceResultDto.Success();
+        }
+
+        _dbContext.Notifications.RemoveRange(items);
+        await _dbContext.SaveChangesAsync();
+
+        return ServiceResultDto.Success();
+    }
+
     public async Task CreateForUserAsync(int userId, string type, string title, string message)
     {
         var notification = new Notification

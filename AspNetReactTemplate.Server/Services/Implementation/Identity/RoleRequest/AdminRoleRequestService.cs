@@ -133,7 +133,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
         return ServiceResultDto<int>.Success(await GetPendingCountAsync());
     }
 
-    public async Task<ServiceResultDto> ApproveExpertRequestAsync(int requestId)
+    public async Task<ServiceResultDto> ApproveExpertRequestAsync(int requestId, string? note)
     {
         var reviewer = await _currentUserAccessor.GetCurrentUserAsync();
         if (reviewer == null)
@@ -167,7 +167,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
         request.Status = RoleRequestStatus.Approved;
         request.ReviewedAtUtc = DateTime.UtcNow;
         request.ReviewedByUserId = reviewer.Id;
-        request.AdminNote = null;
+        request.AdminNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
 
         await _dbContext.SaveChangesAsync();
         await NotifyRequestUpdatedAsync(request);
@@ -259,7 +259,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
         await _notificationService.CreateForUserAsync(
             request.UserId,
             "role_request",
-            "Aktualizace zadosti o roli Expert",
+            "Aktualizace žádosti o roli Expert",
             message);
     }
 }

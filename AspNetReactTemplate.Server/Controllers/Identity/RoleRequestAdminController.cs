@@ -34,9 +34,9 @@ public class RoleRequestAdminController : ControllerBase
     }
 
     [HttpPost("expert/{requestId:int}/approve")]
-    public async Task<IActionResult> ApproveExpertRequest([FromRoute] int requestId)
+    public async Task<IActionResult> ApproveExpertRequest([FromRoute] int requestId, [FromBody] ApproveRoleRequestDto? dto)
     {
-        var result = await _roleRequestService.ApproveExpertRequestAsync(requestId);
+        var result = await _roleRequestService.ApproveExpertRequestAsync(requestId, dto?.Note);
         return this.ToActionResult(result);
     }
 

@@ -227,11 +227,12 @@ export const apiService = {
     return requestJson<number>("/RoleRequestAdmin/expert/pending/count");
   },
 
-  async approveExpertRoleRequest(requestId: number): Promise<void> {
+  async approveExpertRoleRequest(requestId: number, note?: string): Promise<void> {
     await requestJson<{ message: string }>(
       `/RoleRequestAdmin/expert/${requestId}/approve`,
       {
         method: "POST",
+        body: JSON.stringify({ note }),
       },
     );
   },
@@ -272,14 +273,15 @@ export const apiService = {
     });
   },
 
-  async markAllNotificationsAsRead(): Promise<void> {
-    await requestJson<{ message: string }>("/Notification/my/read-all", {
-      method: "POST",
-    });
-  },
 
   async deleteNotification(notificationId: number): Promise<void> {
     await requestJson<{ message: string }>(`/Notification/${notificationId}`, {
+      method: "DELETE",
+    });
+  },
+
+  async deleteAllNotifications(): Promise<void> {
+    await requestJson<{ message: string }>("/Notification/my", {
       method: "DELETE",
     });
   },

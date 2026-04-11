@@ -22,6 +22,6 @@ public class RoleRequest : Entity<int>
     public int? ReviewedByUserId { get; set; }
     public User? ReviewedByUser { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(500)]
     public string? AdminNote { get; set; }
 }
