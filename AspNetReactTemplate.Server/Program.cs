@@ -4,11 +4,7 @@ using AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 using DotNetEnv;
 
 
-var rootEnvPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
-if (File.Exists(rootEnvPath))
-{
-    Env.Load(rootEnvPath);
-}
+LoadEnvFile();
 
 // Configure Stripe global API key will be done after builder is built to access DB.
 
@@ -47,4 +43,21 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+static void LoadEnvFile()
+{
+    var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
+
+    while (currentDirectory is not null)
+    {
+        var envPath = Path.Combine(currentDirectory.FullName, ".env");
+        if (File.Exists(envPath))
+        {
+            Env.Load(envPath);
+            return;
+        }
+
+        currentDirectory = currentDirectory.Parent;
+    }
+}
 

@@ -1,29 +1,38 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Services.Abstraction.Calls;
+using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.Calls;
 
 public class DailyPrebuiltService : IDailyPrebuiltService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
 
-    public DailyPrebuiltService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public DailyPrebuiltService(IHttpClientFactory httpClientFactory, AppDbContext context, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
+        _context = context;
         _configuration = configuration;
     }
 
     public async Task<DailyRoomResult> CreateRoomAsync(int manualId, int callerUserId, CancellationToken cancellationToken = default)
     {
-        var apiKey = _configuration["Daily:ApiKey"]
-            ?? Environment.GetEnvironmentVariable("DAILY_API_KEY");
+        var apiKeySetting = await _context.AppSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Key == "DailyApiKey", cancellationToken);
+
+        var apiKey = !string.IsNullOrWhiteSpace(apiKeySetting?.Value)
+            ? apiKeySetting.Value
+            : Environment.GetEnvironmentVariable("DAILY_API_KEY");
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            throw new InvalidOperationException("Daily API key is missing. Set Daily:ApiKey or DAILY_API_KEY.");
+            throw new InvalidOperationException("Daily API key is missing. Set AppSettings.DailyApiKey or DAILY_API_KEY.");
         }
 
         var roomPrefix = _configuration["Daily:RoomPrefix"] ?? "manual-call";
