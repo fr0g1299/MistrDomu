@@ -5,8 +5,9 @@ import { toast } from "sonner";
 
 import { apiService } from "@/lib/apiService";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RoleRequestFilter, UserRoleRequestItem } from "@/types/roleRequest";
+import { useAuth } from "@/hooks/useAuth";
 
 const PAGE_SIZE = 10;
 
@@ -36,6 +37,7 @@ const formatType = (type: string) => {
 export default function MyRoleRequests() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   const [items, setItems] = useState<UserRoleRequestItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,9 +146,17 @@ export default function MyRoleRequests() {
       <main className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Mé žádosti</CardTitle>
+            <div>
+              <CardTitle>Mé žádosti</CardTitle>
+              {isAdmin && (
+                <CardDescription className="mt-1 text-amber-500">
+                  Admin nemůže žádat o roli Expert.
+                </CardDescription>
+              )}
+            </div>
             <Button
               type="button"
+              disabled={isAdmin}
               onClick={() =>
                 navigate("/my-requests/new", {
                   state: { backgroundLocation: location },
@@ -154,7 +164,7 @@ export default function MyRoleRequests() {
               }
             >
               <Plus className="size-4" />
-              Přidat žádost
+              Vytvořit žádost
             </Button>
           </CardHeader>
         </Card>

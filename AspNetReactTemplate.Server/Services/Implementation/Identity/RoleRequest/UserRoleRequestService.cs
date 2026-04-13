@@ -17,6 +17,7 @@ public class UserRoleRequestService : IUserRoleRequestService
     private const string MustBeSignedInMessage = "Pro tuto akci musíte být přihlášen.";
     private const string RequestAlreadyPendingMessage = "Žádost o roli Expert už čeká na vyřízení.";
     private const string AlreadyExpertMessage = "Roli Expert už máte přidělenou.";
+    private const string AdminCannotRequestExpertRoleMessage = "Administrátor nemůže žádat o roli Expert.";
     private const string RequestNotFoundMessage = "Žádost nebyla nalezena.";
     private const string UnsupportedRequestTypeMessage = "Nepodporovaný typ žádosti.";
 
@@ -61,6 +62,11 @@ public class UserRoleRequestService : IUserRoleRequestService
         }
 
         var userRoles = await _userManager.GetRolesAsync(currentUser);
+        if (userRoles.Any(r => string.Equals(r, Roles.Admin.ToString(), StringComparison.OrdinalIgnoreCase)))
+        {
+            return ServiceResultDto<RoleRequestSummaryDto>.Failure(ServiceErrorType.Forbidden, AdminCannotRequestExpertRoleMessage);
+        }
+
         if (userRoles.Any(r => string.Equals(r, Roles.Expert.ToString(), StringComparison.OrdinalIgnoreCase)))
         {
             return ServiceResultDto<RoleRequestSummaryDto>.Failure(ServiceErrorType.Validation, AlreadyExpertMessage);
