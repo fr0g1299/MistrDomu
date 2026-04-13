@@ -23,6 +23,7 @@ import AdminExpertRoleRequests from "./pages/AdminExpertRoleRequests";
 import MyRoleRequests from "./pages/MyRoleRequests";
 import MyRoleRequestDetail from "./pages/MyRoleRequestDetail";
 import MyRoleRequestCreate from "./pages/MyRoleRequestCreate";
+import ExpertOnboardingPage from "./pages/ExpertOnboardingPage";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 import { Toaster } from "./components/ui/sonner";
@@ -51,6 +52,15 @@ const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
 
   if (loading) return null;
   if (!isAuthenticated) return <Navigate to="/" replace />;
+
+  return children;
+};
+
+const NonAdminAuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
+  const { loading, isAuthenticated, isAdmin } = useAuth();
+
+  if (loading) return null;
+  if (!isAuthenticated || isAdmin) return <Navigate to="/" replace />;
 
   return children;
 };
@@ -92,6 +102,7 @@ function App() {
           <main className="flex-1">
             <Routes location={backgroundLocation || location}>
               <Route path="/" element={<HomePage />} />
+              <Route path="/expert-onboarding" element={<ExpertOnboardingPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/guide/:manualId" element={<GuidePage />} />
 
@@ -161,9 +172,9 @@ function App() {
               <Route
                 path="/my-requests/new"
                 element={
-                  <AuthenticatedRoute>
+                  <NonAdminAuthenticatedRoute>
                     <MyRoleRequestCreate />
-                  </AuthenticatedRoute>
+                  </NonAdminAuthenticatedRoute>
                 }
               />
 
@@ -175,9 +186,9 @@ function App() {
                 <Route
                   path="/my-requests/new"
                   element={
-                    <AuthenticatedRoute>
+                    <NonAdminAuthenticatedRoute>
                       <MyRoleRequestCreate />
-                    </AuthenticatedRoute>
+                    </NonAdminAuthenticatedRoute>
                   }
                 />
 

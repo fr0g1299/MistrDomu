@@ -24,7 +24,6 @@ import {
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bell, BookOpen, LogOut, Loader2, Settings, X } from "lucide-react";
-import type { RoleRequestSummary } from "@/types/roleRequest";
 
 type HeaderProps = {
   onNavigateHome: () => void;
@@ -45,11 +44,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
   const [isLoadingMoreInbox, setIsLoadingMoreInbox] = useState(false);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [isSubmittingExpertRequest, setIsSubmittingExpertRequest] =
-    useState(false);
-  const [expertRequestPending, setExpertRequestPending] = useState(false);
-  const [myExpertRequest, setMyExpertRequest] =
-    useState<RoleRequestSummary | null>(null);
 
   const unreadCount = inboxUnreadCount;
   const hasMoreInboxItems = inboxCurrentPage < inboxTotalPages;
@@ -164,27 +158,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
   }, [inboxItems, inboxUnreadCount, refreshHeaderNotifications]);
 
   useEffect(() => {
-    const loadMyRequestState = async () => {
-      if (!isAuthenticated || isAdmin || isExpert) {
-        setExpertRequestPending(false);
-        setMyExpertRequest(null);
-        return;
-      }
-
-      try {
-        const request = await apiService.getMyExpertRoleRequest();
-        setMyExpertRequest(request);
-        setExpertRequestPending(request?.status === "Pending");
-      } catch {
-        setExpertRequestPending(false);
-        setMyExpertRequest(null);
-      }
-    };
-
-    void loadMyRequestState();
-  }, [isAdmin, isAuthenticated, isExpert]);
-
-  useEffect(() => {
     void refreshHeaderNotifications();
   }, [refreshHeaderNotifications]);
 
@@ -200,35 +173,11 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     return () => window.clearInterval(intervalId);
   }, [isAuthenticated, refreshHeaderNotifications]);
 
-  const getRequestStatusLabel = (status?: string) => {
-    if (status === "Approved") return "Schváleno";
-    if (status === "Rejected") return "Zamítnuto";
-    return "Čeká na vyřízení";
-  };
-
   const getInboxTypeLabel = (type?: string) => {
     if (type === "role_request_admin") return "Admin";
     if (type === "role_request") return "Žádost";
     return "Info";
   };
-
-  const handleRequestExpertRole = useCallback(async () => {
-    try {
-      setIsSubmittingExpertRequest(true);
-      const createdRequest = await apiService.createExpertRoleRequest();
-      setMyExpertRequest(createdRequest);
-      setExpertRequestPending(true);
-      toast.success("Žádost o roli Expert byla odeslána.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Odeslání žádosti se nezdařilo.",
-      );
-    } finally {
-      setIsSubmittingExpertRequest(false);
-    }
-  }, []);
 
   const handleLogout = useCallback(async () => {
     setIsLoggingOut(true);
@@ -300,6 +249,12 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                       className="cursor-pointer"
                     >
                       Nástroje
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/admin/manual-help-management")}
+                      className="cursor-pointer"
+                    >
+                      Správa přiřazení expertů
                     </DropdownMenuItem>
                     <DropdownMenuSub>
                       <DropdownMenuSubTrigger className="cursor-pointer">
@@ -470,47 +425,14 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => navigate("/my-requests")}
-                  >
-                    Moje žádosti
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {!isAdmin && !isExpert && (
+                  {!isAdmin && (
                     <>
                       <DropdownMenuItem
                         className="cursor-pointer"
-                        disabled={
-                          isSubmittingExpertRequest || expertRequestPending
-                        }
-                        onClick={handleRequestExpertRole}
+                        onClick={() => navigate("/my-requests")}
                       >
-                        {expertRequestPending
-                          ? "Žádost o Expert roli odeslána"
-                          : isSubmittingExpertRequest
-                            ? "Odesílám žádost..."
-                            : "Požádat o roli Expert"}
+                        Mé žádosti
                       </DropdownMenuItem>
-
-                      {myExpertRequest && (
-                        <div className="px-2 py-2 text-xs text-muted-foreground">
-                          <p>
-                            Stav žádosti:{" "}
-                            <span className="text-foreground">
-                              {getRequestStatusLabel(myExpertRequest.status)}
-                            </span>
-                          </p>
-                          {myExpertRequest.adminNote?.trim() && (
-                            <p className="mt-1 wrap-break-word">
-                              Poznámka admina:{" "}
-                              <span className="text-foreground">
-                                {myExpertRequest.adminNote}
-                              </span>
-                            </p>
-                          )}
-                        </div>
-                      )}
                       <DropdownMenuSeparator />
                     </>
                   )}

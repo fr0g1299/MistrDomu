@@ -1,24 +1,13 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoginForm } from "@/components/identity/LoginForm";
-import { RegisterForm } from "@/components/identity/RegisterForm";
+import { AuthRequiredDialog } from "@/components/identity/AuthRequiredDialog";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
-  const [authDialogView, setAuthDialogView] = useState<"login" | "register">(
-    "login",
-  );
 
   const navigateToSearch = useCallback(() => {
     navigate("/search");
@@ -43,44 +32,17 @@ export default function HomePage() {
       // On network/server errors keep fallback behavior and show auth dialog.
     }
 
-    setAuthDialogView("login");
     setAuthDialogOpen(true);
   }, [navigateToSearch]);
 
   return (
     <>
-      <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
-        <DialogContent className="rounded-3xl sm:max-w-150">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">
-              Nejste přihlášeni
-            </DialogTitle>
-          </DialogHeader>
-
-          <p className="text-sm text-muted-foreground text-center">
-            Pro procházení návodů se nejdřív přihlaste nebo zaregistrujte.
-          </p>
-
-          <Tabs
-            value={authDialogView}
-            onValueChange={(v) => setAuthDialogView(v as "login" | "register")}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="login">Přihlášení</TabsTrigger>
-              <TabsTrigger value="register">Registrace</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="login">
-              <LoginForm onLoginSuccess={handleAuthSuccess} />
-            </TabsContent>
-
-            <TabsContent value="register">
-              <RegisterForm onRegisterSuccess={handleAuthSuccess} />
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      <AuthRequiredDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        onSuccess={handleAuthSuccess}
+        message="Pro procházení návodů se nejdřív přihlaste nebo zaregistrujte."
+      />
 
       {/* Hero Section */}
       {/* Removed relative, maybe looks better, maybe not */}
@@ -135,6 +97,19 @@ export default function HomePage() {
               JEN PRO PŘIHLÁŠENÉ UŽIVATELE
             </span>
           </Button>
+
+          <div className="mt-6 max-w-xl animate-[fadeInUp_1.5s_ease-out]">
+            <p className="text-sm md:text-base text-zinc-100/85 dark:text-zinc-200/90">
+              Chcete se stát expertem a pomáhat s návody?
+            </p>
+            <Button
+              asChild
+              variant="link"
+              className="mt-1 h-auto p-0 text-xs md:text-sm text-primary"
+            >
+              <Link to="/expert-onboarding">ZJISTIT VÍCE</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </>
