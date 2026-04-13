@@ -5,6 +5,7 @@ using AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.Identity.Edit;
 
@@ -62,7 +63,7 @@ public class EditUserService : IEditUserService
         var authorizationResult = await _authorizationService.AuthorizeAsync(
             actualUser,
             resource: null,
-            policyName: $"CanSetRole[{normalizedRole}]");
+            policyName: AuthorizationPolicies.AdminOnly);
 
         if (!authorizationResult.Succeeded)
         {

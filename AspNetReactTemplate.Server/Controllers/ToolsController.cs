@@ -8,7 +8,7 @@ namespace AspNetReactTemplate.Server.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
 public class ToolsController : ControllerBase
 {
     private readonly IToolQueryService _toolQueryService;
@@ -53,7 +53,7 @@ public class ToolsController : ControllerBase
 
     // POST: api/Tools/manual/{manualId}
     [HttpPost("manual/{manualId:int}")]
-    [Authorize(Policy = AuthorizationPolicies.CanEditTools)]
+    [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
     public async Task<ActionResult<ToolReadDto>> CreateTool(int manualId, [FromBody] ToolCreateDto toolDto)
     {
         try
@@ -68,7 +68,7 @@ public class ToolsController : ControllerBase
 
     // PUT: api/Tools/{id}
     [HttpPut("{id:int}")]
-    [Authorize(Policy = AuthorizationPolicies.CanEditTools)]
+    [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
     public async Task<IActionResult> UpdateTool(int id, [FromBody] ToolUpdateDto toolDto)
     {
         try
@@ -82,7 +82,7 @@ public class ToolsController : ControllerBase
 
     // DELETE: api/Tools/{id}
     [HttpDelete("{id:int}")]
-    [Authorize(Policy = AuthorizationPolicies.CanEditTools)]
+    [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
     public async Task<IActionResult> DeleteTool(int id)
     {
         try

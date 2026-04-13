@@ -1,4 +1,5 @@
 using AspNetReactTemplate.Server.Extensions.Controller;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.System;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.RoleRequest;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetReactTemplate.Server.Controllers.Identity;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
 [Route("api/[controller]")]
 public class RoleRequestController : ControllerBase
 {

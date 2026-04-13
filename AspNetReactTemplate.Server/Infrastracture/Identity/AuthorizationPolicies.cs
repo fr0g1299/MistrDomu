@@ -1,45 +1,44 @@
 using AspNetReactTemplate.Server.Models.Identity.Enums;
 using Microsoft.AspNetCore.Authorization;
+using AspNetReactTemplate.Server.Infrastracture.Identity.Handlers;
 
 namespace AspNetReactTemplate.Server.Infrastracture.Identity
 {
     public static class AuthorizationPolicies
     {
+        public const string AuthenticatedUser = "AuthenticatedUser";
         public const string AdminOnly = "AdminOnly";
         public const string UserOnly = "UserOnly";
-        public const string CanEditTools = "CanEditTools";
-        public const string CanHelpWithManuals = "CanHelpWithManuals";
-        public const string CanSeeAllUsers = "CanSeeAllUsers";
-        public const string CanSetRole = "CanSetRole";
-        public const string CanAdministrateRequests = "CanAdministrateRequests";
+        public const string ExpertOnly = "ExpertOnly";
+        public const string AdminOrExpertOnly = "AdminOrExpertOnly";
         public const string AdminOrSelfExpert = "AdminOrSelfExpert";
         public const string AdminOrAssignedManual = "AdminOrAssignedManual";
 
         public static AuthorizationOptions AddCustomPolicies(this AuthorizationOptions options)
         {
+            options.AddPolicy(AuthenticatedUser, policy =>
+                policy.AddRequirements(new AuthenticatedUserRequirement()));
+
             // Admin policies
-            options.AddPolicy(AdminOnly, policy => policy.RequireRole(Roles.Admin.ToString()));
-            options.AddPolicy(CanEditTools, policy => policy.RequireRole(Roles.Admin.ToString()));
-            options.AddPolicy(CanSeeAllUsers, policy => policy.RequireRole(Roles.Admin.ToString()));
-            options.AddPolicy(CanSetRole, policy => policy.RequireRole(Roles.Admin.ToString()));
-            options.AddPolicy(CanAdministrateRequests, policy => policy.RequireRole(Roles.Admin.ToString()));
-
-            foreach (var role in Enum.GetValues<Roles>())
-            {
-                options.AddPolicy($"{CanSetRole}[{role}]", policy => policy.RequireRole(Roles.Admin.ToString()));
-            }
-
-            // Admin policies with handlers
+            options.AddPolicy(AdminOnly, policy =>
+                policy.RequireAuthenticatedUser().AddRequirements(new AdminOnlyRequirement()));
             options.AddPolicy(AdminOrSelfExpert, policy =>
                 policy.RequireAuthenticatedUser().AddRequirements(new AdminOrSelfExpertRequirement()));
             options.AddPolicy(AdminOrAssignedManual, policy =>
                 policy.RequireAuthenticatedUser().AddRequirements(new AdminOrAssignedManualRequirement()));
 
             // Expert policies
-            options.AddPolicy(CanHelpWithManuals, policy => policy.RequireRole(Roles.Expert.ToString()));
+            options.AddPolicy(ExpertOnly, policy =>
+                policy.RequireAuthenticatedUser().AddRequirements(new ExpertOnlyRequirement()));
+
+            // Admin or Expert policies
+            options.AddPolicy(AdminOrExpertOnly, policy =>
+                policy.RequireAuthenticatedUser().AddRequirements(new AdminOrExpertOnlyRequirement()));
 
             // User policies
-            options.AddPolicy(UserOnly, policy => policy.RequireRole(Roles.User.ToString()));
+            // So far not used
+            options.AddPolicy(UserOnly, policy =>
+                policy.RequireAuthenticatedUser().AddRequirements(new RoleRequirement(Roles.User.ToString())));
 
             return options;
         }

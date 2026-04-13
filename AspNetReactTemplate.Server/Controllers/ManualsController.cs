@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Services.Abstraction.Manuals;
 using AspNetReactTemplate.Server.Models.DTOs.Manuals;
 
 namespace AspNetReactTemplate.Server.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
 [Route("api/[controller]")]
 public class ManualsController : ControllerBase
 {

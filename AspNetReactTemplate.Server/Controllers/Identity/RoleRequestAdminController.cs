@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetReactTemplate.Server.Controllers.Identity;
 
 [ApiController]
-[Authorize(Policy = AuthorizationPolicies.CanAdministrateRequests)]
+[Authorize(Policy = AuthorizationPolicies.AdminOnly)]
 [Route("api/[controller]")]
 public class RoleRequestAdminController : ControllerBase
 {

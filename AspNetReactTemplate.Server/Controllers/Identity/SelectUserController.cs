@@ -8,17 +8,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetReactTemplate.Server.Controllers.Identity
 {
     [ApiController]
-    [Authorize(Policy = AuthorizationPolicies.CanSeeAllUsers)]
+    [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
     [Route("api/[controller]")]
     public class SelectUserController : ControllerBase
     {
         private readonly IUserSelectService _userSelectService;
-    
+
         public SelectUserController(IUserSelectService userSelectService)
         {
             _userSelectService = userSelectService;
         }
-    
+
         [HttpGet]
         public async Task<IActionResult> GetUsers([FromQuery] UserListQueryDto query)
         {

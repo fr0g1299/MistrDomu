@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetReactTemplate.Server.Controllers;
 
 [ApiController]
-[Authorize]
 [Route("api/[controller]")]
+[Authorize(Policy = AuthorizationPolicies.AdminOrExpertOnly)]
 public class ExpertManualHelpController : ControllerBase
 {
     private readonly IExpertManualHelpCommandService _commandService;

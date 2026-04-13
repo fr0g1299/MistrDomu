@@ -21,7 +21,7 @@ public class ToolCommandService : IToolCommandService
 
     public async Task<ToolReadDto> CreateToolAsync(int manualId, ToolCreateDto toolDto, ClaimsPrincipal user)
     {
-        var authorizationResult = await _authorizationService.AuthorizeAsync(user, AuthorizationPolicies.CanEditTools);
+        var authorizationResult = await _authorizationService.AuthorizeAsync(user, AuthorizationPolicies.AdminOnly);
         if (!authorizationResult.Succeeded)
         {
             throw new UnauthorizedAccessException("User is not authorized to create tools.");
@@ -57,7 +57,7 @@ public class ToolCommandService : IToolCommandService
 
     public async Task<ToolUpdateDto> UpdateToolAsync(int id, ToolUpdateDto toolDto, ClaimsPrincipal user)
     {
-        var authorizationResult = await _authorizationService.AuthorizeAsync(user, AuthorizationPolicies.CanEditTools);
+        var authorizationResult = await _authorizationService.AuthorizeAsync(user, AuthorizationPolicies.AdminOnly);
 
         if (!authorizationResult.Succeeded)
         {
@@ -81,7 +81,7 @@ public class ToolCommandService : IToolCommandService
 
     public async Task<bool> DeleteToolAsync(int toolId, ClaimsPrincipal user)
     {
-        var authorizationResult = await _authorizationService.AuthorizeAsync(user, AuthorizationPolicies.CanEditTools);
+        var authorizationResult = await _authorizationService.AuthorizeAsync(user, AuthorizationPolicies.AdminOnly);
 
         if (!authorizationResult.Succeeded)
         {

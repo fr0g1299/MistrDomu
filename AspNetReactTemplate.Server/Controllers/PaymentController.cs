@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AspNetReactTemplate.Server.Models.DTOs.Payments;
 using AspNetReactTemplate.Server.Services.Abstraction.Payments;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 
 namespace AspNetReactTemplate.Server.Controllers
 {
@@ -21,7 +22,7 @@ namespace AspNetReactTemplate.Server.Controllers
         // ── POST /api/payment/checkout ────────────────────────────────────────
         /// <summary>Creates a Stripe Checkout session for purchasing AI access to a manual.</summary>
         [HttpPost("checkout")]
-        [Authorize]
+        [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
         public async Task<ActionResult> CreateCheckout([FromBody] CheckoutRequestDto request)
         {
             var result = await _commandService.CreateCheckout(request, User);
@@ -68,7 +69,7 @@ namespace AspNetReactTemplate.Server.Controllers
         // ── GET /api/payment/check/{manualId} ────────────────────────────────
         /// <summary>Checks if the current user has paid for the specified manual.</summary>
         [HttpGet("check/{manualId}")]
-        [Authorize]
+        [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
         public async Task<ActionResult> CheckPaymentStatus(int manualId)
         {
             var result = await _queryService.CheckPaymentStatus(manualId, User);
@@ -89,7 +90,7 @@ namespace AspNetReactTemplate.Server.Controllers
         // ── GET /api/payment/check/manual-ids ───────────────────────────────────
         /// <summary>Returns manual IDs for which the current user has paid unlimited AI chat access.</summary>
         [HttpGet("check/manual-ids")]
-        [Authorize]
+        [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
         public async Task<ActionResult<IEnumerable<int>>> GetMyPaidManualIds()
         {
             var result = await _queryService.GetPaidManualIdsForUser(User);
@@ -110,7 +111,7 @@ namespace AspNetReactTemplate.Server.Controllers
         // ── GET /api/payment/admin/paid-access ───────────────────────────────
         /// <summary>Returns all paid access records (Admin only).</summary>
         [HttpGet("admin/paid-access")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
         public async Task<ActionResult<IEnumerable<PaidAccessDto>>> GetPaidAccess()
         {
             var result = await _queryService.GetPaidAccess();

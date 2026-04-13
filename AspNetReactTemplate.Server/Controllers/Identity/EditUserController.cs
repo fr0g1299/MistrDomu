@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetReactTemplate.Server.Controllers.Identity
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
     [Route("api/[controller]")]
     public class EditUserController : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace AspNetReactTemplate.Server.Controllers.Identity
         }
 
         [HttpPut("{userId}/role")]
-        [Authorize(Policy = AuthorizationPolicies.CanSetRole)]
+        [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
         public async Task<IActionResult> SetRole([FromRoute] string userId, [FromBody] EditRoleRequestDto request)
         {
             var result = await _editUserService.SetRoleAsync(userId, request.Role);

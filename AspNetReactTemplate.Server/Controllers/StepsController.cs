@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Services.Abstraction.Steps;
 
 namespace AspNetReactTemplate.Server.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
     [Route("api/[controller]")]
     public class StepsController : ControllerBase
     {

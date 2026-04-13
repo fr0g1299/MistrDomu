@@ -1,12 +1,13 @@
 using AspNetReactTemplate.Server.Services.Abstraction.AiChat;
 using AspNetReactTemplate.Server.Models.DTOs.AiChat;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetReactTemplate.Server.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
     [Route("api/[controller]")]
     public class AiChatController : ControllerBase
     {

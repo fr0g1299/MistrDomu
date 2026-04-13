@@ -50,7 +50,7 @@ public class UserSelectService : IUserSelectService
 
         var authorizationResult = await _authorizationService.AuthorizeAsync(
             userPrincipal,
-            AuthorizationPolicies.CanSeeAllUsers);
+            AuthorizationPolicies.AdminOnly);
         if (!authorizationResult.Succeeded)
         {
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, NotAllowedToSeeUsersMessage);

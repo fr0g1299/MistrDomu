@@ -48,7 +48,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
     public async Task<ServiceResultDto<RoleRequestAdminPageDto>> GetPendingExpertRequestsAsync(RoleRequestListQueryDto queryDto)
     {
         var principal = _signInManager.Context.User;
-        var authResult = await _authorizationService.AuthorizeAsync(principal, AuthorizationPolicies.CanAdministrateRequests);
+        var authResult = await _authorizationService.AuthorizeAsync(principal, AuthorizationPolicies.AdminOnly);
         if (!authResult.Succeeded)
         {
             return ServiceResultDto<RoleRequestAdminPageDto>.Failure(ServiceErrorType.Forbidden, ForbiddenMessage);
@@ -124,7 +124,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
     public async Task<ServiceResultDto<int>> GetPendingExpertRequestCountAsync()
     {
         var principal = _signInManager.Context.User;
-        var authResult = await _authorizationService.AuthorizeAsync(principal, AuthorizationPolicies.CanAdministrateRequests);
+        var authResult = await _authorizationService.AuthorizeAsync(principal, AuthorizationPolicies.AdminOnly);
         if (!authResult.Succeeded)
         {
             return ServiceResultDto<int>.Failure(ServiceErrorType.Forbidden, ForbiddenMessage);
@@ -141,7 +141,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, MustBeSignedInMessage);
         }
 
-        var authResult = await _authorizationService.AuthorizeAsync(_signInManager.Context.User, AuthorizationPolicies.CanAdministrateRequests);
+        var authResult = await _authorizationService.AuthorizeAsync(_signInManager.Context.User, AuthorizationPolicies.AdminOnly);
         if (!authResult.Succeeded)
         {
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, ForbiddenMessage);
@@ -183,7 +183,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, MustBeSignedInMessage);
         }
 
-        var authResult = await _authorizationService.AuthorizeAsync(_signInManager.Context.User, AuthorizationPolicies.CanAdministrateRequests);
+        var authResult = await _authorizationService.AuthorizeAsync(_signInManager.Context.User, AuthorizationPolicies.AdminOnly);
         if (!authResult.Succeeded)
         {
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, ForbiddenMessage);
@@ -219,7 +219,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, MustBeSignedInMessage);
         }
 
-        var authResult = await _authorizationService.AuthorizeAsync(_signInManager.Context.User, AuthorizationPolicies.CanAdministrateRequests);
+        var authResult = await _authorizationService.AuthorizeAsync(_signInManager.Context.User, AuthorizationPolicies.AdminOnly);
         if (!authResult.Succeeded)
         {
             return ServiceResultDto.Failure(ServiceErrorType.Forbidden, ForbiddenMessage);

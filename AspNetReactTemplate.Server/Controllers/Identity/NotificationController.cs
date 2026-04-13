@@ -1,4 +1,5 @@
 using AspNetReactTemplate.Server.Extensions.Controller;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.Notifications;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetReactTemplate.Server.Controllers.Identity;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
 [Route("api/[controller]")]
 public class NotificationController : ControllerBase
 {
