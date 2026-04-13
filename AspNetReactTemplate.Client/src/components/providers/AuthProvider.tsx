@@ -44,6 +44,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchUser();
   }, [fetchUser]);
 
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      void fetchUser();
+    };
+
+    window.addEventListener("auth-changed", handleAuthChanged);
+    return () => window.removeEventListener("auth-changed", handleAuthChanged);
+  }, [fetchUser]);
+
   const isAdmin = user?.roles?.includes(Role.Admin) ?? false;
   const isExpert = user?.roles?.includes(Role.Expert) ?? false;
   const isAuthenticated = !!user && user.isAuthenticated;
