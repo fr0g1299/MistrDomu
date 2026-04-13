@@ -9,8 +9,17 @@ export default function Footer() {
             © 2026
           </span>
         </div>
-        <div className="self-end md:self-end text-right text-[11px] tracking-[0.08em] text-muted-foreground/55">
+        {/* Maybe delete? Idk if it is needed */}
+        <div className="text-[11px] text-muted-foreground/75 tracking-[0.08em]">
           AP8VT tým Žáčci
+        </div>
+        <div className="self-end md:self-end flex items-center gap-6 text-right tracking-[0.08em] text-muted-foreground/75">
+          <a
+            href="/expert-onboarding"
+            className="text-[13px] text-muted-foreground/85 hover:text-muted-foreground/70 hover:underline hover:text-primary"
+          >
+            • Jak se stát expertem?
+          </a>
         </div>
         {/* <div className="flex flex-wrap gap-6 text-xs uppercase tracking-[0.12em] text-zinc-600">
           <button className="hover:text-primary" type="button">
