@@ -18,7 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Check,
   Loader2,
   Search,
   SquareCheckBig,
@@ -300,16 +299,6 @@ export default function ManualHelpManagement() {
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <span
-                          className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
-                            isSelected
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-input bg-background"
-                          }`}
-                          aria-hidden="true"
-                        >
-                          {isSelected && <Check className="h-3.5 w-3.5" />}
-                        </span>
                         <div className="min-w-0 flex-1 space-y-2">
                           <div className="flex items-start justify-between gap-3">
                             <h3 className="truncate text-base font-semibold">
@@ -345,8 +334,8 @@ export default function ManualHelpManagement() {
                               {isSaving
                                 ? "Ukládám..."
                                 : isSelected
-                                  ? "Odebrat se z návodu"
-                                  : "Přidat se do návodu"}
+                                  ? "Odepsat se z návodu"
+                                  : "Zapsat se do návodu"}
                             </Button>
 
                             <Button
