@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 type VisibilityFilter = "all" | "selected" | "unselected";
+type BulkMode = "add" | "remove" | null;
 
 type PendingExpertAction = {
   manualId: number;
@@ -41,10 +42,16 @@ export default function ManualHelpManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibilityFilter, setVisibilityFilter] =
     useState<VisibilityFilter>("all");
+  const [bulkMode, setBulkMode] = useState<BulkMode>(null);
+  const [bulkSelectedManualIds, setBulkSelectedManualIds] = useState<Set<number>>(
+    () => new Set(),
+  );
   const [selectedManualIds, setSelectedManualIds] = useState<Set<number>>(
     () => new Set(),
   );
   const [savingManualId, setSavingManualId] = useState<number | null>(null);
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [pendingAction, setPendingAction] =
     useState<PendingExpertAction | null>(null);
 
@@ -78,6 +85,18 @@ export default function ManualHelpManagement() {
   useEffect(() => {
     fetchData();
   }, [user?.id]);
+
+  useEffect(() => {
+    setBulkMode(null);
+    setBulkSelectedManualIds(new Set());
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (bulkSelectedManualIds.size === 0) {
+      setBulkMode(null);
+      setBulkConfirmOpen(false);
+    }
+  }, [bulkSelectedManualIds]);
 
   const filteredManuals = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -141,6 +160,94 @@ export default function ManualHelpManagement() {
       setSavingManualId(null);
     }
   };
+
+  const resetBulkSelection = () => {
+    setBulkMode(null);
+    setBulkSelectedManualIds(new Set());
+    setBulkConfirmOpen(false);
+  };
+
+  const handleBulkSelectionChange = (manual: Manual, nextChecked: boolean) => {
+    const isSelected = selectedManualIds.has(manual.id);
+    const nextMode: BulkMode = isSelected ? "remove" : "add";
+
+    setBulkMode((currentMode) => currentMode ?? nextMode);
+
+    setBulkSelectedManualIds((current) => {
+      const next = new Set(current);
+
+      if (nextChecked) {
+        next.add(manual.id);
+      } else {
+        next.delete(manual.id);
+      }
+
+      return next;
+    });
+  };
+
+  const handleApplyBulkChange = async () => {
+    if (!user?.id || !bulkMode || bulkSelectedManualIds.size === 0) {
+      return;
+    }
+
+    setBulkSaving(true);
+    setError(null);
+
+    try {
+      const selectedIds = new Set(selectedManualIds);
+
+      for (const manualId of bulkSelectedManualIds) {
+        const isCurrentlySelected = selectedIds.has(manualId);
+
+        if (bulkMode === "add" && !isCurrentlySelected) {
+          await apiService.addManualToExpert(manualId, user.id);
+          selectedIds.add(manualId);
+        }
+
+        if (bulkMode === "remove" && isCurrentlySelected) {
+          await apiService.removeManualFromExpert(manualId, user.id);
+          selectedIds.delete(manualId);
+        }
+      }
+
+      setSelectedManualIds(selectedIds);
+      resetBulkSelection();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Nepodařilo se hromadně změnit přiřazení pomocníka.",
+      );
+    } finally {
+      setBulkSaving(false);
+      setBulkConfirmOpen(false);
+    }
+  };
+
+  const openBulkConfirm = () => {
+    if (!bulkMode || bulkSelectedManualIds.size === 0) {
+      return;
+    }
+
+    setBulkConfirmOpen(true);
+  };
+
+  const isBulkLocked = (manual: Manual) => {
+    if (!bulkMode) {
+      return false;
+    }
+
+    const isSelected = selectedManualIds.has(manual.id);
+    return bulkMode === "add" ? isSelected : !isSelected;
+  };
+
+  const bulkModeLabel =
+    bulkMode === "add"
+      ? "Hromadné zapsání"
+      : bulkMode === "remove"
+        ? "Hromadné odepsání"
+        : "Bez hromadné akce";
 
   const openTogglePopup = (manual: Manual) => {
     const isRemoving = selectedManualIds.has(manual.id);
@@ -253,6 +360,32 @@ export default function ManualHelpManagement() {
                   Jsem pomocník: {selectedCount}
                 </Badge>
               </div>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <Badge variant="outline">Režim: {bulkModeLabel}</Badge>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetBulkSelection}
+                  disabled={bulkSelectedManualIds.size === 0 || bulkSaving}
+                >
+                  Zrušit výběr
+                </Button>
+                <Button
+                  type="button"
+                  onClick={openBulkConfirm}
+                  disabled={
+                    bulkSaving ||
+                    bulkMode === null ||
+                    bulkSelectedManualIds.size === 0
+                  }
+                >
+                  {bulkSaving
+                    ? "Ukládám..."
+                    : bulkMode === "remove"
+                      ? "Odepsat vybrané"
+                      : "Zapsat vybrané"}
+                </Button>
+              </div>
             </div>
 
             {loading && (
@@ -288,6 +421,8 @@ export default function ManualHelpManagement() {
                 {filteredManuals.map((manual) => {
                   const isSelected = selectedManualIds.has(manual.id);
                   const isSaving = savingManualId === manual.id;
+                  const isBulkChecked = bulkSelectedManualIds.has(manual.id);
+                  const isBulkDisabled = isBulkLocked(manual);
 
                   return (
                     <div
@@ -299,11 +434,34 @@ export default function ManualHelpManagement() {
                       }`}
                     >
                       <div className="flex items-start gap-3">
+                        <label className="mt-1 inline-flex cursor-pointer items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className="size-4 rounded border-black accent-black focus:ring-orange-500 checked:accent-primary"
+                            checked={isBulkChecked}
+                            disabled={isBulkDisabled || bulkSaving}
+                            onChange={(event) =>
+                              handleBulkSelectionChange(
+                                manual,
+                                event.target.checked,
+                              )
+                            }
+                          />
+                          <span className="sr-only">Vybrat {manual.title}</span>
+                        </label>
+
                         <div className="min-w-0 flex-1 space-y-2">
                           <div className="flex items-start justify-between gap-3">
-                            <h3 className="truncate text-base font-semibold">
-                              {manual.title}
-                            </h3>
+                            <div className="min-w-0 space-y-1">
+                              <h3 className="truncate text-base font-semibold">
+                                {manual.title}
+                              </h3>
+                              {isBulkDisabled && bulkMode && (
+                                <p className="text-xs text-muted-foreground">
+                                  V tomto režimu nelze tento návod vybrat.
+                                </p>
+                              )}
+                            </div>
                             {isSelected && (
                               <Badge className="shrink-0" variant="default">
                                 Vybráno
@@ -329,7 +487,7 @@ export default function ManualHelpManagement() {
                               type="button"
                               variant={isSelected ? "default" : "outline"}
                               onClick={() => openTogglePopup(manual)}
-                              disabled={isSaving}
+                              disabled={isSaving || bulkSaving}
                             >
                               {isSaving
                                 ? "Ukládám..."
@@ -385,9 +543,49 @@ export default function ManualHelpManagement() {
             <Button
               type="button"
               onClick={confirmToggleAction}
-              disabled={savingManualId !== null}
+              disabled={savingManualId !== null || bulkSaving}
             >
               {pendingAction?.isRemoving ? "Ano, odepsat" : "Ano, zapsat"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={bulkConfirmOpen}
+        onOpenChange={setBulkConfirmOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {bulkMode === "remove"
+                ? "Potvrdit hromadné odepsání"
+                : "Potvrdit hromadné zapsání"}
+            </DialogTitle>
+            <DialogDescription>
+              {bulkMode === "remove"
+                ? `Opravdu se chcete odepsat z ${bulkSelectedManualIds.size} vybraných návodů?`
+                : `Opravdu se chcete zapsat do ${bulkSelectedManualIds.size} vybraných návodů?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setBulkConfirmOpen(false)}
+            >
+              Zrušit
+            </Button>
+            <Button
+              type="button"
+              onClick={handleApplyBulkChange}
+              disabled={bulkSaving}
+            >
+              {bulkSaving
+                ? "Ukládám..."
+                : bulkMode === "remove"
+                  ? "Ano, odepsat"
+                  : "Ano, zapsat"}
             </Button>
           </DialogFooter>
         </DialogContent>
