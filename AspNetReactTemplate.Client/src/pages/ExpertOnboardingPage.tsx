@@ -1,29 +1,30 @@
 import { useCallback, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowLeft, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthRequiredDialog } from "@/components/identity/AuthRequiredDialog";
+import MyRoleRequestCreate from "./MyRoleRequestCreate";
 
 export default function ExpertOnboardingPage() {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isExpert, isAdmin } = useAuth();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [createRequestOpen, setCreateRequestOpen] = useState(false);
 
-  const handleOpenMyRequestsClick = useCallback(() => {
-    if (isAuthenticated) {
-      navigate("/my-requests");
+  const handleCreateRequestClick = useCallback(() => {
+    if (!isAuthenticated) {
+      setAuthDialogOpen(true);
       return;
     }
 
-    setAuthDialogOpen(true);
-  }, [isAuthenticated, navigate]);
+    setCreateRequestOpen(true);
+  }, [isAuthenticated]);
 
   const handleAuthSuccess = useCallback(() => {
     setAuthDialogOpen(false);
-    navigate("/my-requests");
-  }, [navigate]);
+    setCreateRequestOpen(true);
+  }, []);
 
   return (
     <>
@@ -31,8 +32,12 @@ export default function ExpertOnboardingPage() {
         open={authDialogOpen}
         onOpenChange={setAuthDialogOpen}
         onSuccess={handleAuthSuccess}
-        message="Pro otevření stránky Mé žádosti se nejdřív přihlaste nebo zaregistrujte."
+        message="Pro vytvoření žádosti o roli Expert se nejdřív přihlaste nebo zaregistrujte."
       />
+
+      {createRequestOpen && (
+        <MyRoleRequestCreate open={createRequestOpen} onOpenChange={setCreateRequestOpen} />
+      )}
 
       <div className="relative min-h-[calc(100vh-76px)] pt-10 md:pt-12 pb-8 px-4 flex flex-col items-center justify-start text-center overflow-hidden">
       <div className="absolute inset-0 z-0">
@@ -72,6 +77,14 @@ export default function ExpertOnboardingPage() {
               <li>U svých přiřazených návodů se dá své zapojení kdykoliv změnit.</li>
             </ul>
 
+            <Button
+              asChild
+              variant="outline"
+              className="mt-4 border-primary/45 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
+            >
+              <Link to="/?flow=expert#jak-to-funguje">CHCI VÍCE INFA</Link>
+            </Button>
+
             <div className="mt-4 rounded-xl border border-zinc-500/35 bg-zinc-900/35 px-3 py-3 text-zinc-400">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                 Připravujeme:
@@ -91,13 +104,13 @@ export default function ExpertOnboardingPage() {
                 <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
                   1
                 </span>
-                <span>Otevřete stránku Mé žádosti.</span>
+                <span>Klikněte na tlačítko "Vytvořit žádost" níže.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
                   2
                 </span>
-                <span>Vytvořte novou žádost o roli Expert a doplňte stručné odůvodnění.</span>
+                <span>Vyplňte krátké odůvodnění a odešlete žádost.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
@@ -124,10 +137,12 @@ export default function ExpertOnboardingPage() {
           <Button
             type="button"
             className="bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={handleOpenMyRequestsClick}
+            onClick={handleCreateRequestClick}
+            disabled={isExpert || isAdmin}
+            title={isAdmin ? "Admin nemůže žádat o roli Expert" : isExpert ? "Již máte roli Expert" : ""}
           >
             <FileText className="size-4" />
-            Otevřít Mé žádosti
+            {isAdmin ? "Admin nemůže žádat o roli" : isExpert ? "Již máte roli Expert" : "Vytvořit žádost"}
           </Button>
         </div>
       </section>

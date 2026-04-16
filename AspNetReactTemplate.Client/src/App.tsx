@@ -22,7 +22,6 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminExpertRoleRequests from "./pages/AdminExpertRoleRequests";
 import MyRoleRequests from "./pages/MyRoleRequests";
 import MyRoleRequestDetail from "./pages/MyRoleRequestDetail";
-import MyRoleRequestCreate from "./pages/MyRoleRequestCreate";
 import ExpertOnboardingPage from "./pages/ExpertOnboardingPage";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
@@ -53,15 +52,6 @@ const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
 
   if (loading) return null;
   if (!isAuthenticated) return <Navigate to="/" replace />;
-
-  return children;
-};
-
-const NonAdminAuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
-  const { loading, isAuthenticated, isAdmin } = useAuth();
-
-  if (loading) return null;
-  if (!isAuthenticated || isAdmin) return <Navigate to="/" replace />;
 
   return children;
 };
@@ -170,29 +160,11 @@ function App() {
                 }
               />
 
-              <Route
-                path="/my-requests/new"
-                element={
-                  <NonAdminAuthenticatedRoute>
-                    <MyRoleRequestCreate />
-                  </NonAdminAuthenticatedRoute>
-                }
-              />
-
             <Route path="*" element={<NotFound />} />
             </Routes>
 
             {backgroundLocation && (
               <Routes>
-                <Route
-                  path="/my-requests/new"
-                  element={
-                    <NonAdminAuthenticatedRoute>
-                      <MyRoleRequestCreate />
-                    </NonAdminAuthenticatedRoute>
-                  }
-                />
-
                 <Route
                   path="/my-requests/:requestId"
                   element={

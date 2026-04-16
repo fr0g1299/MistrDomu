@@ -142,6 +142,10 @@ export default function ExpertRoleRequestsSection({
     await loadRequests(targetPage, { silent: true });
   };
 
+  const requestHeaderRefresh = () => {
+    window.dispatchEvent(new CustomEvent("header:refresh"));
+  };
+
   const handleApprove = async (id: number) => {
     try {
       setWorkingId(id);
@@ -153,6 +157,8 @@ export default function ExpertRoleRequestsSection({
       } catch {
         toast.error("Žádost byla schválena, ale seznam se nepodařilo obnovit.");
       }
+
+      requestHeaderRefresh();
 
       toast.success("Žádost byla schválena a role Expert přidána.");
     } catch (error) {
@@ -191,6 +197,8 @@ export default function ExpertRoleRequestsSection({
       } catch {
         toast.error("Žádost byla zamítnuta, ale seznam se nepodařilo obnovit.");
       }
+
+      requestHeaderRefresh();
 
       toast.success("Žádost byla zamítnuta.");
     } catch (error) {

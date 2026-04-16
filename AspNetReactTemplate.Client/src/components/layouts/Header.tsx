@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import type { NotificationListItem } from "@/types/notification";
 
 // Shadcn UI Imports
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { AuthDialog } from "../identity/AuthDialog";
 import {
   DropdownMenu,
@@ -33,6 +34,7 @@ const INBOX_PAGE_SIZE = 5;
 
 export default function Header({ onNavigateHome }: HeaderProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { user, isAdmin, isExpert, isAuthenticated, logout, fetchUser } =
     useAuth();
@@ -42,6 +44,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
   const [inboxCurrentPage, setInboxCurrentPage] = useState(1);
   const [inboxTotalPages, setInboxTotalPages] = useState(0);
   const [isLoadingMoreInbox, setIsLoadingMoreInbox] = useState(false);
+  const [isInboxOpen, setIsInboxOpen] = useState(false);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -173,11 +176,21 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     return () => window.clearInterval(intervalId);
   }, [isAuthenticated, refreshHeaderNotifications]);
 
-  const getInboxTypeLabel = (type?: string) => {
-    if (type === "role_request_admin") return "Admin";
-    if (type === "role_request") return "Žádost";
-    return "Info";
-  };
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const handleHeaderRefresh = () => {
+      void refreshHeaderNotifications();
+    };
+
+    window.addEventListener("header:refresh", handleHeaderRefresh);
+
+    return () => {
+      window.removeEventListener("header:refresh", handleHeaderRefresh);
+    };
+  }, [isAuthenticated, refreshHeaderNotifications]);
 
   const handleLogout = useCallback(async () => {
     setIsLoggingOut(true);
@@ -196,6 +209,49 @@ export default function Header({ onNavigateHome }: HeaderProps) {
   const initials =
     `${user?.firstName?.charAt(0) ?? ""}${user?.lastName?.charAt(0) ?? ""}`.toUpperCase() ||
     "U";
+
+  const activePath = location.pathname;
+  const isUsersSectionActive =
+    activePath.startsWith("/admin/users") || activePath.startsWith("/admin/expert-role-requests");
+  const isManagementActive =
+    activePath.startsWith("/tools-management") ||
+    activePath.startsWith("/admin/manual-help-management") ||
+    activePath.startsWith("/admin/paid-access") ||
+    isUsersSectionActive ||
+    activePath.startsWith("/manual-help-management");
+
+  const getNotificationTargetPath = useCallback((item: NotificationListItem) => {
+    if (item.type === "role_request_admin") {
+      return "/admin/expert-role-requests";
+    }
+
+    if (item.type === "role_request") {
+      return "/my-requests";
+    }
+
+    return null;
+  }, []);
+
+  const openInboxItem = useCallback((item: NotificationListItem) => {
+    if (!item.isRead) {
+      setInboxItems((current) =>
+        current.map((currentItem) =>
+          currentItem.id === item.id ? { ...currentItem, isRead: true } : currentItem,
+        ),
+      );
+      setInboxUnreadCount((prev) => Math.max(0, prev - 1));
+
+      void apiService.markNotificationAsRead(item.id).catch(() => {
+        void refreshHeaderNotifications();
+      });
+    }
+
+    const targetPath = getNotificationTargetPath(item);
+    if (targetPath) {
+      navigate(targetPath);
+      setIsInboxOpen(false);
+    }
+  }, [getNotificationTargetPath, navigate, refreshHeaderNotifications]);
 
   return (
     <header className="border-b border-border/40 sticky top-0 z-50 bg-background/80 backdrop-blur-md p-4 md:px-14 transition-all shadow-sm">
@@ -229,7 +285,10 @@ export default function Header({ onNavigateHome }: HeaderProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2 cursor-pointer"
+                  className={cn(
+                    "h-10 px-3 focus-visible:ring-0 select-none flex items-center gap-2 cursor-pointer",
+                    isManagementActive && "bg-accent text-accent-foreground",
+                  )}
                 >
                   <Settings className="h-4 w-4" />
                   <span className="hidden md:inline">Správa</span>
@@ -246,24 +305,44 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                   <>
                     <DropdownMenuItem
                       onClick={() => navigate("/tools-management")}
-                      className="cursor-pointer"
+                      className={cn(
+                        "cursor-pointer",
+                        activePath.startsWith("/tools-management") && "bg-accent text-accent-foreground",
+                      )}
                     >
                       Nástroje
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => navigate("/admin/manual-help-management")}
-                      className="cursor-pointer"
+                      className={cn(
+                        "cursor-pointer",
+                        activePath.startsWith("/admin/manual-help-management") &&
+                          "bg-accent text-accent-foreground",
+                      )}
                     >
                       Správa přiřazení expertů
                     </DropdownMenuItem>
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger className="cursor-pointer">
+                      <DropdownMenuSubTrigger
+                        className={cn(
+                          "cursor-pointer",
+                          isUsersSectionActive && "bg-accent text-accent-foreground",
+                        )}
+                      >
                         Uživatelé
+                        {pendingExpertRequestCount > 0 && (
+                          <Badge className="ml-1 h-5 min-w-5 justify-center px-1 py-0 text-[10px] leading-none">
+                            {pendingExpertRequestCount}
+                          </Badge>
+                        )}
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent>
                         <DropdownMenuItem
                           onClick={() => navigate("/admin/users")}
-                          className="cursor-pointer"
+                          className={cn(
+                            "cursor-pointer",
+                            activePath.startsWith("/admin/users") && "bg-accent text-accent-foreground",
+                          )}
                         >
                           Správa uživatelů
                         </DropdownMenuItem>
@@ -271,7 +350,11 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                           onClick={() =>
                             navigate("/admin/expert-role-requests")
                           }
-                          className="cursor-pointer"
+                          className={cn(
+                            "cursor-pointer",
+                            activePath.startsWith("/admin/expert-role-requests") &&
+                              "bg-accent text-accent-foreground",
+                          )}
                         >
                           Žádosti o roli Expert
                           {pendingExpertRequestCount > 0 && (
@@ -284,7 +367,10 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     </DropdownMenuSub>
                     <DropdownMenuItem
                       onClick={() => navigate("/admin/paid-access")}
-                      className="cursor-pointer"
+                      className={cn(
+                        "cursor-pointer",
+                        activePath.startsWith("/admin/paid-access") && "bg-accent text-accent-foreground",
+                      )}
                     >
                       Seznam plateb
                     </DropdownMenuItem>
@@ -292,7 +378,10 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                 ) : (
                   <DropdownMenuItem
                     onClick={() => navigate("/manual-help-management")}
-                    className="cursor-pointer"
+                    className={cn(
+                      "cursor-pointer",
+                      activePath.startsWith("/manual-help-management") && "bg-accent text-accent-foreground",
+                    )}
                   >
                     Mé návody
                   </DropdownMenuItem>
@@ -305,7 +394,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
             {isAuthenticated ? (
               /* PŘIHLÁŠENÝ UŽIVATEL */
               <>
-                <DropdownMenu modal={false}>
+                <DropdownMenu modal={false} open={isInboxOpen} onOpenChange={setIsInboxOpen}>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
@@ -343,33 +432,32 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                     {inboxItems.length > 0 && (
                       <div className="max-h-60 overflow-y-auto">
                         {inboxItems.map((item) => (
-                          <div key={item.id} className="px-2 py-1.5">
-                            <div className="flex w-full items-start justify-between gap-2 rounded-sm">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-medium">{item.title}</span>
-                                  <Badge variant="outline" className="text-[10px]">
-                                    {getInboxTypeLabel(item.type)}
-                                  </Badge>
-                                  {!item.isRead && (
-                                    <span className="h-2 w-2 rounded-full bg-primary" />
-                                  )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">{item.message}</p>
+                          <div key={item.id} className="mx-2 my-1.5 flex items-start gap-2 rounded-md border border-muted-foreground/20 bg-background hover:bg-muted hover:border-muted-foreground/40 transition-all duration-200 hover:shadow-sm p-3">
+                            <button
+                              type="button"
+                              onClick={() => openInboxItem(item)}
+                              className="flex-1 text-left space-y-1"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium">{item.title}</span>
+                                {!item.isRead && (
+                                  <span className="h-2 w-2 rounded-full bg-primary" />
+                                )}
                               </div>
-                              <button
-                                type="button"
-                                  aria-label="Smazat zprávu"
-                                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  deleteInboxItem(item.id);
-                                }}
-                              >
-                                <X className="size-3.5" />
-                              </button>
-                            </div>
+                              <p className="text-xs text-muted-foreground">{item.message}</p>
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Smazat zprávu"
+                              className="rounded p-1 text-muted-foreground hover:bg-background hover:text-foreground shrink-0"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                deleteInboxItem(item.id);
+                              }}
+                            >
+                              <X className="size-3.5" />
+                            </button>
                           </div>
                         ))}
                       </div>

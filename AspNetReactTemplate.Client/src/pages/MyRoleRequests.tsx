@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RoleRequestFilter, UserRoleRequestItem } from "@/types/roleRequest";
 import { useAuth } from "@/hooks/useAuth";
+import MyRoleRequestCreate from "./MyRoleRequestCreate";
 
 const PAGE_SIZE = 10;
 
@@ -37,7 +38,7 @@ const formatType = (type: string) => {
 export default function MyRoleRequests() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isExpert } = useAuth();
 
   const [items, setItems] = useState<UserRoleRequestItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,7 @@ export default function MyRoleRequests() {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<RoleRequestFilter>("all");
+  const [createRequestOpen, setCreateRequestOpen] = useState(false);
   const previousSnapshotRef = useRef<Map<number, string>>(new Map());
   const highlightTimeoutsRef = useRef<number[]>([]);
 
@@ -147,7 +149,10 @@ export default function MyRoleRequests() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Mé žádosti</CardTitle>
+              <CardTitle>Mé žádosti o roli Expert</CardTitle>
+              <CardDescription>
+                Zde můžete vidět všechny své žádosti o roli Expert. Pokud roli již máte, není možné vytvořit novou žádost.
+              </CardDescription>
               {isAdmin && (
                 <CardDescription className="mt-1 text-amber-500">
                   Admin nemůže žádat o roli Expert.
@@ -156,12 +161,9 @@ export default function MyRoleRequests() {
             </div>
             <Button
               type="button"
-              disabled={isAdmin}
-              onClick={() =>
-                navigate("/my-requests/new", {
-                  state: { backgroundLocation: location },
-                })
-              }
+              disabled={isExpert || isAdmin}
+              onClick={() => setCreateRequestOpen(true)}
+              title={isAdmin ? "Admin nemůže žádat o roli Expert" : isExpert ? "Již máte roli Expert" : ""}
             >
               <Plus className="size-4" />
               Vytvořit žádost
@@ -320,6 +322,11 @@ export default function MyRoleRequests() {
             </div>
           </CardContent>
         </Card>
+
+        <MyRoleRequestCreate
+          open={createRequestOpen}
+          onOpenChange={setCreateRequestOpen}
+        />
       </main>
     </div>
   );

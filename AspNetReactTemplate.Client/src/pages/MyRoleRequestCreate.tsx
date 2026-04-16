@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import { apiService } from "@/lib/apiService";
@@ -13,22 +13,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { RoleRequestType } from "@/types/roleRequest";
 
-export default function MyRoleRequestCreate() {
+type MyRoleRequestCreateProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+export default function MyRoleRequestCreate({ open = true, onOpenChange }: MyRoleRequestCreateProps) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [requestType, setRequestType] = useState<RoleRequestType>("Expert");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isBackgroundModal = Boolean(
-    (location.state as { backgroundLocation?: unknown } | null)?.backgroundLocation,
-  );
-
   const closeCreate = () => {
-    if (isBackgroundModal) {
-      navigate(-1);
+    if (onOpenChange) {
+      onOpenChange(false);
+      setDescription("");
       return;
     }
 
@@ -39,7 +38,7 @@ export default function MyRoleRequestCreate() {
     try {
       setIsSubmitting(true);
       await apiService.createRoleRequest({
-        requestType,
+        requestType: "Expert",
         description: description.trim() || undefined,
       });
 
@@ -53,31 +52,23 @@ export default function MyRoleRequestCreate() {
   };
 
   return (
-    <Dialog open onOpenChange={(open) => !open && closeCreate()}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (onOpenChange) {
+        onOpenChange(isOpen);
+        if (!isOpen) {
+          setDescription("");
+        }
+      }
+    }}>
       <DialogContent className="max-w-3xl overflow-hidden border-border/70 bg-card p-0 shadow-xl">
         <DialogHeader className="border-b border-border px-6 py-5 text-left sm:text-left">
-          <DialogTitle className="text-2xl font-bold">Přidat žádost</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Vytvořit žádost o roli Expert</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Vyplň krátké odůvodnění a odešli žádost ke schválení adminem.
+            Vyplň krátké odůvodnění a odešli žádost ke schválení administrátorem.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 p-6">
-          <div className="grid gap-2 md:max-w-sm">
-            <label htmlFor="request-type" className="text-sm font-medium text-foreground">
-              Typ žádosti
-            </label>
-            <select
-              id="request-type"
-              value={requestType}
-              onChange={(event) => setRequestType(event.target.value as RoleRequestType)}
-              style={{ colorScheme: "dark" }}
-              className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-            >
-              <option value="Expert">Role Expert</option>
-            </select>
-          </div>
-
           <div className="grid gap-2">
             <label htmlFor="description" className="text-sm font-medium text-foreground">
               Popis (volitelně)
@@ -96,8 +87,7 @@ export default function MyRoleRequestCreate() {
 
           <DialogFooter className="border-t border-border pt-4 sm:justify-between">
             <Button type="button" variant="outline" onClick={closeCreate}>
-              <ArrowLeft className="size-4" />
-              Zpět na výpis žádostí
+              Zrušit
             </Button>
 
             <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
