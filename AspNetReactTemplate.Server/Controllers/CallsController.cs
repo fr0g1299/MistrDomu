@@ -17,16 +17,13 @@ public class CallsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ICallPresenceService _presenceService;
-    private readonly IDailyPrebuiltService _dailyPrebuiltService;
 
     public CallsController(
         AppDbContext context,
-        ICallPresenceService presenceService,
-        IDailyPrebuiltService dailyPrebuiltService)
+        ICallPresenceService presenceService)
     {
         _context = context;
         _presenceService = presenceService;
-        _dailyPrebuiltService = dailyPrebuiltService;
     }
 
     [HttpGet("manual/{manualId:int}/available-experts")]
@@ -60,7 +57,10 @@ public class CallsController : ControllerBase
     }
 
     [HttpPost("manual/{manualId:int}/start")]
-    public async Task<ActionResult<object>> StartCall(int manualId, CancellationToken cancellationToken)
+    public async Task<ActionResult<object>> StartCall(
+        int manualId,
+        [FromServices] IDailyPrebuiltService dailyPrebuiltService,
+        CancellationToken cancellationToken)
     {
         var callerUserId = GetCurrentUserId();
         if (callerUserId is null)
@@ -107,7 +107,7 @@ public class CallsController : ControllerBase
         DailyRoomResult room;
         try
         {
-            room = await _dailyPrebuiltService.CreateRoomAsync(manualId, callerUserId.Value, cancellationToken);
+            room = await dailyPrebuiltService.CreateRoomAsync(manualId, callerUserId.Value, cancellationToken);
         }
         catch (InvalidOperationException ex)
         {
