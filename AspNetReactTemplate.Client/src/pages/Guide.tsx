@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { Introduction } from "@/components/domains/guide/Introduction";
-import { SupportPanel } from "@/components/domains/guide/SupportPanel";
 import { Steps } from "@/components/domains/guide/Steps";
 import { TableOfContents } from "@/components/domains/guide/TableOfContents";
 import { ExpertHelperCard } from "@/components/domains/guide/ExpertHelperCard";
@@ -20,6 +19,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CheckCircle2 } from "lucide-react";
+import NotFound from "./NotFound";
+import { AiAssistantCard } from "@/components/domains/guide/AiAssistantCard";
 
 type ToolRead = { id: number; name: string; url?: string };
 
@@ -327,6 +328,10 @@ export default function Guide() {
     };
   }, [trackedSectionIds]);
 
+  if (!manualLoading && manualError) {
+    return <NotFound />;
+  }
+
   return (
     <div className="min-h-screen bg-background text-zinc-950 dark:text-zinc-50 antialiased">
       <Introduction manual={manual} tools={manualTools} />
@@ -341,9 +346,6 @@ export default function Guide() {
           <p className="mb-4 text-sm text-muted-foreground">
             Načítání návodu...
           </p>
-        )}
-        {manualError && (
-          <p className="mb-4 text-sm text-destructive">{manualError}</p>
         )}
         {stepsLoading && (
           <p className="mb-4 text-sm text-muted-foreground">
@@ -370,7 +372,7 @@ export default function Guide() {
             onToggleStep={handleToggleStep}
           />
 
-          <SupportPanel manualId={Number(manualId)} />
+          <AiAssistantCard manualId={Number(manualId)} />
         </div>
       </main>
 

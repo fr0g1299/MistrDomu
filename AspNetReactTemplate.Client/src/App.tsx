@@ -27,6 +27,7 @@ import ExpertOnboardingPage from "./pages/ExpertOnboardingPage";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 import { Toaster } from "./components/ui/sonner";
+import NotFound from "./pages/NotFound";
 
 const AdminRoute = ({ children }: { children: JSX.Element }) => {
   const { isAdmin, loading, isAuthenticated } = useAuth();
@@ -178,7 +179,7 @@ function App() {
                 }
               />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
             </Routes>
 
             {backgroundLocation && (

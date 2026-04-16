@@ -15,9 +15,9 @@ import {
   Maximize,
   Sparkles,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkBreaks from "remark-breaks";
-import remarkGfm from "remark-gfm";
+// import ReactMarkdown from "react-markdown";
+// import remarkBreaks from "remark-breaks";
+// import remarkGfm from "remark-gfm";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -403,7 +403,7 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
   };
 
   return (
-    <>
+    <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-9 xl:col-span-7 lg:flex">
       {isExpandedModalOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm"
@@ -496,11 +496,15 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
                       {message.text}
                     </p>
                   ) : (
-                    <div className="wrap-break-word prose prose-sm dark:prose-invert prose-a:hover:text-primary-700">
-                      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                        {message.text}
-                      </ReactMarkdown>
-                    </div>
+                    <p className="wrap-break-word prose prose-sm dark:prose-invert">
+                      {message.text}
+                    </p>
+                    // Right now we are not using Markdown for AI messages, so it's not needed, but maybe in the future we will, so leaving this here for easy switch
+                    // <div className="wrap-break-word prose prose-sm dark:prose-invert prose-a:hover:text-primary-700">
+                    //   <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                    //     {message.text}
+                    //   </ReactMarkdown>
+                    // </div>
                   )}
                 </div>
               </div>
@@ -635,6 +639,6 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
           <ArrowUp className="size-5" />
         </button>
       </Card>
-    </>
+    </aside>
   );
 }
