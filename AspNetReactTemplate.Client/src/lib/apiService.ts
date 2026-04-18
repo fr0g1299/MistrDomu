@@ -27,6 +27,39 @@ export type ManualForExpertRead = {
   manualTitle: string;
 };
 
+export type AvailableExpertRead = {
+  expertId: number;
+  expertName: string;
+};
+
+export type StartedManualCallRead = {
+  roomUrl: string;
+  roomName: string;
+  expertId: number;
+  expertName: string;
+};
+
+export type PendingManualCallRead = {
+  roomUrl: string;
+  roomName: string;
+  manualId: number;
+  manualTitle: string;
+  callerUserId: number;
+  callerDisplayName?: string | null;
+};
+
+export type ManualCallLogCreate = {
+  manualId: number;
+  counterpartyUserId: number;
+  roomName: string;
+  durationSeconds: number;
+};
+
+export type ExpertWaitingStatusRead = {
+  isWaiting: boolean;
+  waitingSinceUtc?: string | null;
+};
+
 const API_BASE_URL = "/api";
 
 function normalizePendingRoleRequestsResponse(
@@ -48,11 +81,19 @@ function normalizePendingRoleRequestsResponse(
   }
 
   const source = raw as Record<string, unknown>;
-  const items = (source.items ?? source.Items) as AdminRoleRequestItem[] | undefined;
-  const currentPage = (source.currentPage ?? source.CurrentPage) as number | undefined;
+  const items = (source.items ?? source.Items) as
+    | AdminRoleRequestItem[]
+    | undefined;
+  const currentPage = (source.currentPage ?? source.CurrentPage) as
+    | number
+    | undefined;
   const pageSize = (source.pageSize ?? source.PageSize) as number | undefined;
-  const totalItems = (source.totalItems ?? source.TotalItems) as number | undefined;
-  const totalPages = (source.totalPages ?? source.TotalPages) as number | undefined;
+  const totalItems = (source.totalItems ?? source.TotalItems) as
+    | number
+    | undefined;
+  const totalPages = (source.totalPages ?? source.TotalPages) as
+    | number
+    | undefined;
 
   if (!Array.isArray(items)) {
     return {
@@ -66,8 +107,10 @@ function normalizePendingRoleRequestsResponse(
 
   return {
     items,
-    currentPage: typeof currentPage === "number" ? currentPage : requestedPage ?? 1,
-    pageSize: typeof pageSize === "number" ? pageSize : requestedPageSize ?? 10,
+    currentPage:
+      typeof currentPage === "number" ? currentPage : (requestedPage ?? 1),
+    pageSize:
+      typeof pageSize === "number" ? pageSize : (requestedPageSize ?? 10),
     totalItems: typeof totalItems === "number" ? totalItems : items.length,
     totalPages:
       typeof totalPages === "number"
@@ -78,7 +121,10 @@ function normalizePendingRoleRequestsResponse(
   };
 }
 
-async function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function requestJson<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
 
@@ -106,7 +152,9 @@ async function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> 
         } else if (typeof body?.Message === "string") {
           message = body.Message;
         } else if (Array.isArray(errors) && errors.length > 0) {
-          const fromArray = errors.filter((item): item is string => typeof item === "string");
+          const fromArray = errors.filter(
+            (item): item is string => typeof item === "string",
+          );
           if (fromArray.length > 0) {
             message = fromArray.join("\n");
           }
@@ -147,7 +195,9 @@ export const apiService = {
     if (query.pageSize) params.set("pageSize", String(query.pageSize));
 
     const suffix = params.toString();
-    return requestJson<AdminUsersPage>(`/SelectUser${suffix ? `?${suffix}` : ""}`);
+    return requestJson<AdminUsersPage>(
+      `/SelectUser${suffix ? `?${suffix}` : ""}`,
+    );
   },
 
   async setUserRole(userId: number, role: Role): Promise<{ message: string }> {
@@ -163,7 +213,9 @@ export const apiService = {
     });
   },
 
-  async createRoleRequest(payload: CreateRoleRequestPayload): Promise<RoleRequestSummary> {
+  async createRoleRequest(
+    payload: CreateRoleRequestPayload,
+  ): Promise<RoleRequestSummary> {
     return requestJson<RoleRequestSummary>("/RoleRequest", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -171,7 +223,11 @@ export const apiService = {
   },
 
   async getMyRoleRequests(
-    query: { page?: number; pageSize?: number; status?: RoleRequestFilter } = {},
+    query: {
+      page?: number;
+      pageSize?: number;
+      status?: RoleRequestFilter;
+    } = {},
   ): Promise<UserRoleRequestsPage> {
     const params = new URLSearchParams();
     if (query.page) params.set("page", String(query.page));
@@ -179,10 +235,14 @@ export const apiService = {
     if (query.status) params.set("status", query.status);
 
     const suffix = params.toString();
-    return requestJson<UserRoleRequestsPage>(`/RoleRequest/my${suffix ? `?${suffix}` : ""}`);
+    return requestJson<UserRoleRequestsPage>(
+      `/RoleRequest/my${suffix ? `?${suffix}` : ""}`,
+    );
   },
 
-  async getMyRoleRequestDetail(requestId: number): Promise<UserRoleRequestDetail> {
+  async getMyRoleRequestDetail(
+    requestId: number,
+  ): Promise<UserRoleRequestDetail> {
     return requestJson<UserRoleRequestDetail>(`/RoleRequest/my/${requestId}`);
   },
 
@@ -216,18 +276,23 @@ export const apiService = {
     const suffix = params.toString();
     const data = await requestJson<
       AdminRoleRequestsPage | AdminRoleRequestItem[] | Record<string, unknown>
-    >(
-      `/RoleRequestAdmin/expert/pending${suffix ? `?${suffix}` : ""}`,
-    );
+    >(`/RoleRequestAdmin/expert/pending${suffix ? `?${suffix}` : ""}`);
 
-    return normalizePendingRoleRequestsResponse(data, query.page, query.pageSize);
+    return normalizePendingRoleRequestsResponse(
+      data,
+      query.page,
+      query.pageSize,
+    );
   },
 
   async getPendingExpertRoleRequestsCount(): Promise<number> {
     return requestJson<number>("/RoleRequestAdmin/expert/pending/count");
   },
 
-  async approveExpertRoleRequest(requestId: number, note?: string): Promise<void> {
+  async approveExpertRoleRequest(
+    requestId: number,
+    note?: string,
+  ): Promise<void> {
     await requestJson<{ message: string }>(
       `/RoleRequestAdmin/expert/${requestId}/approve`,
       {
@@ -237,7 +302,10 @@ export const apiService = {
     );
   },
 
-  async rejectExpertRoleRequest(requestId: number, note?: string): Promise<void> {
+  async rejectExpertRoleRequest(
+    requestId: number,
+    note?: string,
+  ): Promise<void> {
     await requestJson<{ message: string }>(
       `/RoleRequestAdmin/expert/${requestId}/reject`,
       {
@@ -247,7 +315,10 @@ export const apiService = {
     );
   },
 
-  async updateExpertRoleRequestNote(requestId: number, note?: string): Promise<void> {
+  async updateExpertRoleRequestNote(
+    requestId: number,
+    note?: string,
+  ): Promise<void> {
     await requestJson<{ message: string }>(
       `/RoleRequestAdmin/expert/${requestId}/note`,
       {
@@ -257,22 +328,28 @@ export const apiService = {
     );
   },
 
-  async getMyNotifications(query: NotificationListQuery = {}): Promise<NotificationPage> {
+  async getMyNotifications(
+    query: NotificationListQuery = {},
+  ): Promise<NotificationPage> {
     const params = new URLSearchParams();
     if (query.page) params.set("page", String(query.page));
     if (query.pageSize) params.set("pageSize", String(query.pageSize));
     if (query.unreadOnly) params.set("unreadOnly", "true");
 
     const suffix = params.toString();
-    return requestJson<NotificationPage>(`/Notification/my${suffix ? `?${suffix}` : ""}`);
+    return requestJson<NotificationPage>(
+      `/Notification/my${suffix ? `?${suffix}` : ""}`,
+    );
   },
 
   async markNotificationAsRead(notificationId: number): Promise<void> {
-    await requestJson<{ message: string }>(`/Notification/${notificationId}/read`, {
-      method: "PUT",
-    });
+    await requestJson<{ message: string }>(
+      `/Notification/${notificationId}/read`,
+      {
+        method: "PUT",
+      },
+    );
   },
-
 
   async deleteNotification(notificationId: number): Promise<void> {
     await requestJson<{ message: string }>(`/Notification/${notificationId}`, {
@@ -366,6 +443,8 @@ export const apiService = {
       const message = await response.text();
       throw new Error(message || `Request failed (${response.status})`);
     }
+
+    window.dispatchEvent(new CustomEvent("header:refresh"));
   },
 
   async getExpertsForManual(manualId: number): Promise<ExpertForManualRead[]> {
@@ -399,6 +478,96 @@ export const apiService = {
     if (!response.ok) {
       const message = await response.text();
       throw new Error(message || `Request failed (${response.status})`);
+    }
+
+    window.dispatchEvent(new CustomEvent("header:refresh"));
+  },
+
+  async getAvailableExpertsForManual(
+    manualId: number,
+  ): Promise<AvailableExpertRead[]> {
+    return requestJson<AvailableExpertRead[]>(
+      `/calls/manual/${manualId}/available-experts`,
+    );
+  },
+
+  async startManualCall(manualId: number): Promise<StartedManualCallRead> {
+    const response = await fetch(
+      `${API_BASE_URL}/calls/manual/${manualId}/start`,
+      {
+        method: "POST",
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+
+    return response.json() as Promise<StartedManualCallRead>;
+  },
+
+  async setExpertWaiting(isWaiting: boolean): Promise<void> {
+    const suffix = isWaiting ? "start" : "stop";
+    const response = await fetch(`${API_BASE_URL}/calls/waiting/${suffix}`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+  },
+
+  async sendExpertWaitingHeartbeat(): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/calls/waiting/heartbeat`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+  },
+
+  async getNextWaitingCall(): Promise<PendingManualCallRead | null> {
+    const response = await fetch(`${API_BASE_URL}/calls/waiting/next`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (response.status === 204) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+
+    return response.json() as Promise<PendingManualCallRead>;
+  },
+
+  async getExpertWaitingStatus(): Promise<ExpertWaitingStatusRead> {
+    return requestJson<ExpertWaitingStatusRead>("/calls/waiting/status");
+  },
+
+  async logManualCallDuration(payload: ManualCallLogCreate): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/calls/log`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
     }
   },
 };

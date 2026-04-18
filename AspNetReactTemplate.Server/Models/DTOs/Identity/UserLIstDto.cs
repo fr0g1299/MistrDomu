@@ -9,4 +9,6 @@ public class UserListDto
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Roles { get; set; } = string.Empty;
+    public int TotalCallDurationSeconds { get; set; }
+    public int TotalWaitingDurationSeconds { get; set; }
 }

@@ -21,8 +21,10 @@ import AdminPaidAccess from "./pages/AdminPaidAccess";
 import AdminUsers from "./pages/AdminUsers";
 import AdminExpertRoleRequests from "./pages/AdminExpertRoleRequests";
 import MyRoleRequests from "./pages/MyRoleRequests";
+import MyRoleRequestCreate from "./pages/MyRoleRequestCreate";
 import MyRoleRequestDetail from "./pages/MyRoleRequestDetail";
 import ExpertOnboardingPage from "./pages/ExpertOnboardingPage";
+import ExpertStandbyPage from "./pages/ExpertStandbyPage";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 import { Toaster } from "./components/ui/sonner";
@@ -52,6 +54,15 @@ const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
 
   if (loading) return null;
   if (!isAuthenticated) return <Navigate to="/" replace />;
+
+  return children;
+};
+
+const NonAdminAuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
+  const { loading, isAuthenticated, isAdmin } = useAuth();
+
+  if (loading) return null;
+  if (!isAuthenticated || isAdmin) return <Navigate to="/" replace />;
 
   return children;
 };
@@ -88,98 +99,128 @@ function App() {
   return (
     <AuthProvider>
       <div className="min-h-screen flex flex-col antialiased selection:text-primary selection:bg-primary/10 dark:selection:bg-primary/5">
-          <Header onNavigateHome={navigateHome} />
+        <Header onNavigateHome={navigateHome} />
 
-          <main className="flex-1">
-            <Routes location={backgroundLocation || location}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/expert-onboarding" element={<ExpertOnboardingPage />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/guide/:manualId" element={<GuidePage />} />
+        <main className="flex-1">
+          <Routes location={backgroundLocation || location}>
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/expert-onboarding"
+              element={<ExpertOnboardingPage />}
+            />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/guide/:manualId" element={<GuidePage />} />
 
+            <Route
+              path="/tools-management"
+              element={
+                <AdminRoute>
+                  <ToolsManagement />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/manual-help-management"
+              element={
+                <ManagementRoute>
+                  <ManualHelpManagement />
+                </ManagementRoute>
+              }
+            />
+
+            <Route
+              path="/expert-standby"
+              element={
+                <ManagementRoute>
+                  <ExpertStandbyPage />
+                </ManagementRoute>
+              }
+            />
+
+            <Route
+              path="/admin/manual-help-management"
+              element={
+                <AdminRoute>
+                  <AdminManualHelpManagement />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/paid-access"
+              element={
+                <AdminRoute>
+                  <AdminPaidAccess />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/expert-role-requests"
+              element={
+                <AdminRoute>
+                  <AdminExpertRoleRequests />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/my-requests"
+              element={
+                <AuthenticatedRoute>
+                  <MyRoleRequests />
+                </AuthenticatedRoute>
+              }
+            />
+
+            <Route
+              path="/my-requests/new"
+              element={
+                <NonAdminAuthenticatedRoute>
+                  <MyRoleRequestCreate />
+                </NonAdminAuthenticatedRoute>
+              }
+            />
+
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+
+          {backgroundLocation && (
+            <Routes>
               <Route
-                path="/tools-management"
+                path="/my-requests/new"
                 element={
-                  <AdminRoute>
-                    <ToolsManagement />
-                  </AdminRoute>
+                  <NonAdminAuthenticatedRoute>
+                    <MyRoleRequestCreate />
+                  </NonAdminAuthenticatedRoute>
                 }
               />
 
               <Route
-                path="/manual-help-management"
-                element={
-                  <ManagementRoute>
-                    <ManualHelpManagement />
-                  </ManagementRoute>
-                }
-              />
-
-              <Route
-                path="/admin/manual-help-management"
-                element={
-                  <AdminRoute>
-                    <AdminManualHelpManagement />
-                  </AdminRoute>
-                }
-              />
-
-              <Route
-                path="/admin/paid-access"
-                element={
-                  <AdminRoute>
-                    <AdminPaidAccess />
-                  </AdminRoute>
-                }
-              />
-
-              <Route
-                path="/admin/users"
-                element={
-                  <AdminRoute>
-                    <AdminUsers />
-                  </AdminRoute>
-                }
-              />
-
-              <Route
-                path="/admin/expert-role-requests"
-                element={
-                  <AdminRoute>
-                    <AdminExpertRoleRequests />
-                  </AdminRoute>
-                }
-              />
-
-              <Route
-                path="/my-requests"
+                path="/my-requests/:requestId"
                 element={
                   <AuthenticatedRoute>
-                    <MyRoleRequests />
+                    <MyRoleRequestDetail />
                   </AuthenticatedRoute>
                 }
               />
-
-            <Route path="*" element={<NotFound />} />
             </Routes>
-
-            {backgroundLocation && (
-              <Routes>
-                <Route
-                  path="/my-requests/:requestId"
-                  element={
-                    <AuthenticatedRoute>
-                      <MyRoleRequestDetail />
-                    </AuthenticatedRoute>
-                  }
-                />
-              </Routes>
-            )}
+          )}
           </main>
 
-          <Toaster position="bottom-right" />
+        <Toaster position="bottom-right" />
 
-          <Footer />
+        <Footer />
       </div>
     </AuthProvider>
   );

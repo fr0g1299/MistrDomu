@@ -48,6 +48,22 @@ const getCurrentRole = (roles: string) => {
   return editableRoles.includes(first as Role) ? (first as Role) : Role.User;
 };
 
+const formatCallDuration = (totalSeconds: number) => {
+  if (!totalSeconds || totalSeconds <= 0) {
+    return "0:00";
+  }
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
+
 export default function AdminUsers() {
   const { user: loggedInUser } = useAuth();
   const [users, setUsers] = useState<AdminUserRow[]>([]);
@@ -328,6 +344,12 @@ export default function AdminUsers() {
                       Telefon
                     </th>
                     <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Délka hovorů
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Doba čekání
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
                       Role
                     </th>
                     <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
@@ -339,7 +361,7 @@ export default function AdminUsers() {
                   {isInitialLoading && users.length === 0 && (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={7}
                         className="px-4 py-8 text-center text-sm text-muted-foreground"
                       >
                         <span className="inline-flex items-center gap-2">
@@ -380,6 +402,12 @@ export default function AdminUsers() {
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {user.phone || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatCallDuration(user.totalCallDurationSeconds)}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatCallDuration(user.totalWaitingDurationSeconds)}
                         </td>
                         <td className="px-4 py-3">
                           <AdminUserRoleEditor
@@ -475,7 +503,6 @@ export default function AdminUsers() {
             )}
           </CardContent>
         </Card>
-
       </main>
 
       {/* Popup for role changes - idk if it is well done */}
