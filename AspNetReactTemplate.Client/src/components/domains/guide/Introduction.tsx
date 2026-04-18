@@ -121,12 +121,18 @@ export function Introduction({
                     {tools.map((tool) => (
                       <li
                         key={tool.id}
-                        className="group flex items-center justify-between min-h-14.5 rounded-lg border p-3 transition-all border-border bg-linear-to-r from-card to-card/10 hover:border-zinc-700"
+                        className="group flex items-center justify-between min-h-14.5 rounded-xl border border-primary/25 bg-linear-to-r from-card to-card/10 p-3 shadow-[0_8px_20px_rgba(0,0,0,0.14)] transition-all duration-250 hover:border-primary/40"
                       >
                         {/* Tool Name */}
-                        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200 line-clamp-1">
-                          {tool.name}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <span
+                            aria-hidden="true"
+                            className="size-2 rounded-full bg-primary shadow-[0_0_0_3px_rgba(245,158,11,0.10)]"
+                          />
+                          <p className="line-clamp-1 text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                            {tool.name}
+                          </p>
+                        </div>
 
                         {/* Action / Link */}
                         {tool.url && (

@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Bot,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { AuthRequiredDialog } from "@/components/identity/AuthRequiredDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type FlowItem = {
@@ -70,7 +71,7 @@ const helpFlow: FlowItem[] = [
         <strong className="font-semibold text-primary"> jasný postup</strong> pod ním.
       </>,
       <>
-        <strong className="font-semibold text-primary">Potřebné pomůcky</strong> a materiál pro konkrétní opravu.
+        <strong className="font-semibold text-primary">Potřebné pomůcky</strong> a materiál pro konkrétní návod.
       </>,
       <>
         U části položek i odkazy na <strong className="font-semibold text-primary">e-shopy partnerů</strong>.
@@ -252,7 +253,13 @@ const expertFlow: FlowItem[] = [
   }
 ];
 
-function FlowSections({ items }: { items: FlowItem[] }) {
+function FlowSections({
+  items,
+  onBrowseManualsClick,
+}: {
+  items: FlowItem[];
+  onBrowseManualsClick: () => void;
+}) {
   return (
     <div className="w-full space-y-8 md:space-y-22 lg:space-y-22">
       {items.map((item, index) => (
@@ -275,16 +282,26 @@ function FlowSections({ items }: { items: FlowItem[] }) {
                 {item.description}
               </p>
               {item.ctaLabel && item.ctaTo && (
-                <Button
-                  asChild
-                  className={
-                    item.ctaLabel === "Projít návody" || item.ctaLabel === "Přejít na onboarding"
-                      ? "h-20 rounded-xl px-10 text-xl font-semibold"
-                      : "h-10 rounded-xl px-5 text-sm font-semibold"
-                  }
-                >
-                  <Link to={item.ctaTo}>{item.ctaLabel}</Link>
-                </Button>
+                item.ctaLabel === "Projít návody" ? (
+                  <Button
+                    type="button"
+                    onClick={onBrowseManualsClick}
+                    className="h-20 rounded-xl px-10 text-xl font-semibold"
+                  >
+                    {item.ctaLabel}
+                  </Button>
+                ) : (
+                  <Button
+                    asChild
+                    className={
+                      item.ctaLabel === "Přejít na onboarding"
+                        ? "h-20 rounded-xl px-10 text-xl font-semibold"
+                        : "h-10 rounded-xl px-5 text-sm font-semibold"
+                    }
+                  >
+                    <Link to={item.ctaTo}>{item.ctaLabel}</Link>
+                  </Button>
+                )
               )}
             </div>
 
@@ -313,8 +330,36 @@ function FlowSections({ items }: { items: FlowItem[] }) {
 }
 
 export function HowItWorks() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<"help" | "expert">("help");
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+
+  const navigateToSearch = useCallback(() => {
+    navigate("/search");
+  }, [navigate]);
+
+  const handleAuthSuccess = useCallback(() => {
+    setAuthDialogOpen(false);
+    navigateToSearch();
+  }, [navigateToSearch]);
+
+  const handleBrowseManualsClick = useCallback(async () => {
+    try {
+      const response = await fetch("/api/auth/me", { credentials: "include" });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.isAuthenticated) {
+          navigateToSearch();
+          return;
+        }
+      }
+    } catch {
+      // On network/server errors keep fallback behavior and show auth dialog.
+    }
+
+    setAuthDialogOpen(true);
+  }, [navigateToSearch]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -333,8 +378,16 @@ export function HowItWorks() {
   }, [location.search, location.hash]);
 
   return (
-    <section id="jak-to-funguje" className="relative overflow-hidden border-y border-border/30 bg-transparent py-16 md:py-24">
-      <div className="relative w-full">
+    <>
+      <AuthRequiredDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        onSuccess={handleAuthSuccess}
+        message="Pro procházení návodů se nejdřív přihlaste nebo zaregistrujte."
+      />
+
+      <section id="jak-to-funguje" className="relative overflow-hidden border-y border-border/30 bg-transparent py-16 md:py-24">
+        <div className="relative w-full">
         <div className="mx-auto mb-10 max-w-6xl px-6 text-center md:mb-12">
           <span className="mb-3 block text-[12px] font-bold tracking-[0.15em] text-primary uppercase">
             Popis aplikace
@@ -358,17 +411,18 @@ export function HowItWorks() {
 
           <TabsContent value="help" className="w-full animate-[fadeInUp_0.45s_ease-out]">
             <div className="relative left-1/2 w-screen -translate-x-1/2">
-              <FlowSections items={helpFlow} />
+              <FlowSections items={helpFlow} onBrowseManualsClick={handleBrowseManualsClick} />
             </div>
           </TabsContent>
 
           <TabsContent value="expert" className="w-full animate-[fadeInUp_0.45s_ease-out]">
             <div className="relative left-1/2 w-screen -translate-x-1/2">
-              <FlowSections items={expertFlow} />
+              <FlowSections items={expertFlow} onBrowseManualsClick={handleBrowseManualsClick} />
             </div>
           </TabsContent>
         </Tabs>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
