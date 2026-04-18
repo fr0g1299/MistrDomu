@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260411100422_AddUserNoteToRoleRequest")]
-    partial class AddUserNoteToRoleRequest
+    [Migration("20260418110038_AddRequet&Daily")]
+    partial class AddRequetDaily
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -112,6 +112,108 @@ namespace AspNetReactTemplate.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ExpertWaitingLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("EndedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ExpertUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("StartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpertUserId", "StartedAtUtc");
+
+                    b.ToTable("ExpertWaitingLogs");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ManualCallLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CounterpartyUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("LoggedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ManualId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ParticipantUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RoomName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CounterpartyUserId");
+
+                    b.HasIndex("ParticipantUserId");
+
+                    b.HasIndex("RoomName", "ParticipantUserId")
+                        .IsUnique();
+
+                    b.ToTable("ManualCallLogs");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -173,8 +275,8 @@ namespace AspNetReactTemplate.Server.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AdminNote")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime>("RequestedAtUtc")
                         .HasColumnType("timestamp with time zone");
@@ -643,6 +745,47 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Manual");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ExpertWaitingLog", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "ExpertUser")
+                        .WithMany()
+                        .HasForeignKey("ExpertUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ExpertUser");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ManualCallLog", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "CounterpartyUser")
+                        .WithMany()
+                        .HasForeignKey("CounterpartyUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "ParticipantUser")
+                        .WithMany()
+                        .HasForeignKey("ParticipantUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CounterpartyUser");
+
+                    b.Navigation("ParticipantUser");
+                });
+
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
+                {
+                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
