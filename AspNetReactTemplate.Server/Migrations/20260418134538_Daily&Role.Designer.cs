@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260418110038_AddRequet&Daily")]
-    partial class AddRequetDaily
+    [Migration("20260418134538_Daily&Role")]
+    partial class DailyRole
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
