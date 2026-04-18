@@ -49,9 +49,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
   const [pendingExpertRequestCount, setPendingExpertRequestCount] = useState(0);
   const [inboxItems, setInboxItems] = useState<NotificationListItem[]>([]);
   const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
-  const [inboxCurrentPage, setInboxCurrentPage] = useState(1);
-  const [inboxTotalPages, setInboxTotalPages] = useState(0);
-  const [isLoadingMoreInbox, setIsLoadingMoreInbox] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -77,15 +74,11 @@ export default function Header({ onNavigateHome }: HeaderProps) {
   }, [refreshExpertStandbyButton]);
 
   const unreadCount = inboxUnreadCount;
-  const hasMoreInboxItems = inboxCurrentPage < inboxTotalPages;
 
   const refreshHeaderNotifications = useCallback(async () => {
     if (!isAuthenticated) {
       setInboxItems([]);
       setInboxUnreadCount(0);
-      setInboxCurrentPage(1);
-      setInboxTotalPages(0);
-      setIsLoadingMoreInbox(false);
       setPendingExpertRequestCount(0);
       return;
     }
@@ -97,9 +90,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
       });
       setInboxItems(notifications.items);
       setInboxUnreadCount(notifications.unreadCount);
-      setInboxCurrentPage(notifications.currentPage);
-      setInboxTotalPages(notifications.totalPages);
-      setIsLoadingMoreInbox(false);
     } catch {
       // Do not break header rendering when notifications fail.
     }
@@ -116,41 +106,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     }
   }, [isAdmin, isAuthenticated]);
 
-  const loadMoreInboxItems = useCallback(async () => {
-    if (!isAuthenticated || isLoadingMoreInbox || !hasMoreInboxItems) {
-      return;
-    }
-
-    setIsLoadingMoreInbox(true);
-    try {
-      const nextPage = inboxCurrentPage + 1;
-      const notifications = await apiService.getMyNotifications({
-        page: nextPage,
-        pageSize: INBOX_PAGE_SIZE,
-      });
-
-      setInboxItems((current) => {
-        const knownIds = new Set(current.map((item) => item.id));
-        const newItems = notifications.items.filter(
-          (item) => !knownIds.has(item.id),
-        );
-        return [...current, ...newItems];
-      });
-      setInboxUnreadCount(notifications.unreadCount);
-      setInboxCurrentPage(notifications.currentPage);
-      setInboxTotalPages(notifications.totalPages);
-    } catch {
-      toast.error("Načítání dalších notifikací se nezdařilo.");
-    } finally {
-      setIsLoadingMoreInbox(false);
-    }
-  }, [
-    hasMoreInboxItems,
-    inboxCurrentPage,
-    isAuthenticated,
-    isLoadingMoreInbox,
-  ]);
-
   const deleteAllInboxItems = useCallback(() => {
     if (inboxItems.length === 0) {
       return;
@@ -161,8 +116,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
 
     setInboxItems([]);
     setInboxUnreadCount(0);
-    setInboxCurrentPage(1);
-    setInboxTotalPages(0);
 
     void apiService.deleteAllNotifications().catch((error) => {
       setInboxItems(previousItems);
@@ -270,18 +223,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
     activePath.startsWith("/admin/paid-access") ||
     isUsersSectionActive ||
     activePath.startsWith("/manual-help-management");
-
-  const getInboxTypeLabel = useCallback((type: NotificationListItem["type"]) => {
-    if (type === "role_request_admin") {
-      return "Admin";
-    }
-
-    if (type === "role_request") {
-      return "Žádost";
-    }
-
-    return "Notifikace";
-  }, []);
 
   const getNotificationTargetPath = useCallback((item: NotificationListItem) => {
     if (item.type === "role_request_admin") {
@@ -487,7 +428,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent
-                    className="w-80"
+                    className="w-[22rem] sm:w-[24rem]"
                     align="end"
                     sideOffset={10}
                   >
@@ -512,13 +453,19 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                       </DropdownMenuItem>
                     )}
                     {inboxItems.length > 0 && (
-                      <div className="max-h-60 overflow-y-auto">
+                      <div className="max-h-60 overflow-y-auto pr-1">
                         {inboxItems.map((item) => (
-                          <div key={item.id} className="px-2 py-1.5">
+                          <div key={item.id} className="px-1.5 py-[5px]">
                             <div
-                              className="flex w-full items-start justify-between gap-2 rounded-sm"
+                              className={cn(
+                                "relative flex w-full cursor-pointer items-start gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
+                                item.isRead
+                                  ? "border-border/60 bg-card/95 hover:bg-muted/25"
+                                  : "border-primary/15 bg-primary/[0.04] hover:border-primary/30 hover:bg-primary/[0.08]",
+                              )}
                               role="button"
                               tabIndex={0}
+                              aria-label={`Otevřít notifikaci ${item.title}`}
                               onClick={() => openInboxItem(item)}
                               onKeyDown={(event) => {
                                 if (event.key === "Enter" || event.key === " ") {
@@ -527,22 +474,23 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                                 }
                               }}
                             >
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-medium">{item.title}</span>
-                                  <Badge variant="outline" className="text-[10px]">
-                                    {getInboxTypeLabel(item.type)}
-                                  </Badge>
+                              <div className="min-w-0 flex-1 space-y-0.5 pr-7">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[0.92rem] font-semibold leading-tight text-foreground">
+                                    {item.title}
+                                  </span>
                                   {!item.isRead && (
-                                    <span className="h-2 w-2 rounded-full bg-primary" />
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                                   )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">{item.message}</p>
+                                <p className="text-[0.8rem] leading-snug text-muted-foreground">
+                                  {item.message}
+                                </p>
                               </div>
                               <button
                                 type="button"
-                                  aria-label="Smazat zprávu"
-                                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                aria-label="Smazat zprávu"
+                                className="absolute right-1.5 top-1.5 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                 onClick={(event) => {
                                   event.preventDefault();
                                   event.stopPropagation();
@@ -554,20 +502,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                             </div>
                           </div>
                         ))}
-                      </div>
-                    )}
-                    {inboxItems.length > 0 && hasMoreInboxItems && (
-                      <div className="border-t px-2 py-1.5">
-                        <Button
-                          variant="ghost"
-                          className="h-7 w-full text-xs"
-                          onClick={() => {
-                            void loadMoreInboxItems();
-                          }}
-                          disabled={isLoadingMoreInbox}
-                        >
-                          {isLoadingMoreInbox ? "Načítám..." : "Načíst další"}
-                        </Button>
                       </div>
                     )}
                   </DropdownMenuContent>

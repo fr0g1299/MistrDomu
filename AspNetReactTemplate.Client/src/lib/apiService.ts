@@ -62,6 +62,10 @@ export type ExpertWaitingStatusRead = {
 
 const API_BASE_URL = "/api";
 
+const dispatchHeaderRefresh = () => {
+  window.dispatchEvent(new CustomEvent("header:refresh"));
+};
+
 function normalizePendingRoleRequestsResponse(
   raw: AdminRoleRequestsPage | AdminRoleRequestItem[] | Record<string, unknown>,
   requestedPage?: number,
@@ -201,25 +205,40 @@ export const apiService = {
   },
 
   async setUserRole(userId: number, role: Role): Promise<{ message: string }> {
-    return requestJson<{ message: string }>(`/EditUser/${userId}/role`, {
-      method: "PUT",
-      body: JSON.stringify({ role }),
-    });
+    const result = await requestJson<{ message: string }>(
+      `/EditUser/${userId}/role`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ role }),
+      },
+    );
+
+    dispatchHeaderRefresh();
+    return result;
   },
 
   async createExpertRoleRequest(): Promise<RoleRequestSummary> {
-    return requestJson<RoleRequestSummary>("/RoleRequest/expert", {
-      method: "POST",
-    });
+    const result = await requestJson<RoleRequestSummary>(
+      "/RoleRequest/expert",
+      {
+        method: "POST",
+      },
+    );
+
+    dispatchHeaderRefresh();
+    return result;
   },
 
   async createRoleRequest(
     payload: CreateRoleRequestPayload,
   ): Promise<RoleRequestSummary> {
-    return requestJson<RoleRequestSummary>("/RoleRequest", {
+    const result = await requestJson<RoleRequestSummary>("/RoleRequest", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+
+    dispatchHeaderRefresh();
+    return result;
   },
 
   async getMyRoleRequests(
@@ -300,6 +319,8 @@ export const apiService = {
         body: JSON.stringify({ note }),
       },
     );
+
+    dispatchHeaderRefresh();
   },
 
   async rejectExpertRoleRequest(
@@ -313,6 +334,8 @@ export const apiService = {
         body: JSON.stringify({ note }),
       },
     );
+
+    dispatchHeaderRefresh();
   },
 
   async updateExpertRoleRequestNote(
@@ -326,6 +349,8 @@ export const apiService = {
         body: JSON.stringify({ note }),
       },
     );
+
+    dispatchHeaderRefresh();
   },
 
   async getMyNotifications(
@@ -349,18 +374,24 @@ export const apiService = {
         method: "PUT",
       },
     );
+
+    dispatchHeaderRefresh();
   },
 
   async deleteNotification(notificationId: number): Promise<void> {
     await requestJson<{ message: string }>(`/Notification/${notificationId}`, {
       method: "DELETE",
     });
+
+    dispatchHeaderRefresh();
   },
 
   async deleteAllNotifications(): Promise<void> {
     await requestJson<{ message: string }>("/Notification/my", {
       method: "DELETE",
     });
+
+    dispatchHeaderRefresh();
   },
 
   // Manuals
@@ -413,17 +444,35 @@ export const apiService = {
   },
 
   async toggleCompletedStep(manualId: number, stepId: number): Promise<void> {
-    await fetch(`${API_BASE_URL}/steps/${manualId}/completed/${stepId}`, {
-      method: "POST",
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/steps/${manualId}/completed/${stepId}`,
+      {
+        method: "POST",
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Request failed (${response.status})`);
+    }
+
+    dispatchHeaderRefresh();
   },
 
   async resetCompletedSteps(manualId: number): Promise<void> {
-    await fetch(`${API_BASE_URL}/steps/${manualId}/completed`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/steps/${manualId}/completed`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Request failed (${response.status})`);
+    }
+
+    dispatchHeaderRefresh();
   },
 
   async registerAsManualHelper(
@@ -444,7 +493,7 @@ export const apiService = {
       throw new Error(message || `Request failed (${response.status})`);
     }
 
-    window.dispatchEvent(new CustomEvent("header:refresh"));
+    dispatchHeaderRefresh();
   },
 
   async getExpertsForManual(manualId: number): Promise<ExpertForManualRead[]> {
@@ -480,7 +529,7 @@ export const apiService = {
       throw new Error(message || `Request failed (${response.status})`);
     }
 
-    window.dispatchEvent(new CustomEvent("header:refresh"));
+    dispatchHeaderRefresh();
   },
 
   async getAvailableExpertsForManual(
