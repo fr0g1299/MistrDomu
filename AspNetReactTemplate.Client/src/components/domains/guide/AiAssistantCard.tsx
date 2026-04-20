@@ -57,7 +57,6 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const nextMessageIdRef = useRef(2);
-  const replyTimeoutRef = useRef<number | null>(null);
   const typingIntervalRef = useRef<number | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -111,10 +110,6 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
 
   useEffect(() => {
     return () => {
-      if (replyTimeoutRef.current !== null) {
-        window.clearTimeout(replyTimeoutRef.current);
-      }
-
       if (typingIntervalRef.current !== null) {
         window.clearInterval(typingIntervalRef.current);
       }
@@ -139,7 +134,7 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
           const history = await response.json();
           if (history && history.length > 0) {
             setMessages(history);
-            const maxId = Math.max(...history.map((m: any) => m.id));
+            const maxId = Math.max(...history.map((m: { id: number }) => m.id));
             if (maxId > 0) {
               nextMessageIdRef.current = maxId + 1;
             }
@@ -491,21 +486,17 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
                       </>
                     )}
                   </p>
-                  {isUser ? (
-                    <p className="wrap-break-word prose prose-sm dark:prose-invert">
-                      {message.text}
-                    </p>
-                  ) : (
-                    <p className="wrap-break-word prose prose-sm dark:prose-invert">
-                      {message.text}
-                    </p>
-                    // Right now we are not using Markdown for AI messages, so it's not needed, but maybe in the future we will, so leaving this here for easy switch
-                    // <div className="wrap-break-word prose prose-sm dark:prose-invert prose-a:hover:text-primary-700">
-                    //   <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                    //     {message.text}
-                    //   </ReactMarkdown>
-                    // </div>
-                  )}
+                  {/* Right now we are not using Markdown for AI messages, so it's not needed, but maybe in the future we will, so leaving this here for easy switch */}
+                  {/* <div className="wrap-break-word prose prose-sm dark:prose-invert prose-a:hover:text-primary-700">
+                      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                        {message.text}
+                      </ReactMarkdown>
+                    </div> */}
+                  <p
+                    className={`wrap-break-word whitespace-pre-wrap prose dark:prose-invert ${isExpandedModalOpen ? "prose-md" : "prose-sm"}`}
+                  >
+                    {message.text}
+                  </p>
                 </div>
               </div>
             );
