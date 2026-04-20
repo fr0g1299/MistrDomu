@@ -18,6 +18,7 @@ export type FlowItem = {
   points: ReactNode[];
   ctaLabel?: string;
   ctaTo?: string;
+  anchorId?: string;
 };
 
 export const helpFlow: FlowItem[] = [
@@ -142,6 +143,7 @@ export const helpFlow: FlowItem[] = [
   },
   {
     icon: PhoneCall,
+    anchorId: "volani-s-expertem",
     title: "Když AI nestačí, zavolejte online expertovi",
     description: (
       <>

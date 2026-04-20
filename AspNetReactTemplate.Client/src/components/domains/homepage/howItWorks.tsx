@@ -74,6 +74,7 @@ function FlowSections({
         return (
           <article
             key={item.title}
+            id={item.anchorId}
             data-flow-index={index}
             className="relative bg-transparent text-zinc-50"
           >
@@ -192,10 +193,15 @@ export function HowItWorks() {
       setActiveTab("help");
     }
 
-    if (location.hash === "#jak-to-funguje") {
-      const section = document.getElementById("jak-to-funguje");
+    const hashId = location.hash.replace("#", "");
+    if (!hashId) return;
+
+    const scrollToHashTarget = () => {
+      const section = document.getElementById(hashId);
       section?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    };
+
+    requestAnimationFrame(scrollToHashTarget);
   }, [location.search, location.hash]);
 
   return (
