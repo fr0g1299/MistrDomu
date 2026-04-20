@@ -428,7 +428,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent
-                    className="w-[22rem] sm:w-[24rem]"
+                    className="w-88 sm:w-[24rem]"
                     align="end"
                     sideOffset={10}
                   >
@@ -453,15 +453,15 @@ export default function Header({ onNavigateHome }: HeaderProps) {
                       </DropdownMenuItem>
                     )}
                     {inboxItems.length > 0 && (
-                      <div className="max-h-60 overflow-y-auto pr-1">
+                      <div className="solid-scrollbar max-h-60 overflow-y-auto pr-1">
                         {inboxItems.map((item) => (
-                          <div key={item.id} className="px-1.5 py-[5px]">
+                          <div key={item.id} className="px-1.5 py-1.25">
                             <div
                               className={cn(
                                 "relative flex w-full cursor-pointer items-start gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35",
                                 item.isRead
                                   ? "border-border/60 bg-card/95 hover:bg-muted/25"
-                                  : "border-primary/15 bg-primary/[0.04] hover:border-primary/30 hover:bg-primary/[0.08]",
+                                  : "border-primary/15 bg-primary/4 hover:border-primary/30 hover:bg-primary/8",
                               )}
                               role="button"
                               tabIndex={0}

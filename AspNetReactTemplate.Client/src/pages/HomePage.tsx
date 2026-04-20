@@ -4,7 +4,7 @@ import { CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { AuthRequiredDialog } from "@/components/identity/AuthRequiredDialog";
-import { HowItWorks } from "@/components/unused/howItWorks";
+import { HowItWorks } from "@/components/domains/homepage/howItWorks";
 
 export default function HomePage() {
   const navigate = useNavigate();
