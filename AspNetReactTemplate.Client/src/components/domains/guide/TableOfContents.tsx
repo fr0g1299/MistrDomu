@@ -1,4 +1,5 @@
 import { CheckCircle2, RotateCcw } from "lucide-react";
+import { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +14,7 @@ type TableOfContentsProps = {
   activeSectionId: string;
   onScrollTo: (sectionId: string) => void;
   onResetCompletedSteps: () => void;
+  topContent?: ReactNode;
 };
 
 export function TableOfContents({
@@ -22,9 +24,12 @@ export function TableOfContents({
   activeSectionId,
   onScrollTo,
   onResetCompletedSteps,
+  topContent,
 }: TableOfContentsProps) {
   return (
     <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 xl:sticky xl:top-24 xl:col-span-5 xl:flex">
+      {topContent}
+
       <Card className="gap-4 border-border bg-card pl-3 pr-2 py-5">
         <div className="px-3">
           <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-primary">

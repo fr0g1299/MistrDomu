@@ -145,7 +145,7 @@ export default function Guide() {
         {stepsError && (
           <p className="mb-4 text-sm text-destructive">{stepsError}</p>
         )}
-        <ExpertHelperCard manualId={manualId} />
+        <ExpertHelperCard manualId={manualId} variant="helper" />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-32 3xl:gap-6 4xl:gap-8">
           <TableOfContents
             tableOfContents={tableOfContents}
@@ -154,6 +154,13 @@ export default function Guide() {
             activeSectionId={activeSectionId}
             onScrollTo={handleScrollTo}
             onResetCompletedSteps={resetCompletedSteps}
+            topContent={
+              <ExpertHelperCard
+                manualId={manualId}
+                variant="availability"
+                className="mb-0"
+              />
+            }
           />
 
           <Steps

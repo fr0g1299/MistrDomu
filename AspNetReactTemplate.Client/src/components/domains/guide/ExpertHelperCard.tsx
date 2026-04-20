@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, PhoneCall, UserPlus } from "lucide-react";
+import { CheckCircle2, CircleHelp, PhoneCall, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,19 +13,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { apiService, AvailableExpertRead } from "@/lib/apiService";
+import { cn } from "@/lib/utils";
+
+type ExpertHelperCardVariant = "helper" | "availability";
 
 type ExpertHelperCardProps = {
   manualId: string | undefined;
+  variant?: ExpertHelperCardVariant;
+  className?: string;
 };
 
-export function ExpertHelperCard({ manualId }: ExpertHelperCardProps) {
+export function ExpertHelperCard({
+  manualId,
+  variant = "helper",
+  className,
+}: ExpertHelperCardProps) {
   const { user, isExpert, loading } = useAuth();
   const navigate = useNavigate();
   const userId = user?.id;
-  const showExpertCard = !loading && isExpert;
-  const showCallCard = !loading && Boolean(userId) && !isExpert;
+  const showExpertCard = variant === "helper" && !loading && isExpert;
+  const showCallCard =
+    variant === "availability" && !loading && Boolean(userId) && !isExpert;
 
   const [helperEnrollLoading, setHelperEnrollLoading] = useState(false);
   const [helperStatusLoading, setHelperStatusLoading] = useState(false);
@@ -95,8 +111,8 @@ export function ExpertHelperCard({ manualId }: ExpertHelperCardProps) {
 
     let isCancelled = false;
 
-    const loadAvailability = async () => {
-      if (!isCancelled) {
+    const loadAvailability = async (showLoading = false) => {
+      if (!isCancelled && showLoading) {
         setAvailabilityLoading(true);
       }
 
@@ -106,17 +122,15 @@ export function ExpertHelperCard({ manualId }: ExpertHelperCardProps) {
         if (isCancelled) return;
         setAvailableExperts(experts);
       } catch {
-        if (!isCancelled) {
-          setAvailableExperts([]);
-        }
+        // Keep the previous known state to avoid UI flicker on transient errors.
       } finally {
-        if (!isCancelled) {
+        if (!isCancelled && showLoading) {
           setAvailabilityLoading(false);
         }
       }
     };
 
-    void loadAvailability();
+    void loadAvailability(true);
     const intervalId = window.setInterval(() => {
       void loadAvailability();
     }, 10000);
@@ -220,12 +234,16 @@ export function ExpertHelperCard({ manualId }: ExpertHelperCardProps) {
     }
   }, [manualId, userId, helperAlreadyEnrolled]);
 
+  const handleOpenCallInfo = useCallback(() => {
+    navigate("/?flow=help#volani-s-expertem");
+  }, [navigate]);
+
   if (!showExpertCard && !showCallCard) {
     return null;
   }
 
   return showExpertCard ? (
-    <Card className="mb-6 py-4 gap-3">
+    <Card className={cn("mb-6 py-4 gap-3", className)}>
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <CardTitle className="text-lg font-bold">Expert pomocník</CardTitle>
@@ -280,36 +298,92 @@ export function ExpertHelperCard({ manualId }: ExpertHelperCardProps) {
       )}
     </Card>
   ) : (
-    <Card className="mb-6 py-4 gap-3">
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <CardTitle className="text-lg font-bold">
-            Telefonická pomoc s návodem
-          </CardTitle>
-          <CardDescription>
-            Tlačítko se zobrazí jen pokud je právě dostupný odborník přiřazený k
-            tomuto návodu.
-          </CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {availableExperts.length > 0 ? (
-          <Button
-            type="button"
-            onClick={handleStartCall}
-            disabled={callLoading}
-          >
-            <PhoneCall className="mr-2 h-4 w-4" />
-            {callLoading
-              ? "Vytvářím hovor..."
-              : `Zavolat odborníkovi (${availableExperts[0].expertName})`}
-          </Button>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            {availabilityLoading
-              ? "Kontroluji dostupnost odborníků..."
-              : "Aktuálně není dostupný žádný expert ani student."}
+    <Card
+      className={cn(
+        "relative mb-6 gap-3 border-2 py-4",
+        availableExperts.length > 0
+          ? "border-emerald-500/70 bg-emerald-500/10"
+          : "border-red-500/70 bg-red-500/10",
+        className,
+      )}
+    >
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={handleOpenCallInfo}
+              className={cn(
+                "absolute right-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full transition-colors",
+                availableExperts.length > 0
+                  ? "text-emerald-800/90 hover:bg-emerald-500/20 hover:text-emerald-700 dark:text-emerald-300"
+                  : "text-red-800/90 hover:bg-red-500/20 hover:text-red-700 dark:text-red-300",
+              )}
+              aria-label="Zobrazit základní info o hovoru s expertem"
+            >
+              <CircleHelp className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-64 wrap-break-word">
+            <p className="text-sm">
+              Pokud je expert online, můžete zahájit okamžitý hovor přímo z
+              návodu. Kliknutím na tuto ikonu přejdete na sekci s podrobnostmi
+              o volání s expertem.
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      {availableExperts.length > 0 && (
+        <div className="mx-auto flex w-full items-center justify-center px-3">
+          <p className="text-center text-sm font-medium text-emerald-700 dark:text-emerald-300">
+            Aktivních expertů:
           </p>
+        </div>
+      )}
+      <CardContent className="flex flex-col items-center gap-3 text-center">
+        <p
+          className={cn(
+            "text-5xl font-black leading-none tracking-tight",
+            availableExperts.length > 0
+              ? "text-emerald-700 dark:text-emerald-400"
+              : "text-red-700 dark:text-red-400",
+          )}
+        >
+          {availableExperts.length}
+        </p>
+        {availableExperts.length <= 0 && (
+          <p className="max-w-sm text-sm font-medium text-red-900 dark:text-red-300">
+            Momentálně pro tento návod není aktivní žádný expert.
+          </p>
+        )}
+        {availabilityLoading && (
+          <p className="text-xs text-muted-foreground">
+            Kontroluji dostupnost expertů...
+          </p>
+        )}
+        {availableExperts.length > 0 && (
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  onClick={handleStartCall}
+                  disabled={callLoading}
+                  className="w-full"
+                >
+                  <PhoneCall className="mr-2 h-4 w-4" />
+                  {callLoading ? "Vytvářím hovor..." : "Zavolat expertovi"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-64 wrap-break-word">
+                <p className="text-sm">
+                  Před voláním můžete kliknutím na ikonu otazníku zjistit více
+                  informací o volání s expertem.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         {callError && (
           <p className="mt-3 text-sm text-destructive">{callError}</p>
