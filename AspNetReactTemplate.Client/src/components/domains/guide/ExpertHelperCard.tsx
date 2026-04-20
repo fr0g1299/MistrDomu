@@ -300,10 +300,10 @@ export function ExpertHelperCard({
   ) : (
     <Card
       className={cn(
-        "relative mb-6 gap-3 border-2 py-4",
+        "relative mb-6 gap-3 border py-4",
         availableExperts.length > 0
-          ? "border-emerald-500/70 bg-emerald-500/10"
-          : "border-red-500/70 bg-red-500/10",
+          ? "border-primary/30 bg-primary/10"
+          : "border-primary/30 bg-primary/3",
         className,
       )}
     >
@@ -313,22 +313,17 @@ export function ExpertHelperCard({
             <button
               type="button"
               onClick={handleOpenCallInfo}
-              className={cn(
-                "absolute right-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full transition-colors",
-                availableExperts.length > 0
-                  ? "text-emerald-800/90 hover:bg-emerald-500/20 hover:text-emerald-700 dark:text-emerald-300"
-                  : "text-red-800/90 hover:bg-red-500/20 hover:text-red-700 dark:text-red-300",
-              )}
+              className="absolute right-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full transition-colors text-primary/80 hover:bg-primary/15 hover:text-primary"
               aria-label="Zobrazit základní info o hovoru s expertem"
             >
-              <CircleHelp className="h-4 w-4" />
+              <CircleHelp className="h-4.5 w-4.5" />
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-64 wrap-break-word">
             <p className="text-sm">
               Pokud je expert online, můžete zahájit okamžitý hovor přímo z
-              návodu. Kliknutím na tuto ikonu přejdete na sekci s podrobnostmi
-              o volání s expertem.
+              návodu. Kliknutím na tuto ikonu přejdete na sekci s podrobnostmi o
+              volání s expertem.
             </p>
           </TooltipContent>
         </Tooltip>
@@ -336,7 +331,7 @@ export function ExpertHelperCard({
 
       {availableExperts.length > 0 && (
         <div className="mx-auto flex w-full items-center justify-center px-3">
-          <p className="text-center text-sm font-medium text-emerald-700 dark:text-emerald-300">
+          <p className="text-center text-sm font-medium text-primary">
             Aktivních expertů:
           </p>
         </div>
@@ -345,15 +340,13 @@ export function ExpertHelperCard({
         <p
           className={cn(
             "text-5xl font-black leading-none tracking-tight",
-            availableExperts.length > 0
-              ? "text-emerald-700 dark:text-emerald-400"
-              : "text-red-700 dark:text-red-400",
+            availableExperts.length > 0 ? "text-primary" : "text-primary/70",
           )}
         >
           {availableExperts.length}
         </p>
         {availableExperts.length <= 0 && (
-          <p className="max-w-sm text-sm font-medium text-red-900 dark:text-red-300">
+          <p className="max-w-sm text-sm font-medium text-muted-foreground">
             Momentálně pro tento návod není aktivní žádný expert.
           </p>
         )}
