@@ -5,11 +5,16 @@ namespace AspNetReactTemplate.Server.Services.Implementation.Calls;
 
 public class CallPresenceService : ICallPresenceService
 {
-    private static readonly TimeSpan WaitingTtl = TimeSpan.FromSeconds(25);
+    // frontend posílá heartbeat každých 10s = 50s rezerva kvůli případným výpadkům sítě/zpožděním kvůli throttlingu 
+    private static readonly TimeSpan WaitingTtl = TimeSpan.FromSeconds(60);
+    // Keep waiting session state longer than visibility TTL to survive transient heartbeat drops.
+    private static readonly TimeSpan WaitingSessionRetentionTtl = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan InvitationTtl = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan HeartBeatTouchTtl = TimeSpan.FromSeconds(5);
 
     private class ExpertState
     {
+        public Guid SessionToken { get; set; }
         public DateTimeOffset WaitingSinceUtc { get; set; }
         public DateTimeOffset LastHeartbeat { get; set; }
         public Queue<PendingCallInvitation> PendingInvitations { get; } = new();
@@ -17,31 +22,55 @@ public class CallPresenceService : ICallPresenceService
 
     private readonly ConcurrentDictionary<int, ExpertState> _waitingExperts = new();
 
-    public void SetWaiting(int expertId, bool isWaiting)
+    public Guid StartWaiting(int expertId)
     {
-        if (isWaiting)
-        {
-            _waitingExperts.AddOrUpdate(
-                expertId,
-                new ExpertState
-                {
-                    WaitingSinceUtc = DateTimeOffset.UtcNow,
-                    LastHeartbeat = DateTimeOffset.UtcNow,
-                },
-                (_, existing) =>
-                {
-                    existing.LastHeartbeat = DateTimeOffset.UtcNow;
-                    return existing;
-                });
-            return;
-        }
+        var sessionToken = Guid.NewGuid();
 
-        _waitingExperts.TryRemove(expertId, out _);
+        _waitingExperts.AddOrUpdate(
+            expertId,
+            new ExpertState
+            {
+                SessionToken = sessionToken,
+                WaitingSinceUtc = DateTimeOffset.UtcNow,
+                LastHeartbeat = DateTimeOffset.UtcNow,
+            },
+            (_, existing) =>
+            {
+                existing.SessionToken = sessionToken;
+                existing.WaitingSinceUtc = DateTimeOffset.UtcNow;
+                existing.LastHeartbeat = DateTimeOffset.UtcNow;
+                return existing;
+            });
+
+        return sessionToken;
     }
 
-    public void Heartbeat(int expertId)
+    public bool StopWaiting(int expertId, Guid sessionToken)
     {
-        if (_waitingExperts.TryGetValue(expertId, out var state))
+        if (_waitingExperts.TryGetValue(expertId, out var state) && state.SessionToken == sessionToken)
+        {
+            return _waitingExperts.TryRemove(expertId, out _);
+        }
+
+        return false;
+    }
+
+    public bool Heartbeat(int expertId, Guid sessionToken)
+    {
+        if (_waitingExperts.TryGetValue(expertId, out var state) && state.SessionToken == sessionToken)
+        {
+            state.LastHeartbeat = DateTimeOffset.UtcNow;
+            return true;
+        }
+
+        return false;
+    }
+
+    public void HeartbeatTouch(int expertId, Guid sessionToken)
+    {
+        if (_waitingExperts.TryGetValue(expertId, out var state)
+            && state.SessionToken == sessionToken
+            && DateTimeOffset.UtcNow - state.LastHeartbeat >= HeartBeatTouchTtl)
         {
             state.LastHeartbeat = DateTimeOffset.UtcNow;
         }
@@ -65,7 +94,10 @@ public class CallPresenceService : ICallPresenceService
         return waiting;
     }
 
-    public bool TryGetWaitingSince(int expertId, out DateTimeOffset waitingSinceUtc)
+    public bool TryGetWaitingSession(
+        int expertId,
+        out DateTimeOffset waitingSinceUtc,
+        out Guid sessionToken)
     {
         CleanupExpired();
 
@@ -73,10 +105,12 @@ public class CallPresenceService : ICallPresenceService
             && DateTimeOffset.UtcNow - state.LastHeartbeat <= WaitingTtl)
         {
             waitingSinceUtc = state.WaitingSinceUtc;
+            sessionToken = state.SessionToken;
             return true;
         }
 
         waitingSinceUtc = default;
+        sessionToken = Guid.Empty;
         return false;
     }
 
@@ -112,7 +146,7 @@ public class CallPresenceService : ICallPresenceService
 
         foreach (var (expertId, state) in _waitingExperts.ToList())
         {
-            if (now - state.LastHeartbeat > WaitingTtl)
+            if (now - state.LastHeartbeat > WaitingSessionRetentionTtl)
             {
                 _waitingExperts.TryRemove(expertId, out _);
             }

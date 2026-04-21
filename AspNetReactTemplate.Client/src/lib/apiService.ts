@@ -58,9 +58,35 @@ export type ManualCallLogCreate = {
 export type ExpertWaitingStatusRead = {
   isWaiting: boolean;
   waitingSinceUtc?: string | null;
+  sessionToken?: string | null;
+};
+
+export type ExpertWaitingSessionRead = {
+  sessionToken: string;
 };
 
 const API_BASE_URL = "/api";
+const WAITING_SESSION_TOKEN_STORAGE_KEY = "expert-waiting-session-token";
+const WAITING_SESSION_TOKEN_HEADER = "X-Waiting-Session-Token";
+
+const getWaitingSessionToken = (): string | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return window.sessionStorage.getItem(WAITING_SESSION_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const attachWaitingSessionTokenHeader = (headers: Headers) => {
+  const sessionToken = getWaitingSessionToken();
+  if (sessionToken) {
+    headers.set(WAITING_SESSION_TOKEN_HEADER, sessionToken);
+  }
+};
 
 const dispatchHeaderRefresh = () => {
   window.dispatchEvent(new CustomEvent("header:refresh"));
@@ -131,6 +157,7 @@ async function requestJson<T>(
 ): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
+  attachWaitingSessionTokenHeader(headers);
 
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
@@ -266,11 +293,14 @@ export const apiService = {
   },
 
   async getMyExpertRoleRequest(): Promise<RoleRequestSummary | null> {
+    const headers = new Headers({
+      Accept: "application/json",
+    });
+    attachWaitingSessionTokenHeader(headers);
+
     const response = await fetch(`${API_BASE_URL}/RoleRequest/my-expert`, {
       credentials: "include",
-      headers: {
-        Accept: "application/json",
-      },
+      headers,
     });
 
     if (response.status === 204) {
@@ -557,35 +587,76 @@ export const apiService = {
     return response.json() as Promise<StartedManualCallRead>;
   },
 
-  async setExpertWaiting(isWaiting: boolean): Promise<void> {
+  async setExpertWaiting(
+    isWaiting: boolean,
+    sessionToken?: string,
+  ): Promise<ExpertWaitingSessionRead | void> {
     const suffix = isWaiting ? "start" : "stop";
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+    attachWaitingSessionTokenHeader(headers);
+
     const response = await fetch(`${API_BASE_URL}/calls/waiting/${suffix}`, {
       method: "POST",
       credentials: "include",
+      headers,
+      body: isWaiting ? undefined : JSON.stringify({ sessionToken }),
     });
 
     if (!response.ok) {
       const text = await response.text();
       throw new Error(text || `Request failed (${response.status})`);
     }
+
+    if (isWaiting) {
+      return response.json() as Promise<ExpertWaitingSessionRead>;
+    }
   },
 
-  async sendExpertWaitingHeartbeat(): Promise<void> {
+  sendExpertWaitingStopBeacon(sessionToken: string): boolean {
+    if (typeof window === "undefined" || !sessionToken) {
+      return false;
+    }
+
+    if (!navigator.onLine || typeof navigator.sendBeacon !== "function") {
+      return false;
+    }
+
+    const payload = new Blob([JSON.stringify({ sessionToken })], {
+      type: "application/json",
+    });
+
+    return navigator.sendBeacon(`${API_BASE_URL}/calls/waiting/stop`, payload);
+  },
+
+  async sendExpertWaitingHeartbeat(sessionToken: string): Promise<void> {
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+    attachWaitingSessionTokenHeader(headers);
+
     const response = await fetch(`${API_BASE_URL}/calls/waiting/heartbeat`, {
       method: "POST",
       credentials: "include",
+      headers,
+      body: JSON.stringify({ sessionToken }),
     });
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(text || `Request failed (${response.status})`);
+      throw new Error(`${text || "Request failed"} (${response.status})`);
     }
   },
 
   async getNextWaitingCall(): Promise<PendingManualCallRead | null> {
+    const headers = new Headers();
+    attachWaitingSessionTokenHeader(headers);
+
     const response = await fetch(`${API_BASE_URL}/calls/waiting/next`, {
       method: "GET",
       credentials: "include",
+      headers,
     });
 
     if (response.status === 204) {
@@ -605,12 +676,15 @@ export const apiService = {
   },
 
   async logManualCallDuration(payload: ManualCallLogCreate): Promise<void> {
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+    attachWaitingSessionTokenHeader(headers);
+
     const response = await fetch(`${API_BASE_URL}/calls/log`, {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(payload),
     });
 

@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Extensions.ServicesRegistration;
+using AspNetReactTemplate.Server.Models.Identity.Enums;
+using AspNetReactTemplate.Server.Services.Abstraction.Calls;
 using DotNetEnv;
 
 
@@ -36,6 +38,26 @@ using (var scope = app.Services.CreateScope())
 }
 app.UseAuthentication();
 app.UseAuthorization();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase)
+        && context.User.Identity?.IsAuthenticated == true
+        && context.User.IsInRole(nameof(Roles.Expert))
+        && context.Request.Headers.TryGetValue("X-Waiting-Session-Token", out var rawSessionToken)
+        && Guid.TryParse(rawSessionToken.ToString(), out var sessionToken))
+    {
+        var userIdClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? context.User.FindFirst("sub")?.Value;
+
+        if (int.TryParse(userIdClaim, out var expertId))
+        {
+            var callPresenceService = context.RequestServices.GetRequiredService<ICallPresenceService>();
+            callPresenceService.HeartbeatTouch(expertId, sessionToken);
+        }
+    }
+
+    await next();
+});
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseHttpsRedirection();

@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { apiService, type PendingManualCallRead } from "@/lib/apiService";
 import { useAuth } from "@/hooks/useAuth";
+import { useTabLifecycle } from "@/hooks/useTabLifecycle";
 import { CheckCircle2, Loader2, PhoneCall, PhoneIncoming, PhoneOff } from "lucide-react";
+
+const WAITING_SESSION_TOKEN_STORAGE_KEY = "expert-waiting-session-token";
 
 export default function ExpertStandbyPage() {
   const navigate = useNavigate();
@@ -18,6 +21,78 @@ export default function ExpertStandbyPage() {
   const [pendingCall, setPendingCall] = useState<PendingManualCallRead | null>(null);
   const [waitingStartedAtMs, setWaitingStartedAtMs] = useState<number | null>(null);
   const [sessionWaitingSeconds, setSessionWaitingSeconds] = useState(0);
+  const [waitingSessionToken, setWaitingSessionToken] = useState<string | null>(null);
+
+  const syncWaitingSession = async () => {
+    if (!waiting) {
+      return;
+    }
+
+    const sessionToken = waitingSessionToken ?? window.sessionStorage.getItem(WAITING_SESSION_TOKEN_STORAGE_KEY);
+    if (!sessionToken) {
+      return;
+    }
+
+    try {
+      await apiService.sendExpertWaitingHeartbeat(sessionToken);
+    } catch (err) {
+      console.error("Waiting session sync failed:", err);
+    }
+  };
+
+  useTabLifecycle({
+    visibilitychange: (state) => {
+      if (state.isVisible) {
+        void syncWaitingSession();
+      }
+    },
+    pageshow: () => {
+      void syncWaitingSession();
+    },
+    resume: () => {
+      void syncWaitingSession();
+    },
+    online: () => {
+      void syncWaitingSession();
+    },
+  });
+
+  useEffect(() => {
+    if (!waiting) {
+      return;
+    }
+
+    const getSessionToken = () =>
+      waitingSessionToken ?? window.sessionStorage.getItem(WAITING_SESSION_TOKEN_STORAGE_KEY);
+
+    const tryStopOnClose = () => {
+      const sessionToken = getSessionToken();
+      if (!sessionToken) {
+        return;
+      }
+
+      apiService.sendExpertWaitingStopBeacon(sessionToken);
+    };
+
+    const handlePageHide = (event: PageTransitionEvent) => {
+      // BFCache navigation should not stop waiting session.
+      if (!event.persisted) {
+        tryStopOnClose();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      tryStopOnClose();
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [waiting, waitingSessionToken]);
 
   const formatElapsed = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -74,6 +149,7 @@ export default function ExpertStandbyPage() {
       setWaiting(false);
       setWaitingStartedAtMs(null);
       setSessionWaitingSeconds(0);
+      setWaitingSessionToken(null);
       return;
     }
 
@@ -92,7 +168,15 @@ export default function ExpertStandbyPage() {
             setWaiting(true);
             setWaitingStartedAtMs(startedAtMs);
             setSessionWaitingSeconds(Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000)));
+            const token = status.sessionToken ?? null;
+            setWaitingSessionToken(token);
+            if (token) {
+              window.sessionStorage.setItem(WAITING_SESSION_TOKEN_STORAGE_KEY, token);
+            }
           }
+        } else {
+          setWaitingSessionToken(null);
+          window.sessionStorage.removeItem(WAITING_SESSION_TOKEN_STORAGE_KEY);
         }
       } catch {
         // no-op
@@ -133,7 +217,12 @@ export default function ExpertStandbyPage() {
     try {
       setLoading(true);
       setError(null);
-      await apiService.setExpertWaiting(true);
+      const waitingSession = await apiService.setExpertWaiting(true);
+      const sessionToken = waitingSession?.sessionToken ?? null;
+      setWaitingSessionToken(sessionToken);
+      if (sessionToken) {
+        window.sessionStorage.setItem(WAITING_SESSION_TOKEN_STORAGE_KEY, sessionToken);
+      }
       const startedAt = Date.now();
       setWaiting(true);
       setWaitingStartedAtMs(startedAt);
@@ -148,14 +237,26 @@ export default function ExpertStandbyPage() {
 
   // Stop waiting
   const handleStopWaiting = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await apiService.setExpertWaiting(false);
+    const sessionToken = waitingSessionToken ?? window.sessionStorage.getItem(WAITING_SESSION_TOKEN_STORAGE_KEY);
+    if (!sessionToken) {
+      setError("Chybí session token čekání. Spusťte čekání znovu.");
       setWaiting(false);
       setWaitingStartedAtMs(null);
       setSessionWaitingSeconds(0);
       setPendingCall(null);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      await apiService.setExpertWaiting(false, sessionToken);
+      setWaiting(false);
+      setWaitingStartedAtMs(null);
+      setSessionWaitingSeconds(0);
+      setPendingCall(null);
+      setWaitingSessionToken(null);
+      window.sessionStorage.removeItem(WAITING_SESSION_TOKEN_STORAGE_KEY);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Neznámá chyba";
       setError(message);
@@ -195,21 +296,6 @@ export default function ExpertStandbyPage() {
 
     setPendingCall(null);
   };
-
-  // Heartbeat timer (every 10 seconds to keep expert alive)
-  useEffect(() => {
-    if (!waiting) return;
-
-    const heartbeatInterval = setInterval(async () => {
-      try {
-        await apiService.sendExpertWaitingHeartbeat();
-      } catch (err) {
-        console.error("Heartbeat failed:", err);
-      }
-    }, 10000);
-
-    return () => clearInterval(heartbeatInterval);
-  }, [waiting]);
 
   // Polling for incoming calls (every 3 seconds)
   useEffect(() => {

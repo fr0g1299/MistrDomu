@@ -15,6 +15,8 @@ namespace AspNetReactTemplate.Server.Controllers;
 [Route("api/[controller]")]
 public class CallsController : ControllerBase
 {
+    public sealed record WaitingSessionRequest(Guid SessionToken);
+
     private readonly AppDbContext _context;
     private readonly ICallPresenceService _presenceService;
 
@@ -141,7 +143,7 @@ public class CallsController : ControllerBase
 
     [Authorize(Roles = nameof(Roles.Expert))]
     [HttpPost("waiting/start")]
-    public async Task<ActionResult> StartWaiting()
+    public async Task<ActionResult<object>> StartWaiting()
     {
         var expertId = GetCurrentUserId();
         if (expertId is null)
@@ -175,13 +177,13 @@ public class CallsController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
-        _presenceService.SetWaiting(expertId.Value, true);
-        return Ok();
+        var sessionToken = _presenceService.StartWaiting(expertId.Value);
+        return Ok(new { sessionToken });
     }
 
     [Authorize(Roles = nameof(Roles.Expert))]
     [HttpPost("waiting/heartbeat")]
-    public ActionResult HeartbeatWaiting()
+    public ActionResult HeartbeatWaiting([FromBody] WaitingSessionRequest? request)
     {
         var expertId = GetCurrentUserId();
         if (expertId is null)
@@ -189,18 +191,41 @@ public class CallsController : ControllerBase
             return Unauthorized();
         }
 
-        _presenceService.Heartbeat(expertId.Value);
+        if (request is null || request.SessionToken == Guid.Empty)
+        {
+            return BadRequest("Session token je povinný.");
+        }
+
+        var heartbeated = _presenceService.Heartbeat(
+            expertId.Value,
+            request.SessionToken);
+        if (!heartbeated)
+        {
+            return Conflict("Čekací session neodpovídá aktuálnímu stavu.");
+        }
+
         return Ok();
     }
 
     [Authorize(Roles = nameof(Roles.Expert))]
     [HttpPost("waiting/stop")]
-    public async Task<ActionResult> StopWaiting()
+    public async Task<ActionResult> StopWaiting([FromBody] WaitingSessionRequest? request)
     {
         var expertId = GetCurrentUserId();
         if (expertId is null)
         {
             return Unauthorized();
+        }
+
+        if (request is null || request.SessionToken == Guid.Empty)
+        {
+            return BadRequest("Session token je povinný.");
+        }
+
+        var stopped = _presenceService.StopWaiting(expertId.Value, request.SessionToken);
+        if (!stopped)
+        {
+            return Conflict("Čekající session neodpovídá aktuálnímu stavu.");
         }
 
         var openLog = await _context.ExpertWaitingLogs
@@ -216,7 +241,6 @@ public class CallsController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
-        _presenceService.SetWaiting(expertId.Value, false);
         return Ok();
     }
 
@@ -230,12 +254,16 @@ public class CallsController : ControllerBase
             return Unauthorized();
         }
 
-        if (_presenceService.TryGetWaitingSince(expertId.Value, out var waitingSinceUtc))
+        if (_presenceService.TryGetWaitingSession(
+            expertId.Value,
+            out var waitingSinceUtc,
+            out var sessionToken))
         {
             return Ok(new
             {
                 isWaiting = true,
                 waitingSinceUtc,
+                sessionToken,
             });
         }
 
