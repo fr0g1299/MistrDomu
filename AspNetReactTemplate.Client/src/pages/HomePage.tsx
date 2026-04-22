@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { CircleAlert } from "lucide-react";
 
@@ -6,9 +6,13 @@ import { Button } from "@/components/ui/button";
 import { AuthRequiredDialog } from "@/components/identity/AuthRequiredDialog";
 import { HowItWorks } from "@/components/domains/homepage/howItWorks";
 
+const HOW_IT_WORKS_LABEL_ID = "how-it-works-div";
+const MAX_BACKGROUND_BLUR_PX = 8;
+
 export default function HomePage() {
   const navigate = useNavigate();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [backgroundBlurPx, setBackgroundBlurPx] = useState(0);
 
   const navigateToSearch = useCallback(() => {
     navigate("/search");
@@ -36,6 +40,56 @@ export default function HomePage() {
     setAuthDialogOpen(true);
   }, [navigateToSearch]);
 
+  useEffect(() => {
+    let frameId = 0;
+
+    const updateBackgroundBlur = () => {
+      const marker = document.getElementById(HOW_IT_WORKS_LABEL_ID);
+      if (!marker) {
+        setBackgroundBlurPx(0);
+        return;
+      }
+
+      const markerRect = marker.getBoundingClientRect();
+      const markerCenterInDocument =
+        window.scrollY + markerRect.top + markerRect.height / 2;
+      const targetScrollY = markerCenterInDocument - window.innerHeight / 2;
+
+      const normalizedTargetScrollY = Math.max(targetScrollY, 1);
+      const progress = Math.min(
+        Math.max(window.scrollY / normalizedTargetScrollY, 0),
+        1,
+      );
+      const nextBlur = progress * MAX_BACKGROUND_BLUR_PX;
+
+      setBackgroundBlurPx((prevBlur) =>
+        Math.abs(prevBlur - nextBlur) < 0.05 ? prevBlur : nextBlur,
+      );
+    };
+
+    const requestUpdate = () => {
+      if (frameId !== 0) return;
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        updateBackgroundBlur();
+      });
+    };
+
+    updateBackgroundBlur();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+
+      if (frameId !== 0) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, []);
+
   return (
     <>
       <AuthRequiredDialog
@@ -51,6 +105,12 @@ export default function HomePage() {
             alt="Craftsman background"
             className="h-full w-full object-cover object-[center_65%]"
             src="/landing_page_bg.webp"
+            style={{
+              filter: `blur(${backgroundBlurPx.toFixed(2)}px)`,
+              transform: `scale(${(1 + (backgroundBlurPx / MAX_BACKGROUND_BLUR_PX) * 0.02).toFixed(4)})`,
+              transition: "filter 120ms linear, transform 120ms linear",
+              willChange: "filter, transform",
+            }}
           />
         </div>
         <div className="pointer-events-none fixed inset-0 -z-10 bg-black/75" />
@@ -120,7 +180,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <HowItWorks />
+        <HowItWorks onBrowseManuals={handleBrowseManualsClick} />
       </div>
     </>
   );

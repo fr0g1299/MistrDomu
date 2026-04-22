@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
-import { AuthRequiredDialog } from "@/components/identity/AuthRequiredDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   expertFlow,
@@ -12,10 +11,10 @@ import {
 
 function FlowSections({
   items,
-  onBrowseManualsClick,
+  onBrowseManuals,
 }: {
   items: FlowItem[];
-  onBrowseManualsClick: () => void;
+  onBrowseManuals: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [visibleIndices, setVisibleIndices] = useState<Set<number>>(
@@ -86,44 +85,47 @@ function FlowSections({
                     : "translate-y-14 opacity-35 blur-xs"
                 }`}
               >
+                {/* Icon */}
                 <div className="mt-1 inline-flex rounded-xl border border-primary/30 bg-primary/10 p-2 text-primary md:p-2.5">
-                  <item.icon className="size-5 md:size-12" />
+                  <item.icon className="size-5 md:size-8 xl:size-12" />
                 </div>
+
+                {/* Title */}
                 <div className="flex items-start gap-3 md:gap-4">
-                  <h3 className="max-w-4xl text-3xl font-bold leading-tight tracking-tight text-balance md:text-5xl xl:text-6xl">
+                  <h3 className="max-w-4xl text-3xl font-bold leading-tight tracking-tight text-balance md:text-3xl xl:text-4xl 2xl:text-5xl">
                     {item.title}
                   </h3>
                 </div>
-                <p className="max-w-4xl text-base leading-relaxed text-zinc-100/90 md:text-lg xl:text-xl">
+
+                {/* Description + CTA */}
+                <p className="max-w-4xl text-base leading-relaxed text-zinc-100/90 md:text-base xl:text-lg">
                   {item.description}
                 </p>
-                {item.ctaLabel &&
-                  item.ctaTo &&
-                  (item.ctaLabel === "Projít návody" ? (
-                    <Button
-                      type="button"
-                      onClick={onBrowseManualsClick}
-                      className="h-20 rounded-xl px-10 text-xl font-semibold"
-                    >
-                      {item.ctaLabel}
-                    </Button>
-                  ) : (
-                    <Button
-                      asChild
-                      className={
-                        item.ctaLabel === "Přejít na onboarding"
-                          ? "h-20 rounded-xl px-10 text-xl font-semibold"
-                          : "h-10 rounded-xl px-5 text-sm font-semibold"
-                      }
-                    >
-                      <Link to={item.ctaTo}>{item.ctaLabel}</Link>
-                    </Button>
-                  ))}
+                {item.ctaLabel && item.ctaTo && (
+                  <div className="flex justify-center lg:justify-start">
+                    {item.ctaLabel === "Projít návody" ? (
+                      <Button
+                        type="button"
+                        onClick={onBrowseManuals}
+                        className="h-16 mt-2 rounded-xl text-primary border-3 shadow-xs hover:text-primary-400 bg-primary/25 border-primary/50 hover:bg-primary/40 px-10 text-xl font-semibold"
+                      >
+                        {item.ctaLabel}
+                      </Button>
+                    ) : (
+                      <Button
+                        asChild
+                        className="h-16 mt-2 rounded-xl text-primary border-3 shadow-xs hover:text-primary-400 bg-primary/25 border-primary/50 hover:bg-primary/40 px-10 text-xl font-semibold"
+                      >
+                        <Link to={item.ctaTo}>{item.ctaLabel}</Link>
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* There must be a duplicate isVisible animation, because otherwise the backdrop-filter pops in after animation ends */}
               <div
-                className={`flex h-fit rounded-2xl border border-white/15 bg-white/5 p-4 md:p-5 flex-col justify-center transition-all motion-reduce:translate-y-0 duration-700 ease-out backdrop-blur-md ${
+                className={`flex h-fit rounded-2xl border border-white/15 bg-white/5 p-4 md:p-5 flex-col justify-center transition-all motion-reduce:translate-y-0 duration-700 ease-out backdrop-blur-xl ${
                   isVisible
                     ? "translate-y-0 opacity-100 blur-none"
                     : "translate-y-14 opacity-35 blur-xs"
@@ -151,37 +153,13 @@ function FlowSections({
   );
 }
 
-export function HowItWorks() {
-  const navigate = useNavigate();
+export function HowItWorks({
+  onBrowseManuals,
+}: {
+  onBrowseManuals: () => void;
+}) {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<"help" | "expert">("help");
-  const [authDialogOpen, setAuthDialogOpen] = useState(false);
-
-  const navigateToSearch = useCallback(() => {
-    navigate("/search");
-  }, [navigate]);
-
-  const handleAuthSuccess = useCallback(() => {
-    setAuthDialogOpen(false);
-    navigateToSearch();
-  }, [navigateToSearch]);
-
-  const handleBrowseManualsClick = useCallback(async () => {
-    try {
-      const response = await fetch("/api/auth/me", { credentials: "include" });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.isAuthenticated) {
-          navigateToSearch();
-          return;
-        }
-      }
-    } catch {
-      // On network/server errors keep fallback behavior and show auth dialog.
-    }
-
-    setAuthDialogOpen(true);
-  }, [navigateToSearch]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -206,19 +184,15 @@ export function HowItWorks() {
 
   return (
     <>
-      <AuthRequiredDialog
-        open={authDialogOpen}
-        onOpenChange={setAuthDialogOpen}
-        onSuccess={handleAuthSuccess}
-        message="Pro procházení návodů se nejdřív přihlaste nebo zaregistrujte."
-      />
-
       <section
         id="jak-to-funguje"
         className="relative overflow-hidden bg-transparent py-16 md:py-24"
       >
         <div className="relative w-full">
-          <div className="mx-auto mb-10 max-w-6xl px-6 text-center md:mb-12">
+          <div
+            id="how-it-works-div"
+            className="mx-auto mb-10 max-w-6xl px-6 text-center md:mb-12"
+          >
             <span className="mb-3 block text-[12px] font-bold tracking-[0.15em] text-primary uppercase">
               Popis aplikace
             </span>
@@ -232,7 +206,7 @@ export function HowItWorks() {
             onValueChange={(value) => setActiveTab(value as "help" | "expert")}
             className="w-full items-center"
           >
-            <TabsList className="mx-auto mb-8 grid max-h-14 h-14! w-full max-w-4xl grid-cols-2 items-stretch rounded-2xl border border-primary/35 bg-black/35 p-1.5 backdrop-blur-sm">
+            <TabsList className="mx-auto mb-8 grid max-h-14 h-14! w-[95%] max-w-4xl grid-cols-2 items-stretch rounded-2xl border border-primary/35 bg-black/35 p-1.5 backdrop-blur-sm">
               <TabsTrigger
                 value="help"
                 className="h-full rounded-xl px-6 text-base font-bold text-zinc-200 transition-colors md:px-10 md:text-xl data-[state=active]:bg-white/14 data-[state=active]:text-white data-[state=active]:shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:text-zinc-50"
@@ -251,7 +225,7 @@ export function HowItWorks() {
               <div className="w-full">
                 <FlowSections
                   items={helpFlow}
-                  onBrowseManualsClick={handleBrowseManualsClick}
+                  onBrowseManuals={onBrowseManuals}
                 />
               </div>
             </TabsContent>
@@ -260,7 +234,7 @@ export function HowItWorks() {
               <div className="w-full">
                 <FlowSections
                   items={expertFlow}
-                  onBrowseManualsClick={handleBrowseManualsClick}
+                  onBrowseManuals={onBrowseManuals}
                 />
               </div>
             </TabsContent>
