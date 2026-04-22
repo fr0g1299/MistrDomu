@@ -60,7 +60,7 @@ export function EditToolModal({
       onClose();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Chyba při ukládání nástroje"
+        err instanceof Error ? err.message : "Chyba při ukládání nástroje",
       );
     } finally {
       setIsSaving(false);
@@ -69,11 +69,12 @@ export function EditToolModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Upravit nástroj</DialogTitle>
           <DialogDescription>
-            Upravte název, URL a poznámku nástroje. Klikněte na Uložit, až budete hotovi.
+            Upravte název, URL a poznámku nástroje. Klikněte na Uložit, až
+            budete hotovi.
           </DialogDescription>
         </DialogHeader>
 

@@ -37,7 +37,8 @@ export default function ExpertRoleRequestsSection({
   const [statusFilter, setStatusFilter] = useState<RoleRequestFilter>("all");
   const isFirstLoadRef = useRef(true);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<AdminRoleRequestItem | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<AdminRoleRequestItem | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [recentlyUpdatedIds, setRecentlyUpdatedIds] = useState<number[]>([]);
   const previousSnapshotRef = useRef<Map<number, string>>(new Map());
@@ -70,15 +71,21 @@ export default function ExpertRoleRequestsSection({
           const changedIds = data.items
             .filter((item) => {
               const previous = previousSnapshotRef.current.get(item.id);
-              return previous !== undefined && previous !== buildSnapshotKey(item);
+              return (
+                previous !== undefined && previous !== buildSnapshotKey(item)
+              );
             })
             .map((item) => item.id);
 
           if (changedIds.length > 0) {
-            setRecentlyUpdatedIds((prev) => Array.from(new Set([...prev, ...changedIds])));
+            setRecentlyUpdatedIds((prev) =>
+              Array.from(new Set([...prev, ...changedIds])),
+            );
 
             const timeoutId = window.setTimeout(() => {
-              setRecentlyUpdatedIds((prev) => prev.filter((id) => !changedIds.includes(id)));
+              setRecentlyUpdatedIds((prev) =>
+                prev.filter((id) => !changedIds.includes(id)),
+              );
             }, 4000);
 
             highlightTimeoutsRef.current.push(timeoutId);
@@ -106,7 +113,6 @@ export default function ExpertRoleRequestsSection({
     [statusFilter],
   );
 
-
   useEffect(() => {
     const shouldShowLoader = isFirstLoadRef.current;
 
@@ -130,7 +136,9 @@ export default function ExpertRoleRequestsSection({
 
   useEffect(() => {
     return () => {
-      highlightTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      highlightTimeoutsRef.current.forEach((timeoutId) =>
+        window.clearTimeout(timeoutId),
+      );
       highlightTimeoutsRef.current = [];
     };
   }, []);
@@ -145,7 +153,10 @@ export default function ExpertRoleRequestsSection({
   const handleApprove = async (id: number) => {
     try {
       setWorkingId(id);
-      await apiService.approveExpertRoleRequest(id, noteDraft.trim() || undefined);
+      await apiService.approveExpertRoleRequest(
+        id,
+        noteDraft.trim() || undefined,
+      );
       closeDetailDialog();
 
       try {
@@ -183,7 +194,10 @@ export default function ExpertRoleRequestsSection({
 
     try {
       setWorkingId(id);
-      await apiService.rejectExpertRoleRequest(id, noteDraft.trim() || undefined);
+      await apiService.rejectExpertRoleRequest(
+        id,
+        noteDraft.trim() || undefined,
+      );
       closeDetailDialog();
 
       try {
@@ -210,7 +224,10 @@ export default function ExpertRoleRequestsSection({
     try {
       setWorkingId(selectedRequest.id);
       const normalizedNote = noteDraft.trim() || undefined;
-      await apiService.updateExpertRoleRequestNote(selectedRequest.id, normalizedNote);
+      await apiService.updateExpertRoleRequestNote(
+        selectedRequest.id,
+        normalizedNote,
+      );
       closeDetailDialog();
 
       try {
@@ -222,7 +239,9 @@ export default function ExpertRoleRequestsSection({
       toast.success("Poznámka byla uložena.");
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Uložení poznámky se nezdařilo.",
+        error instanceof Error
+          ? error.message
+          : "Uložení poznámky se nezdařilo.",
       );
     } finally {
       setWorkingId(null);
@@ -250,7 +269,6 @@ export default function ExpertRoleRequestsSection({
     return "bg-amber-500/15 text-amber-300 border-amber-500/30";
   };
 
-
   const handleStatusFilterChange = (value: RoleRequestFilter) => {
     setStatusFilter(value);
     setPage(1);
@@ -259,12 +277,16 @@ export default function ExpertRoleRequestsSection({
   return (
     <Card
       id="expert-role-requests"
-      className={className ?? "overflow-hidden border-border/70 bg-card shadow-sm"}
+      className={
+        className ?? "overflow-hidden border-border/70 bg-card shadow-sm"
+      }
     >
       <CardHeader className="border-b border-border">
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="md:mr-auto">
-            <CardTitle className="text-2xl font-bold">Žádosti o roli Expert</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Žádosti o roli Expert
+            </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
               Kliknutím na řádek zobrazíte detail žádosti, schválení a poznámky.
             </p>
@@ -272,14 +294,19 @@ export default function ExpertRoleRequestsSection({
 
           <div className="flex w-full justify-end md:w-auto">
             <div className="flex flex-wrap items-center gap-2">
-              <label htmlFor="request-status-filter" className="text-sm text-muted-foreground">
+              <label
+                htmlFor="request-status-filter"
+                className="text-sm text-muted-foreground"
+              >
                 Stav:
               </label>
               <select
                 id="request-status-filter"
                 value={statusFilter}
                 onChange={(event) =>
-                  handleStatusFilterChange(event.target.value as RoleRequestFilter)
+                  handleStatusFilterChange(
+                    event.target.value as RoleRequestFilter,
+                  )
                 }
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               >
@@ -296,94 +323,96 @@ export default function ExpertRoleRequestsSection({
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-              <thead className="bg-muted/40">
-                <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                    Uživatel
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                    E-mail
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                    Požádáno
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                    Stav
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                    Vyřízeno
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading && (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-sm text-muted-foreground"
-                    >
-                      <span className="inline-flex items-center gap-2">
-                        <Loader2 className="size-4 animate-spin" />
-                        Načítám žádosti...
-                      </span>
-                    </td>
-                  </tr>
-                )}
-
-                {!loading && items.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-sm text-muted-foreground"
-                    >
-                      {statusFilter === "pending"
-                        ? "Aktuálně nejsou žádné čekající žádosti."
-                        : statusFilter === "approved"
-                          ? "Aktuálně nejsou žádné schválené žádosti."
-                          : statusFilter === "rejected"
-                            ? "Aktuálně nejsou žádné zamítnuté žádosti."
-                            : "Aktuálně nejsou žádné žádosti."}
-                    </td>
-                  </tr>
-                )}
-
-                {items.map((item) => (
-                  <tr
-                    key={item.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Otevřít detail žádosti uživatele ${item.userName}`}
-                    className={`border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-muted/20 focus:outline-none focus-visible:bg-muted/35 ${
-                      recentlyUpdatedIds.includes(item.id) ? "bg-primary/10" : ""
-                    }`}
-                    onClick={() => openDetailDialog(item)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        openDetailDialog(item);
-                      }
-                    }}
+            <thead className="bg-muted/40">
+              <tr className="border-b border-border">
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                  Uživatel
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                  E-mail
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                  Požádáno
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                  Stav
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                  Vyřízeno
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-sm text-muted-foreground"
                   >
-                    <td className="px-4 py-3 font-medium">{item.userName}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {item.email || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(item.requestedAtUtc).toLocaleString("cs-CZ")}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      <Badge className={`border ${getStatusClasses(item.status)}`}>
-                        {formatStatus(item.status)}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {item.reviewedAtUtc
-                        ? new Date(item.reviewedAtUtc).toLocaleString("cs-CZ")
-                        : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="size-4 animate-spin" />
+                      Načítám žádosti...
+                    </span>
+                  </td>
+                </tr>
+              )}
+
+              {!loading && items.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-sm text-muted-foreground"
+                  >
+                    {statusFilter === "pending"
+                      ? "Aktuálně nejsou žádné čekající žádosti."
+                      : statusFilter === "approved"
+                        ? "Aktuálně nejsou žádné schválené žádosti."
+                        : statusFilter === "rejected"
+                          ? "Aktuálně nejsou žádné zamítnuté žádosti."
+                          : "Aktuálně nejsou žádné žádosti."}
+                  </td>
+                </tr>
+              )}
+
+              {items.map((item) => (
+                <tr
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Otevřít detail žádosti uživatele ${item.userName}`}
+                  className={`border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-muted/20 focus:outline-none focus-visible:bg-muted/35 ${
+                    recentlyUpdatedIds.includes(item.id) ? "bg-primary/10" : ""
+                  }`}
+                  onClick={() => openDetailDialog(item)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      openDetailDialog(item);
+                    }
+                  }}
+                >
+                  <td className="px-4 py-3 font-medium">{item.userName}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {item.email || "-"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {new Date(item.requestedAtUtc).toLocaleString("cs-CZ")}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    <Badge
+                      className={`border ${getStatusClasses(item.status)}`}
+                    >
+                      {formatStatus(item.status)}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {item.reviewedAtUtc
+                      ? new Date(item.reviewedAtUtc).toLocaleString("cs-CZ")
+                      : "-"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
 
@@ -438,7 +467,9 @@ export default function ExpertRoleRequestsSection({
             <div className="flex flex-wrap items-center justify-between gap-3 pr-10">
               <DialogTitle>Detail žádosti</DialogTitle>
               {selectedRequest && (
-                <Badge className={`border ${getStatusClasses(selectedRequest.status)}`}>
+                <Badge
+                  className={`border ${getStatusClasses(selectedRequest.status)}`}
+                >
                   {formatStatus(selectedRequest.status)}
                 </Badge>
               )}
@@ -454,22 +485,40 @@ export default function ExpertRoleRequestsSection({
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Uživatel</p>
-                  <p className="mt-1 text-sm font-medium">{selectedRequest.userName}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Uživatel
+                  </p>
+                  <p className="mt-1 text-sm font-medium">
+                    {selectedRequest.userName}
+                  </p>
                 </div>
                 <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">E-mail</p>
-                  <p className="mt-1 text-sm font-medium">{selectedRequest.email || "-"}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    E-mail
+                  </p>
+                  <p className="mt-1 text-sm font-medium">
+                    {selectedRequest.email || "-"}
+                  </p>
                 </div>
                 <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Podáno</p>
-                  <p className="mt-1 text-sm font-medium">{new Date(selectedRequest.requestedAtUtc).toLocaleString("cs-CZ")}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Podáno
+                  </p>
+                  <p className="mt-1 text-sm font-medium">
+                    {new Date(selectedRequest.requestedAtUtc).toLocaleString(
+                      "cs-CZ",
+                    )}
+                  </p>
                 </div>
                 <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Vyřízeno</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Vyřízeno
+                  </p>
                   <p className="mt-1 text-sm font-medium">
                     {selectedRequest.reviewedAtUtc
-                      ? new Date(selectedRequest.reviewedAtUtc).toLocaleString("cs-CZ")
+                      ? new Date(selectedRequest.reviewedAtUtc).toLocaleString(
+                          "cs-CZ",
+                        )
                       : "Nevyřízeno"}
                   </p>
                 </div>
@@ -483,11 +532,14 @@ export default function ExpertRoleRequestsSection({
                       Odeslaná poznámka
                     </p>
                     <span className="text-xs text-muted-foreground">
-                      {selectedRequest.userNote?.trim() ? "Vyplněno" : "Bez poznámky"}
+                      {selectedRequest.userNote?.trim()
+                        ? "Vyplněno"
+                        : "Bez poznámky"}
                     </span>
                   </div>
                   <p className="mt-2 max-h-40 overflow-y-auto pr-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap break-all">
-                    {selectedRequest.userNote?.trim() || "Uživatel žádnou poznámku nepřidal"}
+                    {selectedRequest.userNote?.trim() ||
+                      "Uživatel žádnou poznámku nepřidal"}
                   </p>
                 </div>
               </div>
@@ -500,7 +552,9 @@ export default function ExpertRoleRequestsSection({
                       Aktuální poznámka
                     </p>
                     <span className="text-xs text-muted-foreground">
-                      {selectedRequest.adminNote?.trim() ? "Uložena" : "Bez poznámky"}
+                      {selectedRequest.adminNote?.trim()
+                        ? "Uložena"
+                        : "Bez poznámky"}
                     </span>
                   </div>
                   <textarea
@@ -515,7 +569,8 @@ export default function ExpertRoleRequestsSection({
                   <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
                     <span>Poznámku můžete upravit přímo tady.</span>
                     <span>
-                      {noteDraft.trim() === (selectedRequest.adminNote ?? "").trim()
+                      {noteDraft.trim() ===
+                      (selectedRequest.adminNote ?? "").trim()
                         ? `${noteDraft.length}/${NOTE_MAX_LENGTH}`
                         : `Neuložené změny • ${noteDraft.length}/${NOTE_MAX_LENGTH}`}
                     </span>
@@ -547,7 +602,6 @@ export default function ExpertRoleRequestsSection({
                   </Button>
                 )}
 
-
                 <Button
                   type="button"
                   variant="secondary"
@@ -564,4 +618,3 @@ export default function ExpertRoleRequestsSection({
     </Card>
   );
 }
-

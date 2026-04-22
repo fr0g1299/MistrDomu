@@ -36,7 +36,10 @@ export default function ExpertOnboardingPage() {
       />
 
       {createRequestOpen && (
-        <MyRoleRequestCreate open={createRequestOpen} onOpenChange={setCreateRequestOpen} />
+        <MyRoleRequestCreate
+          open={createRequestOpen}
+          onOpenChange={setCreateRequestOpen}
+        />
       )}
 
       <div className="relative min-h-[calc(100vh-76px)] pt-10 md:pt-12 pb-8 px-4 flex flex-col items-center justify-start text-center overflow-hidden">
@@ -72,9 +75,16 @@ export default function ExpertOnboardingPage() {
               Info o expertovi
             </h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-100/90 marker:text-primary">
-              <li>V detailu návodu se můžete zapsat nebo odepsat jako pomocník.</li>
-              <li>Ve Správa &gt; Mé návody si budete moct vybrat, u kterých návodů chcete pomáhat.</li>
-              <li>U svých přiřazených návodů se dá své zapojení kdykoliv změnit.</li>
+                <li>
+                  V detailu návodu se můžete zapsat nebo odepsat jako pomocník.
+                </li>
+                <li>
+                  Ve Správa &gt; Mé návody si budete moct vybrat, u kterých
+                  návodů chcete pomáhat.
+                </li>
+                <li>
+                  U svých přiřazených návodů se dá své zapojení kdykoliv změnit.
+                </li>
             </ul>
 
             <Button
@@ -90,7 +100,10 @@ export default function ExpertOnboardingPage() {
                 Připravujeme:
               </h3>
               <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm marker:text-zinc-500">
-                <li>Možnost zapnout aktivní režim, kdy budete dostupní pro pomoc u přiřazených návodů.</li>
+                  <li>
+                    Možnost zapnout aktivní režim, kdy budete dostupní pro pomoc
+                    u přiřazených návodů.
+                  </li>
               </ul>
             </div>
           </div>
@@ -116,18 +129,26 @@ export default function ExpertOnboardingPage() {
                 <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
                   3
                 </span>
-                <span>Po schválení administrátorem vám budou zpřístupněné expertní funkce.</span>
+                  <span>
+                    Po schválení administrátorem vám budou zpřístupněné expertní
+                    funkce.
+                  </span>
               </li>
             </ol>
           </div>
         </div>
 
         <p className="mt-4 text-sm md:text-base text-zinc-100/85 max-w-3xl mx-auto animate-[fadeInUp_2s_ease-out]">
-          Po schválení žádosti získáte roli Expert a možnost zapojit se jako pomocník u konkrétních návodů.
+            Po schválení žádosti získáte roli Expert a možnost zapojit se jako
+            pomocník u konkrétních návodů.
         </p>
 
         <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row animate-[fadeInUp_1.4s_ease-out]">
-          <Button asChild variant="outline" className="border-white/30 bg-black/35 text-white hover:bg-black/55 hover:text-white">
+            <Button
+              asChild
+              variant="outline"
+              className="border-white/30 bg-black/35 text-white hover:bg-black/55 hover:text-white"
+            >
             <Link to="/">
               <ArrowLeft className="size-4" />
               Zpět na hlavní stránku
@@ -139,10 +160,20 @@ export default function ExpertOnboardingPage() {
             className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={handleCreateRequestClick}
             disabled={isExpert || isAdmin}
-            title={isAdmin ? "Admin nemůže žádat o roli Expert" : isExpert ? "Již máte roli Expert" : ""}
+              title={
+                isAdmin
+                  ? "Admin nemůže žádat o roli Expert"
+                  : isExpert
+                    ? "Již máte roli Expert"
+                    : ""
+              }
           >
             <FileText className="size-4" />
-            {isAdmin ? "Admin nemůže žádat o roli" : isExpert ? "Již máte roli Expert" : "Vytvořit žádost"}
+              {isAdmin
+                ? "Admin nemůže žádat o roli"
+                : isExpert
+                  ? "Již máte roli Expert"
+                  : "Vytvořit žádost"}
           </Button>
         </div>
       </section>

@@ -22,8 +22,10 @@ const formatStatus = (status: string) => {
 };
 
 const getStatusClasses = (status: string) => {
-  if (status === "Approved") return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
-  if (status === "Rejected") return "bg-red-500/15 text-red-300 border-red-500/30";
+  if (status === "Approved")
+    return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+  if (status === "Rejected")
+    return "bg-red-500/15 text-red-300 border-red-500/30";
   return "bg-amber-500/15 text-amber-300 border-amber-500/30";
 };
 
@@ -40,7 +42,8 @@ export default function MyRoleRequestDetail() {
   const [detail, setDetail] = useState<UserRoleRequestDetail | null>(null);
 
   const isBackgroundModal = Boolean(
-    (location.state as { backgroundLocation?: unknown } | null)?.backgroundLocation,
+    (location.state as { backgroundLocation?: unknown } | null)
+      ?.backgroundLocation,
   );
 
   const closeDetail = () => {
@@ -65,7 +68,11 @@ export default function MyRoleRequestDetail() {
         const data = await apiService.getMyRoleRequestDetail(id);
         setDetail(data);
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Detail žádosti se nepodařilo načíst.");
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Detail žádosti se nepodařilo načíst.",
+        );
         closeDetail();
       } finally {
         setLoading(false);
@@ -82,9 +89,12 @@ export default function MyRoleRequestDetail() {
         <DialogHeader className="border-b border-border px-6 py-5 text-left sm:text-left">
           <div className="flex flex-wrap items-start justify-between gap-3 pr-10">
             <div>
-              <DialogTitle className="text-2xl font-bold">Detail žádosti</DialogTitle>
+              <DialogTitle className="text-2xl font-bold">
+                Detail žádosti
+              </DialogTitle>
               <DialogDescription className="mt-1 text-sm text-muted-foreground">
-                Přehled podané žádosti a všech poznámek v režimu pouze pro čtení.
+                Přehled podané žádosti a všech poznámek v režimu pouze pro
+                čtení.
               </DialogDescription>
             </div>
 
@@ -107,21 +117,35 @@ export default function MyRoleRequestDetail() {
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">ID žádosti</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    ID žádosti
+                  </p>
                   <p className="mt-1 text-sm font-medium">#{detail.id}</p>
                 </div>
                 <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Typ</p>
-                  <p className="mt-1 text-sm font-medium">{formatType(detail.requestType)}</p>
-                </div>
-                <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Podáno</p>
-                  <p className="mt-1 text-sm font-medium">{new Date(detail.requestedAtUtc).toLocaleString("cs-CZ")}</p>
-                </div>
-                <div className="rounded-md border border-border/70 bg-muted/10 p-3">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Vyřízeno</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Typ
+                  </p>
                   <p className="mt-1 text-sm font-medium">
-                    {detail.reviewedAtUtc ? new Date(detail.reviewedAtUtc).toLocaleString("cs-CZ") : "Nevyřízeno"}
+                    {formatType(detail.requestType)}
+                  </p>
+                </div>
+                <div className="rounded-md border border-border/70 bg-muted/10 p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Podáno
+                  </p>
+                  <p className="mt-1 text-sm font-medium">
+                    {new Date(detail.requestedAtUtc).toLocaleString("cs-CZ")}
+                  </p>
+                </div>
+                <div className="rounded-md border border-border/70 bg-muted/10 p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Vyřízeno
+                  </p>
+                  <p className="mt-1 text-sm font-medium">
+                    {detail.reviewedAtUtc
+                      ? new Date(detail.reviewedAtUtc).toLocaleString("cs-CZ")
+                      : "Nevyřízeno"}
                   </p>
                 </div>
               </div>
@@ -129,9 +153,12 @@ export default function MyRoleRequestDetail() {
               <div className="space-y-2">
                 <p className="text-sm font-semibold">Můj popis</p>
                 <div className="rounded-md border border-border/70 bg-muted/10 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Odeslaná poznámka</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Odeslaná poznámka
+                  </p>
                   <p className="mt-2 max-h-40 overflow-y-auto pr-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap break-all">
-                    {detail.description?.trim() || "Uživatel žádný popis nepřidal"}
+                    {detail.description?.trim() ||
+                      "Uživatel žádný popis nepřidal"}
                   </p>
                 </div>
               </div>
@@ -140,7 +167,9 @@ export default function MyRoleRequestDetail() {
                 <p className="text-sm font-semibold">Poznámka admina</p>
                 <div className="rounded-md border border-border/70 bg-muted/10 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Aktuální poznámka</p>
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Aktuální poznámka
+                    </p>
                     <span className="text-xs text-muted-foreground">
                       {detail.adminNote?.trim() ? "Vyplněno" : "Bez poznámky"}
                     </span>

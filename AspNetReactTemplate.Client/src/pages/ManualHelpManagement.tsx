@@ -17,12 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Loader2,
-  Search,
-  SquareCheckBig,
-  SquareDashed,
-} from "lucide-react";
+import { Loader2, Search, SquareCheckBig, SquareDashed } from "lucide-react";
 
 type VisibilityFilter = "all" | "selected" | "unselected";
 type BulkMode = "add" | "remove" | null;
@@ -43,9 +38,9 @@ export default function ManualHelpManagement() {
   const [visibilityFilter, setVisibilityFilter] =
     useState<VisibilityFilter>("all");
   const [bulkMode, setBulkMode] = useState<BulkMode>(null);
-  const [bulkSelectedManualIds, setBulkSelectedManualIds] = useState<Set<number>>(
-    () => new Set(),
-  );
+  const [bulkSelectedManualIds, setBulkSelectedManualIds] = useState<
+    Set<number>
+  >(() => new Set());
   const [selectedManualIds, setSelectedManualIds] = useState<Set<number>>(
     () => new Set(),
   );
@@ -551,10 +546,7 @@ export default function ManualHelpManagement() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={bulkConfirmOpen}
-        onOpenChange={setBulkConfirmOpen}
-      >
+      <Dialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>

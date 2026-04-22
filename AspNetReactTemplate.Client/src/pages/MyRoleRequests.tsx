@@ -5,8 +5,17 @@ import { toast } from "sonner";
 
 import { apiService } from "@/lib/apiService";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RoleRequestFilter, UserRoleRequestItem } from "@/types/roleRequest";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import type {
+  RoleRequestFilter,
+  UserRoleRequestItem,
+} from "@/types/roleRequest";
 import { useAuth } from "@/hooks/useAuth";
 import MyRoleRequestCreate from "./MyRoleRequestCreate";
 
@@ -56,61 +65,74 @@ export default function MyRoleRequests() {
   const buildSnapshotKey = (item: UserRoleRequestItem) =>
     `${item.status}|${item.reviewedAtUtc ?? ""}`;
 
-  const load = useCallback(async (targetPage: number) => {
-    try {
-      if (!hasLoadedOnce) {
-        setLoading(true);
-      } else {
-        setIsRefreshing(true);
-      }
+  const load = useCallback(
+    async (targetPage: number) => {
+      try {
+        if (!hasLoadedOnce) {
+          setLoading(true);
+        } else {
+          setIsRefreshing(true);
+        }
 
-      const data = await apiService.getMyRoleRequests({
-        page: targetPage,
-        pageSize: PAGE_SIZE,
-        status: statusFilter,
-      });
+        const data = await apiService.getMyRoleRequests({
+          page: targetPage,
+          pageSize: PAGE_SIZE,
+          status: statusFilter,
+        });
 
-      const nextSnapshot = new Map<number, string>();
-      for (const item of data.items) {
-        nextSnapshot.set(item.id, buildSnapshotKey(item));
-      }
+        const nextSnapshot = new Map<number, string>();
+        for (const item of data.items) {
+          nextSnapshot.set(item.id, buildSnapshotKey(item));
+        }
 
-      if (hasLoadedOnce) {
-        const changedIds = data.items
-          .filter((item) => {
-            const previous = previousSnapshotRef.current.get(item.id);
-            return previous !== undefined && previous !== buildSnapshotKey(item);
-          })
-          .map((item) => item.id);
+        if (hasLoadedOnce) {
+          const changedIds = data.items
+            .filter((item) => {
+              const previous = previousSnapshotRef.current.get(item.id);
+              return (
+                previous !== undefined && previous !== buildSnapshotKey(item)
+              );
+            })
+            .map((item) => item.id);
 
-        if (changedIds.length > 0) {
-          setRecentlyUpdatedIds((prev) => Array.from(new Set([...prev, ...changedIds])));
+          if (changedIds.length > 0) {
+            setRecentlyUpdatedIds((prev) =>
+              Array.from(new Set([...prev, ...changedIds])),
+            );
 
-          const timeoutId = window.setTimeout(() => {
-            setRecentlyUpdatedIds((prev) => prev.filter((id) => !changedIds.includes(id)));
-          }, 4000);
+            const timeoutId = window.setTimeout(() => {
+              setRecentlyUpdatedIds((prev) =>
+                prev.filter((id) => !changedIds.includes(id)),
+              );
+            }, 4000);
 
-          highlightTimeoutsRef.current.push(timeoutId);
+            highlightTimeoutsRef.current.push(timeoutId);
+          }
+        }
+
+        previousSnapshotRef.current = nextSnapshot;
+
+        setItems(data.items);
+        setPage(data.currentPage || 1);
+        setTotalItems(data.totalItems);
+        setTotalPages(Math.max(1, data.totalPages || 1));
+        setHasLoadedOnce(true);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Nepodařilo se načíst žádosti.",
+        );
+      } finally {
+        if (!hasLoadedOnce) {
+          setLoading(false);
+        } else {
+          setIsRefreshing(false);
         }
       }
-
-      previousSnapshotRef.current = nextSnapshot;
-
-      setItems(data.items);
-      setPage(data.currentPage || 1);
-      setTotalItems(data.totalItems);
-      setTotalPages(Math.max(1, data.totalPages || 1));
-      setHasLoadedOnce(true);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Nepodařilo se načíst žádosti.");
-    } finally {
-      if (!hasLoadedOnce) {
-        setLoading(false);
-      } else {
-        setIsRefreshing(false);
-      }
-    }
-  }, [hasLoadedOnce, statusFilter]);
+    },
+    [hasLoadedOnce, statusFilter],
+  );
 
   useEffect(() => {
     void load(page);
@@ -130,18 +152,20 @@ export default function MyRoleRequests() {
     };
 
     window.addEventListener("role-request-user-updated", handleUserUpdate);
-    return () => window.removeEventListener("role-request-user-updated", handleUserUpdate);
+    return () =>
+      window.removeEventListener("role-request-user-updated", handleUserUpdate);
   }, [load, page]);
 
   useEffect(() => {
     return () => {
-      highlightTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      highlightTimeoutsRef.current.forEach((timeoutId) =>
+        window.clearTimeout(timeoutId),
+      );
       highlightTimeoutsRef.current = [];
     };
   }, []);
 
   const hasActiveFilters = statusFilter !== "all";
-
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
@@ -151,7 +175,8 @@ export default function MyRoleRequests() {
             <div>
               <CardTitle>Mé žádosti o roli Expert</CardTitle>
               <CardDescription>
-                Zde můžete vidět všechny své žádosti o roli Expert. Pokud roli již máte, není možné vytvořit novou žádost.
+                Zde můžete vidět všechny své žádosti o roli Expert. Pokud roli
+                již máte, není možné vytvořit novou žádost.
               </CardDescription>
               {isAdmin && (
                 <CardDescription className="mt-1 text-amber-500">
@@ -163,7 +188,13 @@ export default function MyRoleRequests() {
               type="button"
               disabled={isExpert || isAdmin}
               onClick={() => setCreateRequestOpen(true)}
-              title={isAdmin ? "Admin nemůže žádat o roli Expert" : isExpert ? "Již máte roli Expert" : ""}
+              title={
+                isAdmin
+                  ? "Admin nemůže žádat o roli Expert"
+                  : isExpert
+                    ? "Již máte roli Expert"
+                    : ""
+              }
             >
               <Plus className="size-4" />
               Vytvořit žádost
@@ -199,7 +230,6 @@ export default function MyRoleRequests() {
                   <option value="approved">Schváleno</option>
                   <option value="rejected">Zamítnuto</option>
                 </select>
-
               </div>
             </div>
           </CardHeader>
@@ -208,16 +238,27 @@ export default function MyRoleRequests() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/40">
                   <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Typ</th>
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Stav</th>
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Podáno</th>
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Vyřízeno</th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Typ
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Stav
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Podáno
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                      Vyřízeno
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading && !hasLoadedOnce && (
                     <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      <td
+                        colSpan={4}
+                        className="px-4 py-8 text-center text-muted-foreground"
+                      >
                         <span className="inline-flex items-center gap-2">
                           <Loader2 className="size-4 animate-spin" /> Načítám...
                         </span>
@@ -227,7 +268,10 @@ export default function MyRoleRequests() {
 
                   {!loading && items.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      <td
+                        colSpan={4}
+                        className="px-4 py-8 text-center text-muted-foreground"
+                      >
                         {statusFilter === "pending"
                           ? "Aktuálně nemáš žádné čekající žádosti."
                           : statusFilter === "approved"
@@ -266,7 +310,9 @@ export default function MyRoleRequests() {
                         }
                       }}
                     >
-                      <td className="px-4 py-3 font-medium">{formatType(item.requestType)}</td>
+                      <td className="px-4 py-3 font-medium">
+                        {formatType(item.requestType)}
+                      </td>
                       <td className="px-4 py-3 text-muted-foreground">
                         <span
                           className={`inline-flex rounded-md border px-2 py-1 text-xs font-medium ${getStatusClasses(item.status)}`}
@@ -331,4 +377,3 @@ export default function MyRoleRequests() {
     </div>
   );
 }
-

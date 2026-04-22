@@ -67,7 +67,9 @@ export default function HomePage() {
               </span>
               <span className="text-primary">mistrem</span>
               <br />
-              <span className="text-background dark:text-foreground">svého </span>
+              <span className="text-background dark:text-foreground">
+                svého{" "}
+              </span>
               <span className="text-primary">domu</span>
             </h1>
 
@@ -79,8 +81,8 @@ export default function HomePage() {
             </p>
 
             <p className="text-muted/90 dark:text-muted-foreground text-lg md:text-xl mb-7 max-w-2xl font-light animate-[fadeInUp_2s_ease-out]">
-              Profesionální podpora pro vaše domácí projekty. Od popsání problému
-              po videokonzultaci s expertem.
+              Profesionální podpora pro vaše domácí projekty. Od popsání
+              problému po videokonzultaci s expertem.
             </p>
 
             <Button
@@ -89,20 +91,20 @@ export default function HomePage() {
               onClick={handleBrowseManualsClick}
               className="mt-8 md:mt-10 w-full max-w-110 h-auto rounded-3xl border-2 border-primary bg-background/90 dark:bg-zinc-900/85 text-zinc-950 dark:text-primary hover:bg-background dark:hover:bg-zinc-900 px-10 py-6 flex flex-col items-center text-center gap-1 cursor-pointer shadow-[0_0_24px_rgba(245,158,11,0.35)] dark:shadow-[0_0_20px_rgba(245,158,11,0.28)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_54px_rgba(245,158,11,0.78)] dark:hover:shadow-[0_0_44px_rgba(245,158,11,0.62)] animate-[fadeInUp_1.8s_ease-out]"
             >
-            <span className="text-3xl md:text-[40px] font-semibold leading-tight text-zinc-950 dark:text-primary [text-shadow:0_2px_8px_rgba(0,0,0,0.48)] dark:[text-shadow:0_1px_6px_rgba(245,158,11,0.35)]">
-              Procházet návody
-            </span>
-            <span className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              <CircleAlert
-                className="h-4 w-4 md:h-5 md:w-5"
-                strokeWidth={2.25}
-              />
-              JEN PRO PŘIHLÁŠENÉ UŽIVATELE
-            </span>
+              <span className="text-3xl md:text-[40px] font-semibold leading-tight text-zinc-950 dark:text-primary [text-shadow:0_2px_8px_rgba(0,0,0,0.48)] dark:[text-shadow:0_1px_6px_rgba(245,158,11,0.35)]">
+                Procházet návody
+              </span>
+              <span className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                <CircleAlert
+                  className="h-4 w-4 md:h-5 md:w-5"
+                  strokeWidth={2.25}
+                />
+                JEN PRO PŘIHLÁŠENÉ UŽIVATELE
+              </span>
             </Button>
 
             {/* TODO: Maybe add some kind of "Why choose us?" section here?*/}
-            
+
             <div className="mt-6 max-w-xl animate-[fadeInUp_1.5s_ease-out]">
               <p className="text-sm md:text-base text-zinc-100/85 dark:text-zinc-200/90">
                 Chcete se stát expertem a pomáhat s návody?
