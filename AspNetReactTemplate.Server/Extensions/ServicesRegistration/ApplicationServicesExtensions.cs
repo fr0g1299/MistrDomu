@@ -52,6 +52,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IAdminRoleRequestService, AdminRoleRequestService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IDailyPrebuiltService, DailyPrebuiltService>();
+        services.AddScoped<ICallSessionLogService, CallSessionLogService>();
         services.AddSingleton<ICallPresenceService, CallPresenceService>();
 
         services.AddHttpContextAccessor();

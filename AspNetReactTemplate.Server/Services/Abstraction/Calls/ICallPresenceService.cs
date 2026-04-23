@@ -70,4 +70,46 @@ public interface ICallPresenceService
     /// <param name="invitation"></param>
     /// <returns>True if invitation was found, false otherwise</returns>
     bool TryTakeInvitation(int expertId, out PendingCallInvitation? invitation);
+
+    /// <summary>
+    /// Start a new call session for expert and return session token
+    /// </summary>
+    /// <param name="expertId"></param>
+    /// <param name="manualId">Manual ID for the call</param>
+    /// <param name="counterpartyUserId">User ID of the counterparty</param>
+    /// <returns>Session token for the call</returns>
+    Guid StartCallSession(int expertId, int manualId, int counterpartyUserId);
+
+    /// <summary>
+    /// Stop a call session if session token matches
+    /// </summary>
+    /// <param name="expertId"></param>
+    /// <param name="callSessionToken"></param>
+    /// <returns>True if call session was stopped, false otherwise</returns>
+    bool StopCallSession(int expertId, Guid callSessionToken);
+
+    /// <summary>
+    /// Check if call session is active and not expired
+    /// </summary>
+    /// <param name="expertId"></param>
+    /// <param name="callSessionToken"></param>
+    /// <param name="callStartedAtUtc">When the call session started</param>
+    /// <returns>True if session is active and valid, false otherwise</returns>
+    bool TryGetActiveCallSession(int expertId, Guid callSessionToken, out DateTimeOffset? callStartedAtUtc);
+
+    /// <summary>
+    /// Get active call session with full details (start time, manual ID, counterparty ID)
+    /// </summary>
+    /// <param name="expertId"></param>
+    /// <param name="callSessionToken"></param>
+    /// <param name="callStartedAtUtc">When the call session started</param>
+    /// <param name="callManualId">Manual ID associated with the call</param>
+    /// <param name="callCounterpartyUserId">User ID of the counterparty</param>
+    /// <returns>True if session is active and valid, false otherwise</returns>
+    bool TryGetCallSessionDetails(
+        int expertId,
+        Guid callSessionToken,
+        out DateTimeOffset? callStartedAtUtc,
+        out int callManualId,
+        out int callCounterpartyUserId);
 }

@@ -65,6 +65,22 @@ export type ExpertWaitingSessionRead = {
   sessionToken: string;
 };
 
+export type CallSessionStartRequest = {
+  manualId: number;
+  counterpartyUserId: number;
+  roomName: string;
+};
+
+export type CallSessionStartResponse = {
+  sessionToken: string;
+  expiresAtUtc: string;
+};
+
+export type CallSessionStopRequest = {
+  sessionToken: string;
+  roomName: string;
+};
+
 const API_BASE_URL = "/api";
 const WAITING_SESSION_TOKEN_STORAGE_KEY = "expert-waiting-session-token";
 const WAITING_SESSION_TOKEN_HEADER = "X-Waiting-Session-Token";
@@ -682,6 +698,33 @@ export const apiService = {
     attachWaitingSessionTokenHeader(headers);
 
     const response = await fetch(`${API_BASE_URL}/calls/log`, {
+      method: "POST",
+      credentials: "include",
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `Request failed (${response.status})`);
+    }
+  },
+
+  async startCallSession(
+    payload: CallSessionStartRequest,
+  ): Promise<CallSessionStartResponse> {
+    return requestJson<CallSessionStartResponse>("/calls/session/start", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async stopCallSession(payload: CallSessionStopRequest): Promise<void> {
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+
+    const response = await fetch(`${API_BASE_URL}/calls/session/stop`, {
       method: "POST",
       credentials: "include",
       headers,

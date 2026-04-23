@@ -301,6 +301,54 @@ public class CallsController : ControllerBase
         });
     }
 
+    [Authorize(Roles = nameof(Roles.Expert))]
+    [HttpPost("session/start")]
+    public async Task<ActionResult> StartCallSession(
+        [FromBody] CallSessionStartRequestDto request,
+        [FromServices] ICallSessionLogService callSessionLogService,
+        CancellationToken cancellationToken)
+    {
+        var participantUserId = GetCurrentUserId();
+        if (participantUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var response = await callSessionLogService.StartSessionAsync(participantUserId.Value, request, cancellationToken);
+            return Ok(response);
+        }
+        catch (NotImplementedException)
+        {
+            return StatusCode(StatusCodes.Status501NotImplemented, "Call session start logging is not implemented yet.");
+        }
+    }
+
+    [Authorize(Roles = nameof(Roles.Expert))]
+    [HttpPost("session/stop")]
+    public async Task<ActionResult> StopCallSession(
+        [FromBody] CallSessionStopRequestDto request,
+        [FromServices] ICallSessionLogService callSessionLogService,
+        CancellationToken cancellationToken)
+    {
+        var participantUserId = GetCurrentUserId();
+        if (participantUserId is null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            await callSessionLogService.StopSessionAsync(participantUserId.Value, request, cancellationToken);
+            return Ok();
+        }
+        catch (NotImplementedException)
+        {
+            return StatusCode(StatusCodes.Status501NotImplemented, "Call session stop logging is not implemented yet.");
+        }
+    }
+
     [HttpPost("log")]
     public async Task<ActionResult> LogCallDuration([FromBody] ManualCallLogCreateDto dto)
     {

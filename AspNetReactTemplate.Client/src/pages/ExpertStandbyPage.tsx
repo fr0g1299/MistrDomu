@@ -266,14 +266,30 @@ export default function ExpertStandbyPage() {
   };
 
   // Join call
-  const handleJoinCall = (call: PendingManualCallRead) => {
+  const handleJoinCall = async (call: PendingManualCallRead) => {
     const popup = window.open(call.roomUrl, "daily_call", "width=800,height=600");
     if (!popup) {
       setError("Prohlížeč zablokoval otevření hovoru. Povolte pop-up okna.");
       return;
     }
 
-    const startedAt = Date.now();
+    // Start call session on server
+    let sessionToken: string | null = null;
+    try {
+      const response = await apiService.startCallSession({
+        manualId: call.manualId,
+        counterpartyUserId: call.callerUserId,
+        roomName: call.roomName,
+      });
+      sessionToken = response.sessionToken;
+    } catch (err) {
+      console.error("Failed to start call session:", err);
+      setError("Nepodařilo se zahájit call session.");
+      popup.close();
+      return;
+    }
+
+    // Wait for popup to close and stop session
     const intervalId = window.setInterval(async () => {
       if (!popup.closed) {
         return;
@@ -281,16 +297,15 @@ export default function ExpertStandbyPage() {
 
       window.clearInterval(intervalId);
 
-      const durationSeconds = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
-      try {
-        await apiService.logManualCallDuration({
-          manualId: call.manualId,
-          counterpartyUserId: call.callerUserId,
-          roomName: call.roomName,
-          durationSeconds,
-        });
-      } catch (err) {
-        console.error("Call duration logging failed:", err);
+      if (sessionToken) {
+        try {
+          await apiService.stopCallSession({
+            sessionToken,
+            roomName: call.roomName,
+          });
+        } catch (err) {
+          console.error("Failed to stop call session:", err);
+        }
       }
     }, 1000);
 

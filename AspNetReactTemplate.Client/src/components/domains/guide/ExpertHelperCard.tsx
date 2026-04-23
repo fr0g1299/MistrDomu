@@ -165,30 +165,6 @@ export function ExpertHelperCard({
         );
         return;
       }
-
-      const startedAt = Date.now();
-      const intervalId = window.setInterval(async () => {
-        if (!popup.closed) {
-          return;
-        }
-
-        window.clearInterval(intervalId);
-
-        const durationSeconds = Math.max(
-          1,
-          Math.round((Date.now() - startedAt) / 1000),
-        );
-        try {
-          await apiService.logManualCallDuration({
-            manualId: parsedManualId,
-            counterpartyUserId: call.expertId,
-            roomName: call.roomName,
-            durationSeconds,
-          });
-        } catch (err) {
-          console.error("Call duration logging failed:", err);
-        }
-      }, 1000);
     } catch (err: unknown) {
       setCallError(
         err instanceof Error ? err.message : "Nepodařilo se zahájit hovor.",
