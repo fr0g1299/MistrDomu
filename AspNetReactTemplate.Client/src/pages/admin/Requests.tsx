@@ -7,6 +7,7 @@ import {
   AdminTableHead,
   AdminTablePagination,
   AdminTableStateRow,
+  PAGE_SIZE,
   type AdminTableColumn,
 } from "@/components/domains/admin/TableLayout";
 import { DetailDialog } from "@/components/domains/admin/requests/DetailDialog";
@@ -16,8 +17,8 @@ import type {
   RoleRequestFilter,
 } from "@/types/roleRequest";
 import { toast } from "sonner";
-
-const PAGE_SIZE = 10;
+import { Button } from "@/components/ui/button";
+import { Edit2 } from "lucide-react";
 
 const EXPERT_ROLE_REQUEST_COLUMNS: AdminTableColumn[] = [
   { key: "user", label: "Uživatel" },
@@ -25,6 +26,11 @@ const EXPERT_ROLE_REQUEST_COLUMNS: AdminTableColumn[] = [
   { key: "requested-at", label: "Požádáno" },
   { key: "status", label: "Stav" },
   { key: "reviewed-at", label: "Vyřízeno" },
+  {
+    key: "actions",
+    label: <span className="font-bold">Akce</span>,
+    className: "text-right pr-5",
+  },
 ];
 
 export default function AdminExpertRoleRequests() {
@@ -40,7 +46,6 @@ export default function AdminExpertRoleRequests() {
   const [selectedRequest, setSelectedRequest] =
     useState<AdminRoleRequestItem | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
-  const [recentlyUpdatedIds, setRecentlyUpdatedIds] = useState<number[]>([]);
   const previousSnapshotRef = useRef<Map<number, string>>(new Map());
   const highlightTimeoutsRef = useRef<number[]>([]);
 
@@ -65,31 +70,6 @@ export default function AdminExpertRoleRequests() {
         const nextSnapshot = new Map<number, string>();
         for (const item of data.items) {
           nextSnapshot.set(item.id, buildSnapshotKey(item));
-        }
-
-        if (!isFirstLoadRef.current) {
-          const changedIds = data.items
-            .filter((item) => {
-              const previous = previousSnapshotRef.current.get(item.id);
-              return (
-                previous !== undefined && previous !== buildSnapshotKey(item)
-              );
-            })
-            .map((item) => item.id);
-
-          if (changedIds.length > 0) {
-            setRecentlyUpdatedIds((prev) =>
-              Array.from(new Set([...prev, ...changedIds])),
-            );
-
-            const timeoutId = window.setTimeout(() => {
-              setRecentlyUpdatedIds((prev) =>
-                prev.filter((id) => !changedIds.includes(id)),
-              );
-            }, 4000);
-
-            highlightTimeoutsRef.current.push(timeoutId);
-          }
         }
 
         previousSnapshotRef.current = nextSnapshot;
@@ -253,9 +233,22 @@ export default function AdminExpertRoleRequests() {
     setPage(1);
   };
 
+  // TODO: This can be exported to DetailDialog, now it's duplicated
+  const getStatusClasses = (status: string) => {
+    if (status === "Approved") {
+      return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20";
+    }
+
+    if (status === "Rejected") {
+      return "bg-red-500/15 text-red-300 border-red-500/30 hover:bg-red-500/20";
+    }
+
+    return "bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/20";
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto w-[95%] xl:w-[90%] 2xl:w-[80%] px-6 py-8">
         <AdminTableCard
           id="expert-role-requests"
           title="Žádosti o roli Expert"
@@ -312,14 +305,14 @@ export default function AdminExpertRoleRequests() {
                 />
               )}
 
-              {items.map((item) => (
+              {items.map((item, idx) => (
                 <tr
                   key={item.id}
                   role="button"
                   tabIndex={0}
                   aria-label={`Otevřít detail žádosti uživatele ${item.userName}`}
                   className={`cursor-pointer border-b border-border transition-colors hover:bg-muted/20 last:border-0 focus:outline-none focus-visible:bg-muted/35 ${
-                    recentlyUpdatedIds.includes(item.id) ? "bg-primary/10" : ""
+                    idx % 2 === 0 ? "" : "bg-muted/10"
                   }`}
                   onClick={() => openDetailDialog(item)}
                   onKeyDown={(event) => {
@@ -337,7 +330,10 @@ export default function AdminExpertRoleRequests() {
                     {new Date(item.requestedAtUtc).toLocaleString("cs-CZ")}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    <Badge variant="outline">
+                    <Badge
+                      variant="outline"
+                      className={getStatusClasses(item.status)}
+                    >
                       {item.status === "Approved"
                         ? "Schváleno"
                         : item.status === "Rejected"
@@ -350,6 +346,16 @@ export default function AdminExpertRoleRequests() {
                       ? new Date(item.reviewedAtUtc).toLocaleString("cs-CZ")
                       : "-"}
                   </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openDetailDialog(item)}
+                    >
+                      <Edit2 className="size-4" />
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -359,7 +365,6 @@ export default function AdminExpertRoleRequests() {
             page={page}
             totalPages={totalPages}
             totalItems={totalItems}
-            pageSize={PAGE_SIZE}
             onPageChange={setPage}
             disabled={loading}
           />

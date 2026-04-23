@@ -33,14 +33,14 @@ const formatStatus = (status: string) => {
 
 const getStatusClasses = (status: string) => {
   if (status === "Approved") {
-    return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+    return "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20";
   }
 
   if (status === "Rejected") {
-    return "bg-red-500/15 text-red-300 border-red-500/30";
+    return "bg-red-500/15 text-red-300 border-red-500/30 hover:bg-red-500/20";
   }
 
-  return "bg-amber-500/15 text-amber-300 border-amber-500/30";
+  return "bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/20";
 };
 
 export function DetailDialog({

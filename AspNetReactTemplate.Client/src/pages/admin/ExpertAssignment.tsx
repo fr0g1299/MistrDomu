@@ -302,7 +302,7 @@ export default function AdminExpertAssignment() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto w-[95%] xl:w-[90%] 2xl:w-[80%] px-6 py-8">
         <Card className="mb-5 shadow-sm">
           <CardHeader className="flex">
             <CardTitle className="text-2xl font-bold">

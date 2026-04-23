@@ -64,7 +64,10 @@ export function EditModal({ isOpen, tool, onClose, onSave }: EditModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-106.25">
+      <DialogContent
+        className="sm:max-w-106.25"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Upravit nástroj</DialogTitle>
           <DialogDescription>
@@ -83,6 +86,11 @@ export function EditModal({ isOpen, tool, onClose, onSave }: EditModalProps) {
               placeholder="Název nástroje"
               disabled={isSaving}
             />
+            {name.trim() === "" && (
+              <p className="px-2 mt-1 text-right text-sm font-semibold text-red-500">
+                Název nástroje je povinný
+              </p>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -106,6 +114,11 @@ export function EditModal({ isOpen, tool, onClose, onSave }: EditModalProps) {
               placeholder="Poznámka k nástroji"
               disabled={isSaving}
             />
+            {note.trim().length > 50 && (
+              <p className="px-2 mt-1 text-right text-sm font-semibold text-red-500">
+                Max. 50 znaků
+              </p>
+            )}
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
@@ -115,7 +128,12 @@ export function EditModal({ isOpen, tool, onClose, onSave }: EditModalProps) {
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
             Zrušit
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button
+            onClick={handleSave}
+            disabled={
+              isSaving || name.trim().length === 0 || note.trim().length > 50
+            }
+          >
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

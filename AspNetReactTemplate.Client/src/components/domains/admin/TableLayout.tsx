@@ -17,6 +17,8 @@ type AdminTableCardProps = {
   children: ReactNode;
 };
 
+export const PAGE_SIZE = 10;
+
 export function AdminTableCard({
   id,
   className,
@@ -79,7 +81,7 @@ export function AdminDataTable({
   tableClassName,
 }: AdminDataTableProps) {
   return (
-    <div className={cn("overflow-x-auto", className)}>
+    <div className={cn("overflow-x-auto solid-scrollbar", className)}>
       <table className={cn("w-full text-sm", tableClassName)}>{children}</table>
     </div>
   );
@@ -107,7 +109,7 @@ export function AdminTableHead({
         className,
       )}
     >
-      <tr className={cn("border-b border-border", rowClassName)}>
+      <tr className={cn("border-b border-border px-2", rowClassName)}>
         {columns.map((column) => (
           <th
             key={column.key}
@@ -164,7 +166,6 @@ type AdminTablePaginationProps = {
   page: number;
   totalPages: number;
   totalItems: number;
-  pageSize: number;
   onPageChange: (nextPage: number) => void;
   disabled?: boolean;
   className?: string;
@@ -174,15 +175,14 @@ export function AdminTablePagination({
   page,
   totalPages,
   totalItems,
-  pageSize,
   onPageChange,
   disabled = false,
   className,
 }: AdminTablePaginationProps) {
   const normalizedTotalPages = Math.max(1, totalPages || 1);
   const normalizedPage = Math.min(Math.max(1, page), normalizedTotalPages);
-  const pageStart = totalItems === 0 ? 0 : (normalizedPage - 1) * pageSize + 1;
-  const pageEnd = Math.min(normalizedPage * pageSize, totalItems);
+  const pageStart = totalItems === 0 ? 0 : (normalizedPage - 1) * PAGE_SIZE + 1;
+  const pageEnd = Math.min(normalizedPage * PAGE_SIZE, totalItems);
 
   return (
     <div

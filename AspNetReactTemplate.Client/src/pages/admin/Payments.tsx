@@ -5,6 +5,8 @@ import {
   AdminDataTable,
   AdminTableCard,
   AdminTableHead,
+  AdminTablePagination,
+  PAGE_SIZE,
   type AdminTableColumn,
 } from "@/components/domains/admin/TableLayout";
 
@@ -31,6 +33,9 @@ export default function AdminPayments() {
   const [records, setRecords] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetch_ = async () => {
@@ -49,6 +54,19 @@ export default function AdminPayments() {
     fetch_();
   }, []);
 
+  useEffect(() => {
+    const items = records.length;
+    setTotalItems(items);
+    setTotalPages(Math.max(1, Math.ceil(items / PAGE_SIZE)));
+    setPage((p) =>
+      Math.min(Math.max(1, p), Math.max(1, Math.ceil(items / PAGE_SIZE))),
+    );
+  }, [records]);
+
+  const normalizedPage = Math.min(Math.max(1, page), totalPages);
+  const pageStart = (normalizedPage - 1) * PAGE_SIZE;
+  const pagedRecords = records.slice(pageStart, pageStart + PAGE_SIZE);
+
   const formatDate = (iso: string) =>
     new Intl.DateTimeFormat("cs-CZ", {
       dateStyle: "medium",
@@ -57,7 +75,7 @@ export default function AdminPayments() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto w-[95%] xl:w-[90%] 2xl:w-[80%] px-6 py-8">
         {loading && (
           <div className="flex items-center justify-center py-20 text-muted-foreground">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent mr-3" />
@@ -94,7 +112,7 @@ export default function AdminPayments() {
             <AdminDataTable>
               <AdminTableHead columns={ADMIN_PAID_ACCESS_COLUMNS} />
               <tbody>
-                {records.map((r, idx) => (
+                {pagedRecords.map((r, idx) => (
                   <tr
                     key={r.id}
                     className={`border-b border-border last:border-0 transition-colors hover:bg-muted/30 ${
@@ -103,7 +121,7 @@ export default function AdminPayments() {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
                           {r.userName.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-medium">{r.userName}</span>
@@ -139,6 +157,14 @@ export default function AdminPayments() {
                 ))}
               </tbody>
             </AdminDataTable>
+
+            <AdminTablePagination
+              page={normalizedPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              onPageChange={setPage}
+              disabled={loading}
+            />
           </AdminTableCard>
         )}
       </main>

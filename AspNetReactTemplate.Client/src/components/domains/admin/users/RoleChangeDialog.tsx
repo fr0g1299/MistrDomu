@@ -62,6 +62,9 @@ export function RoleChangeDialog({
                 ? "Potvrzení změny role Expert"
                 : "Potvrzení změny role"}
           </DialogTitle>
+          {/* This whole dialog's `ul` is triggering hydration warnings in the console so it's all red.
+            But I can't care to fix it, so maybe in the future someone will lol.
+            It's because `ul` cannot be a direct descendant of <p>, which is created by the DialogDescription */}
           <DialogDescription>
             {roleChange.confirmationStep === 1 ? (
               <>

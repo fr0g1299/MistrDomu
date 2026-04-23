@@ -9,6 +9,7 @@ import {
   AdminTableHead,
   AdminTablePagination,
   AdminTableStateRow,
+  PAGE_SIZE,
   type AdminTableColumn,
 } from "@/components/domains/admin/TableLayout";
 import { RoleChangeDialog } from "@/components/domains/admin/users/RoleChangeDialog";
@@ -28,7 +29,6 @@ type PendingRoleChange = {
   confirmationStep: number; // 0 = closed, 1 = first confirm (or direct save if not admin), 2 = second confirm (only for admin changes)
 };
 
-const PAGE_SIZE = 10;
 const SORT_BY_OPTIONS = ["lastName", "role"] as const;
 type SortByOption = (typeof SORT_BY_OPTIONS)[number];
 
@@ -39,7 +39,7 @@ const ADMIN_USERS_COLUMNS: AdminTableColumn[] = [
   { key: "call-duration", label: "Délka hovorů" },
   { key: "wait-duration", label: "Doba čekání" },
   { key: "role", label: "Role" },
-  { key: "actions", label: "Akce" },
+  { key: "actions", label: "Akce", className: "pl-14" },
 ];
 
 const isSortByOption = (value: string): value is SortByOption =>
@@ -233,7 +233,7 @@ export default function AdminUsers() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto w-[95%] xl:w-[90%] 2xl:w-[80%] px-6 py-8">
         <AdminTableCard
           title={
             <>
@@ -352,10 +352,10 @@ export default function AdminUsers() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {user.email || "—"}
+                      {user.email || "-"}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {user.phone || "—"}
+                      {user.phone || "-"}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatCallDuration(user.totalCallDurationSeconds)}
@@ -418,7 +418,6 @@ export default function AdminUsers() {
               page={filters.page}
               totalPages={totalPages}
               totalItems={totalItems}
-              pageSize={PAGE_SIZE}
               onPageChange={setPage}
             />
           )}
