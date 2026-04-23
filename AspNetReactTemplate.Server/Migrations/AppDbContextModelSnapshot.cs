@@ -724,14 +724,14 @@ namespace AspNetReactTemplate.Server.Migrations
                         new
                         {
                             Key = "RoleRequest.NewAdminNotification",
-                            Body = "<p>Uživatel <strong>{DisplayName}</strong> ({Email}) podal novou žádost o roli Expert.</p>\r\n{NoteSection}\r\n<p><strong>Počet čekajících žádostí:</strong> {PendingCount}</p>\r\n<p>Otevřete administraci a žádost prosím zpracujte.</p>",
+                            Body = "<p>Uživatel <strong>{DisplayName}</strong> ({Email}) podal novou žádost o roli Expert.</p>\r\n{NoteSection}\r\n<p><strong>Počet čekajících žádostí:</strong> {PendingCount}</p>\r\n<p>Otevřete administraci a žádost prosím zpracujte.</p>\r\n<p>Zasláno z aplikace Mistr domu.</p>",
                             Id = 0,
                             Subject = "Nová žádost o roli Expert"
                         },
                         new
                         {
                             Key = "RoleRequest.UpdatedUser",
-                            Body = "<p>Dobrý den,</p>\r\n<p>Stav vaší žádosti o roli Expert byl změněn na: <strong>{Status}</strong>.</p>\r\n{AdminNoteSection}",
+                            Body = "<p>Dobrý den,</p>\r\n<p>Stav vaší žádosti o roli Expert byl změněn na: <strong>{Status}</strong>.</p>\r\n{AdminNoteSection}\r\n<p>Váš Mistr domu.</p>",
                             Id = 0,
                             Subject = "Změna stavu žádosti o roli"
                         });

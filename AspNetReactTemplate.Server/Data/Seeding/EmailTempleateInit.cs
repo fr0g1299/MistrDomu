@@ -16,6 +16,7 @@ public static class EmailTemplateInit
                    {NoteSection}
                    <p><strong>Počet čekajících žádostí:</strong> {PendingCount}</p>
                    <p>Otevřete administraci a žádost prosím zpracujte.</p>
+                   <p>Zasláno z aplikace Mistr domu.</p>
                    """
         },
         new EmailTemplate
@@ -26,6 +27,7 @@ public static class EmailTemplateInit
                    <p>Dobrý den,</p>
                    <p>Stav vaší žádosti o roli Expert byl změněn na: <strong>{Status}</strong>.</p>
                    {AdminNoteSection}
+                   <p>Váš Mistr domu.</p>
                    """
         },
     };
