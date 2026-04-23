@@ -12,9 +12,9 @@ public static class EmailTemplateInit
             Key = EmailTemplateKeys.NewRoleRequestAdmin,
             Subject = RoleRequestNotificationTexts.NewRequestSubject,
             Body = """
-                   <p>Uživatel <strong>{{DisplayName}}</strong> ({{Email}}) podal novou žádost o roli Expert.</p>
-                   {{NoteSection}}
-                   <p><strong>Počet čekajících žádostí:</strong> {{PendingCount}}</p>
+                   <p>Uživatel <strong>{DisplayName}</strong> ({Email}) podal novou žádost o roli Expert.</p>
+                   {NoteSection}
+                   <p><strong>Počet čekajících žádostí:</strong> {PendingCount}</p>
                    <p>Otevřete administraci a žádost prosím zpracujte.</p>
                    """
         },
@@ -23,9 +23,9 @@ public static class EmailTemplateInit
             Key = EmailTemplateKeys.RoleRequestUpdatedUser,
             Subject = RoleRequestNotificationTexts.UpdatedUserSubject,
             Body = """
-                   <p>Dobrý den, <strong>{{DisplayName}}</strong>,</p>
-                   <p>Stav vaší žádosti o roli Expert byl změněn na: <strong>{{Status}}</strong>.</p>
-                   {{AdminNoteSection}}
+                   <p>Dobrý den,</p>
+                   <p>Stav vaší žádosti o roli Expert byl změněn na: <strong>{Status}</strong>.</p>
+                   {AdminNoteSection}
                    """
         },
     };

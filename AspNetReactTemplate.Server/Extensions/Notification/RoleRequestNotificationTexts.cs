@@ -45,27 +45,25 @@ public static class RoleRequestNotificationTexts
             : $"<p><strong>Poznámka:</strong> {WebUtility.HtmlEncode(userNote)}</p>";
 
         return templateBody
-            .Replace("{{DisplayName}}", WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(requesterDisplayName) ? "Neznámý uživatel" : requesterDisplayName))
-            .Replace("{{Email}}", WebUtility.HtmlEncode(requesterEmail ?? "Neznámý uživatel"))
+            .Replace("{DisplayName}", WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(requesterDisplayName) ? "Neznámý uživatel" : requesterDisplayName))
+            .Replace("{Email}", WebUtility.HtmlEncode(requesterEmail ?? "Neznámý uživatel"))
             .Replace("{RequesterEmail}", WebUtility.HtmlEncode(requesterEmail ?? "Neznámý uživatel"))
             .Replace("{UserNote}", string.IsNullOrWhiteSpace(userNote) ? "Žádná poznámka" : WebUtility.HtmlEncode(userNote))
             .Replace("{PendingCount}", pendingCount.ToString())
-            .Replace("{{NoteSection}}", noteSection);
+            .Replace("{NoteSection}", noteSection);
     }
 
     public static string RenderUserUpdatedBody(string templateBody, string? displayName, RoleRequestStatus status, string? adminNote)
     {
-        var encodedDisplayName = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(displayName) ? "Uživateli" : displayName);
         var statusCz = GetStatusCzech(status);
         var adminNoteSection = string.IsNullOrWhiteSpace(adminNote)
             ? string.Empty
             : $"<p><strong>Poznámka administrátora:</strong> {WebUtility.HtmlEncode(adminNote)}</p>";
 
         return templateBody
-            .Replace("{{DisplayName}}", encodedDisplayName)
-            .Replace("{{Status}}", statusCz)
-            .Replace("{{AdminNote}}", string.IsNullOrWhiteSpace(adminNote) ? string.Empty : WebUtility.HtmlEncode(adminNote))
-            .Replace("{{AdminNoteSection}}", adminNoteSection);
+            .Replace("{Status}", statusCz)
+            .Replace("{AdminNote}", string.IsNullOrWhiteSpace(adminNote) ? string.Empty : WebUtility.HtmlEncode(adminNote))
+            .Replace("{AdminNoteSection}", adminNoteSection);
     }
 }
 

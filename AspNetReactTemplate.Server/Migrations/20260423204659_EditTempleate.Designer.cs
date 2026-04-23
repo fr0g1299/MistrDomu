@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AspNetReactTemplate.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423204659_EditTempleate")]
+    partial class EditTempleate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -106,12 +109,6 @@ namespace AspNetReactTemplate.Server.Migrations
                             Key = "StripePriceId",
                             Description = "ID ceny ve Stripe, která se má použít pro platby. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_PRICE_ID.",
                             Value = ""
-                        },
-                        new
-                        {
-                            Key = "StripeExpertPriceId",
-                            Description = "ID ceny ve Stripe, která se má použít pro platbu za konzultaci s expertem. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_EXPERT_PRICE_ID.",
-                            Value = ""
                         });
                 });
 
@@ -179,37 +176,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("ManualCallLogs");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertConsultationPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ManualId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("PaidAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("StripeSessionId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ManualId");
-
-                    b.HasIndex("UserId", "ManualId")
-                        .IsUnique();
-
-                    b.ToTable("ExpertConsultationPayments");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
@@ -953,25 +919,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Navigation("CounterpartyUser");
 
                     b.Navigation("ParticipantUser");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertConsultationPayment", b =>
-                {
-                    b.HasOne("AspNetReactTemplate.Server.Models.Manuals.Manual", "Manual")
-                        .WithMany()
-                        .HasForeignKey("ManualId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Manual");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
