@@ -60,7 +60,7 @@ type PendingAdminAction =
       expertName: string;
     };
 
-export default function AdminManualHelpManagement() {
+export default function AdminExpertAssignment() {
   const [searchParams] = useSearchParams();
   const [manuals, setManuals] = useState<Manual[]>([]);
   const [experts, setExperts] = useState<AdminUserRow[]>([]);

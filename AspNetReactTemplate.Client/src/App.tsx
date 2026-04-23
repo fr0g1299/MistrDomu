@@ -14,12 +14,12 @@ import { useDynamicScrollbar } from "./hooks/useDynamicScrollbar";
 import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/Search";
 import GuidePage from "./pages/Guide";
-import ToolsManagement from "./pages/ToolsManagement";
+import AdminTools from "./pages/admin/Tools";
 import ManualHelpManagement from "./pages/ManualHelpManagement";
-import AdminManualHelpManagement from "./pages/AdminManualHelpManagement";
-import AdminPaidAccess from "./pages/AdminPaidAccess";
-import AdminUsers from "./pages/AdminUsers";
-import AdminExpertRoleRequests from "./pages/AdminExpertRoleRequests";
+import AdminExpertAssignment from "./pages/admin/ExpertAssignment";
+import AdminPayments from "./pages/admin/Payments";
+import AdminUsers from "./pages/admin/Users";
+import AdminExpertRoleRequests from "./pages/admin/Requests";
 import MyRoleRequests from "./pages/MyRoleRequests";
 import MyRoleRequestCreate from "./pages/MyRoleRequestCreate";
 import MyRoleRequestDetail from "./pages/MyRoleRequestDetail";
@@ -59,7 +59,11 @@ const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
-const NonAdminAuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
+const NonAdminAuthenticatedRoute = ({
+  children,
+}: {
+  children: JSX.Element;
+}) => {
   const { loading, isAuthenticated, isAdmin } = useAuth();
 
   if (loading) return null;
@@ -109,81 +113,10 @@ function App() {
               path="/expert-onboarding"
               element={<ExpertOnboardingPage />}
             />
+
+            {/* Authenticated Routes */}
             <Route path="/search" element={<SearchPage />} />
             <Route path="/guide/:manualId" element={<GuidePage />} />
-
-            <Route
-              path="/tools-management"
-              element={
-                <AdminRoute>
-                  <ToolsManagement />
-                </AdminRoute>
-              }
-            />
-
-            <Route
-              path="/manual-help-management"
-              element={
-                <ManagementRoute>
-                  <ManualHelpManagement />
-                </ManagementRoute>
-              }
-            />
-
-            <Route
-              path="/expert-standby"
-              element={
-                <ManagementRoute>
-                  <ExpertStandbyPage />
-                </ManagementRoute>
-              }
-            />
-
-            <Route
-              path="/expert-dashboard"
-              element={
-                <ManagementRoute>
-                  <ExpertDashboardPage />
-                </ManagementRoute>
-              }
-            />
-
-            <Route
-              path="/admin/manual-help-management"
-              element={
-                <AdminRoute>
-                  <AdminManualHelpManagement />
-                </AdminRoute>
-              }
-            />
-
-            <Route
-              path="/admin/paid-access"
-              element={
-                <AdminRoute>
-                  <AdminPaidAccess />
-                </AdminRoute>
-              }
-            />
-
-            <Route
-              path="/admin/users"
-              element={
-                <AdminRoute>
-                  <AdminUsers />
-                </AdminRoute>
-              }
-            />
-
-            <Route
-              path="/admin/expert-role-requests"
-              element={
-                <AdminRoute>
-                  <AdminExpertRoleRequests />
-                </AdminRoute>
-              }
-            />
-
             <Route
               path="/my-requests"
               element={
@@ -193,12 +126,79 @@ function App() {
               }
             />
 
+            {/* Expert Routes */}
+            <Route
+              path="/manual-help-management"
+              element={
+                <ManagementRoute>
+                  <ManualHelpManagement />
+                </ManagementRoute>
+              }
+            />
+            <Route
+              path="/expert-standby"
+              element={
+                <ManagementRoute>
+                  <ExpertStandbyPage />
+                </ManagementRoute>
+              }
+            />
+            <Route
+              path="/expert-dashboard"
+              element={
+                <ManagementRoute>
+                  <ExpertDashboardPage />
+                </ManagementRoute>
+              }
+            />
             <Route
               path="/my-requests/new"
               element={
                 <NonAdminAuthenticatedRoute>
                   <MyRoleRequestCreate />
                 </NonAdminAuthenticatedRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin/tools"
+              element={
+                <AdminRoute>
+                  <AdminTools />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/manual-help-management"
+              element={
+                <AdminRoute>
+                  <AdminExpertAssignment />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/paid-access"
+              element={
+                <AdminRoute>
+                  <AdminPayments />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/expert-role-requests"
+              element={
+                <AdminRoute>
+                  <AdminExpertRoleRequests />
+                </AdminRoute>
               }
             />
 
@@ -226,7 +226,7 @@ function App() {
               />
             </Routes>
           )}
-          </main>
+        </main>
 
         <Toaster position="bottom-right" />
 

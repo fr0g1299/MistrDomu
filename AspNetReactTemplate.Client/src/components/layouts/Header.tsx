@@ -96,8 +96,8 @@ export default function Header({ onNavigateHome }: HeaderProps) {
           key: "tools",
           label: "Nástroje",
           icon: <Wrench className="h-4 w-4" />,
-          to: "/tools-management",
-          isActive: activePath.startsWith("/tools-management"),
+          to: "/admin/tools",
+          isActive: activePath.startsWith("/admin/tools"),
         },
         {
           key: "expert-assignment",

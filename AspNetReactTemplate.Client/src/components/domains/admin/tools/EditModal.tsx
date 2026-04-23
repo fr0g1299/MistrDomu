@@ -13,19 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Tool } from "@/types/tool";
 
-type EditToolModalProps = {
+type EditModalProps = {
   isOpen: boolean;
   tool: Tool | null;
   onClose: () => void;
   onSave: (updatedTool: Tool) => Promise<void>;
 };
 
-export function EditToolModal({
-  isOpen,
-  tool,
-  onClose,
-  onSave,
-}: EditToolModalProps) {
+export function EditModal({ isOpen, tool, onClose, onSave }: EditModalProps) {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [note, setNote] = useState("");

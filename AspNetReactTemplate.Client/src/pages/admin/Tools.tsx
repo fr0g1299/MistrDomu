@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import { useTools } from "@/hooks/useTools";
-import { EditToolModal } from "@/components/domains/tool/EditToolModal";
+import { EditModal } from "@/components/domains/admin/tools/EditModal";
 import { Tool, ToolWithManuals } from "@/types/tool";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Import local table logic
-import { DataTable } from "../components/ui/data-table";
-import { getColumns } from "../components/ui/columns";
+import { DataTable } from "../../components/ui/data-table";
+import { getColumns } from "../../components/ui/columns";
 
-export default function ToolsManagement() {
+export default function AdminTools() {
   const { tools, loading, error, refetch } = useTools();
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,7 +72,7 @@ export default function ToolsManagement() {
           </CardContent>
         </Card>
 
-        <EditToolModal
+        <EditModal
           isOpen={isModalOpen}
           tool={selectedTool}
           onClose={() => setIsModalOpen(false)}

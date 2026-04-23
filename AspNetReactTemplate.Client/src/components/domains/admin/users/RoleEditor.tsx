@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Role } from "@/types/auth";
 
-type AdminUserRoleEditorProps = {
+type RoleEditorProps = {
   userId: number;
   draftRole: Role;
   editableRoles: readonly Role[];
@@ -18,13 +18,13 @@ type AdminUserRoleEditorProps = {
   disabled?: boolean;
 };
 
-export default function AdminUserRoleEditor({
+export default function RoleEditor({
   userId,
   draftRole,
   editableRoles,
   onDraftRoleChange,
   disabled = false,
-}: AdminUserRoleEditorProps) {
+}: RoleEditorProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
