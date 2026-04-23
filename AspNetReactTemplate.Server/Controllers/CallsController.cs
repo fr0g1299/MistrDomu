@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using AspNetReactTemplate.Server.Data;
+using AspNetReactTemplate.Server.Infrastracture.Identity;
 using AspNetReactTemplate.Server.Models.Calls;
 using AspNetReactTemplate.Server.Models.DTOs.Calls;
-using AspNetReactTemplate.Server.Models.Identity.Enums;
 using AspNetReactTemplate.Server.Services.Abstraction.Calls;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,27 +11,29 @@ using Microsoft.EntityFrameworkCore;
 namespace AspNetReactTemplate.Server.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
 [Route("api/[controller]")]
 public class CallsController : ControllerBase
 {
     public sealed record WaitingSessionRequest(Guid SessionToken);
-
+    private static readonly TimeSpan StaleWaitingFallbackDuration = TimeSpan.FromMinutes(5);
     private readonly AppDbContext _context;
     private readonly ICallPresenceService _presenceService;
+    private readonly IAuthorizationService _authorizationService;
 
     public CallsController(
         AppDbContext context,
-        ICallPresenceService presenceService)
+        ICallPresenceService presenceService,
+        IAuthorizationService authorizationService)
     {
         _context = context;
         _presenceService = presenceService;
+        _authorizationService = authorizationService;
     }
 
     [HttpGet("manual/{manualId:int}/available-experts")]
     public async Task<ActionResult<IEnumerable<object>>> GetAvailableExpertsForManual(int manualId)
     {
-        // Get all experts assigned to this manual
         var experts = await _context.ExpertManualHelps
             .AsNoTracking()
             .Where(h => h.ManualId == manualId)
@@ -42,10 +44,8 @@ public class CallsController : ControllerBase
             })
             .ToListAsync();
 
-        // Get all experts currently waiting globally
         var waitingExpertIds = _presenceService.GetWaitingExpertIds();
 
-        // Filter to only those waiting AND assigned to this manual
         var availableExperts = experts
             .Where(e => waitingExpertIds.Contains(e.ExpertId))
             .Select(e => new
@@ -81,7 +81,6 @@ public class CallsController : ControllerBase
             return NotFound("Návod nebyl nalezen.");
         }
 
-        // Get experts assigned to this manual
         var experts = await _context.ExpertManualHelps
             .AsNoTracking()
             .Where(h => h.ManualId == manualId)
@@ -97,7 +96,6 @@ public class CallsController : ControllerBase
             return NotFound("Pro tento návod není přiřazen žádný odborník.");
         }
 
-        // Get globally waiting experts and filter to those assigned to this manual
         var waitingExpertIds = _presenceService.GetWaitingExpertIds();
         var selectedExpert = experts.FirstOrDefault(e => waitingExpertIds.Contains(e.ExpertId));
 
@@ -141,7 +139,7 @@ public class CallsController : ControllerBase
         });
     }
 
-    [Authorize(Roles = nameof(Roles.Expert))]
+    [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
     [HttpPost("waiting/start")]
     public async Task<ActionResult<object>> StartWaiting()
     {
@@ -151,7 +149,6 @@ public class CallsController : ControllerBase
             return Unauthorized();
         }
 
-        // Check if expert has any assigned manuals
         var hasAssignments = await _context.ExpertManualHelps
             .AsNoTracking()
             .AnyAsync(h => h.ExpertId == expertId.Value);
@@ -161,8 +158,24 @@ public class CallsController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, "Nemáte přiřazen žádný návod.");
         }
 
+        var hasActiveWaitingSession = _presenceService.TryGetWaitingSession(expertId.Value, out _, out _);
+
         var openLog = await _context.ExpertWaitingLogs
             .FirstOrDefaultAsync(x => x.ExpertUserId == expertId.Value && x.EndedAtUtc == null);
+
+        if (openLog is not null && !hasActiveWaitingSession)
+        {
+            var fallbackEndedAt = openLog.StartedAtUtc.Add(StaleWaitingFallbackDuration);
+            if (fallbackEndedAt > DateTimeOffset.UtcNow)
+            {
+                fallbackEndedAt = DateTimeOffset.UtcNow;
+            }
+
+            openLog.EndedAtUtc = fallbackEndedAt;
+            openLog.DurationSeconds = Math.Max(1, (int)(fallbackEndedAt - openLog.StartedAtUtc).TotalSeconds);
+            await _context.SaveChangesAsync();
+            openLog = null;
+        }
 
         if (openLog is null)
         {
@@ -181,7 +194,7 @@ public class CallsController : ControllerBase
         return Ok(new { sessionToken });
     }
 
-    [Authorize(Roles = nameof(Roles.Expert))]
+    [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
     [HttpPost("waiting/heartbeat")]
     public ActionResult HeartbeatWaiting([FromBody] WaitingSessionRequest? request)
     {
@@ -207,7 +220,7 @@ public class CallsController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Roles = nameof(Roles.Expert))]
+    [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
     [HttpPost("waiting/stop")]
     public async Task<ActionResult> StopWaiting([FromBody] WaitingSessionRequest? request)
     {
@@ -225,6 +238,28 @@ public class CallsController : ControllerBase
         var stopped = _presenceService.StopWaiting(expertId.Value, request.SessionToken);
         if (!stopped)
         {
+            var stillWaiting = _presenceService.TryGetWaitingSession(expertId.Value, out _, out _);
+            if (!stillWaiting)
+            {
+                var staleOpenLog = await _context.ExpertWaitingLogs
+                    .Where(x => x.ExpertUserId == expertId.Value && x.EndedAtUtc == null)
+                    .OrderByDescending(x => x.StartedAtUtc)
+                    .FirstOrDefaultAsync();
+
+                if (staleOpenLog is not null)
+                {
+                    var fallbackEndedAt = staleOpenLog.StartedAtUtc.Add(StaleWaitingFallbackDuration);
+                    if (fallbackEndedAt > DateTimeOffset.UtcNow)
+                    {
+                        fallbackEndedAt = DateTimeOffset.UtcNow;
+                    }
+
+                    staleOpenLog.EndedAtUtc = fallbackEndedAt;
+                    staleOpenLog.DurationSeconds = Math.Max(1, (int)(fallbackEndedAt - staleOpenLog.StartedAtUtc).TotalSeconds);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             return Conflict("Čekající session neodpovídá aktuálnímu stavu.");
         }
 
@@ -244,7 +279,7 @@ public class CallsController : ControllerBase
         return Ok();
     }
 
-    [Authorize(Roles = nameof(Roles.Expert))]
+    [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
     [HttpGet("waiting/status")]
     public ActionResult<object> GetWaitingStatus()
     {
@@ -274,7 +309,7 @@ public class CallsController : ControllerBase
         });
     }
 
-    [Authorize(Roles = nameof(Roles.Expert))]
+    [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
     [HttpGet("waiting/next")]
     public ActionResult<object> GetNextWaitingCall()
     {
@@ -301,7 +336,7 @@ public class CallsController : ControllerBase
         });
     }
 
-    [Authorize(Roles = nameof(Roles.Expert))]
+    [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
     [HttpPost("session/start")]
     public async Task<ActionResult> StartCallSession(
         [FromBody] CallSessionStartRequestDto request,
@@ -325,7 +360,7 @@ public class CallsController : ControllerBase
         }
     }
 
-    [Authorize(Roles = nameof(Roles.Expert))]
+    [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
     [HttpPost("session/stop")]
     public async Task<ActionResult> StopCallSession(
         [FromBody] CallSessionStopRequestDto request,
@@ -406,6 +441,115 @@ public class CallsController : ControllerBase
 
         await _context.SaveChangesAsync();
         return Ok();
+    }
+
+    [HttpGet("report/expert/{expertId:int}/calls")]
+    public async Task<ActionResult<int>> GetNumberOfCallsByExpertAsync(
+        int expertId,
+        [FromServices] ICallSessionReportService callSessionReportService,
+        CancellationToken cancellationToken)
+    {
+        var authorization = await _authorizationService.AuthorizeAsync(User, expertId, AuthorizationPolicies.AdminOrSelfExpert);
+        if (!authorization.Succeeded)
+        {
+            return Forbid();
+        }
+
+        var numberOfCalls = await callSessionReportService.GetNumberOfCallsByExpertAsync(expertId, cancellationToken);
+        return Ok(numberOfCalls);
+    }
+
+    [HttpGet("report/expert/{expertId:int}/manual/{manualId:int}/calls")]
+    public async Task<ActionResult<int>> GetTotalCallsByExpertForManualAsync(
+        int expertId,
+        int manualId,
+        [FromServices] ICallSessionReportService callSessionReportService,
+        CancellationToken cancellationToken)
+    {
+        var authorization = await _authorizationService.AuthorizeAsync(User, expertId, AuthorizationPolicies.AdminOrSelfExpert);
+        if (!authorization.Succeeded)
+        {
+            return Forbid();
+        }
+
+        var totalCalls = await callSessionReportService.GetTotalCallsByExpertForManualAsync(expertId, manualId, cancellationToken);
+        return Ok(totalCalls);
+    }
+
+    [HttpGet("report/expert/{expertId:int}/online-seconds")]
+    public async Task<ActionResult<int>> GetTotalOnlineSecondsByExpertAsync(
+        int expertId,
+        CancellationToken cancellationToken)
+    {
+        var authorization = await _authorizationService.AuthorizeAsync(User, expertId, AuthorizationPolicies.AdminOrSelfExpert);
+        if (!authorization.Succeeded)
+        {
+            return Forbid();
+        }
+
+        var closedSessionsSeconds = await _context.ExpertWaitingLogs
+            .AsNoTracking()
+            .Where(x => x.ExpertUserId == expertId && x.EndedAtUtc != null)
+            .SumAsync(x => x.DurationSeconds, cancellationToken);
+
+        var liveSessionSeconds = 0;
+        if (_presenceService.TryGetWaitingSession(expertId, out var waitingSinceUtc, out _))
+        {
+            liveSessionSeconds = Math.Max(0, (int)(DateTimeOffset.UtcNow - waitingSinceUtc).TotalSeconds);
+        }
+
+        return Ok(closedSessionsSeconds + liveSessionSeconds);
+    }
+
+    [HttpGet("report/expert/{expertId:int}/manual-call-details")]
+    public async Task<ActionResult<IEnumerable<object>>> GetManualCallDetailsByExpertAsync(
+        int expertId,
+        CancellationToken cancellationToken)
+    {
+        var authorization = await _authorizationService.AuthorizeAsync(User, expertId, AuthorizationPolicies.AdminOrSelfExpert);
+        if (!authorization.Succeeded)
+        {
+            return Forbid();
+        }
+
+        var callsByManual = await _context.ManualCallLogs
+            .AsNoTracking()
+            .Where(x => x.ParticipantUserId == expertId)
+            .Join(
+                _context.Manuals.AsNoTracking(),
+                call => call.ManualId,
+                manual => manual.Id,
+                (call, manual) => new
+                {
+                    call.ManualId,
+                    ManualTitle = manual.Title,
+                    call.RoomName,
+                    call.DurationSeconds,
+                    call.LoggedAtUtc,
+                    call.CounterpartyUserId,
+                })
+            .OrderByDescending(x => x.LoggedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        var result = callsByManual
+            .GroupBy(x => new { x.ManualId, x.ManualTitle })
+            .Select(group => new
+            {
+                manualId = group.Key.ManualId,
+                manualTitle = group.Key.ManualTitle,
+                callsCount = group.Count(),
+                calls = group.Select(call => new
+                {
+                    roomName = call.RoomName,
+                    durationSeconds = call.DurationSeconds,
+                    loggedAtUtc = call.LoggedAtUtc,
+                    counterpartyUserId = call.CounterpartyUserId,
+                })
+            })
+            .OrderByDescending(x => x.callsCount)
+            .ToList();
+
+        return Ok(result);
     }
 
     private int? GetCurrentUserId()

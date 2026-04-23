@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  BarChart3,
   BookOpen,
   ClipboardList,
   PhoneCall,
@@ -132,6 +133,17 @@ export default function Header({ onNavigateHome }: HeaderProps) {
 
     if (isExpert) {
       return [
+        ...(showExpertStandbyNav
+          ? [
+              {
+                key: "expert-standby",
+                label: "Čekání na hovory",
+                icon: <PhoneCall className="h-4 w-4" />,
+                to: "/expert-standby",
+                isActive: activePath.startsWith("/expert-standby"),
+              },
+            ]
+          : []),
         {
           key: "my-manuals",
           label: "Mé návody",
@@ -139,11 +151,18 @@ export default function Header({ onNavigateHome }: HeaderProps) {
           to: "/manual-help-management",
           isActive: activePath.startsWith("/manual-help-management"),
         },
+        {
+          key: "expert-dashboard",
+          label: "Přehled",
+          icon: <BarChart3 className="h-4 w-4" />,
+          to: "/expert-dashboard",
+          isActive: activePath.startsWith("/expert-dashboard"),
+        },
       ];
     }
 
     return [];
-  }, [activePath, isAdmin, isExpert, pendingExpertRequestCount]);
+  }, [activePath, isAdmin, isExpert, pendingExpertRequestCount, showExpertStandbyNav]);
 
   return (
     <header className="border-b border-border/40 sticky top-0 z-50 bg-background/80 backdrop-blur-md p-4 md:px-8 2xl:px-14 transition-all shadow-sm">
@@ -181,24 +200,6 @@ export default function Header({ onNavigateHome }: HeaderProps) {
             </div>
           )}
 
-          {showExpertStandbyNav && (
-            <Button
-              asChild
-              variant="ghost"
-              className={cn(
-                navButtonClass,
-                activePath.startsWith("/expert-standby") &&
-                  "bg-accent text-accent-foreground",
-              )}
-            >
-              <Link to="/expert-standby">
-                <PhoneCall className="h-4 w-4" />
-                <span className="hidden md:inline lg:hidden">Hovory</span>
-                <span className="hidden lg:inline">Čekání na hovory</span>
-              </Link>
-            </Button>
-          )}
-
           <HeaderManagementActions
             actions={managementActions}
             pendingExpertRequestCount={pendingExpertRequestCount}
@@ -210,6 +211,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
             <HeaderAccountSection
               isAuthenticated={isAuthenticated}
               isAdmin={isAdmin}
+              isExpert={isExpert}
               isLoggingOut={isLoggingOut}
               user={user ?? undefined}
               initials={initials}

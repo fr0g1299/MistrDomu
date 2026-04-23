@@ -25,6 +25,7 @@ import MyRoleRequestCreate from "./pages/MyRoleRequestCreate";
 import MyRoleRequestDetail from "./pages/MyRoleRequestDetail";
 import ExpertOnboardingPage from "./pages/ExpertOnboardingPage";
 import ExpertStandbyPage from "./pages/ExpertStandbyPage";
+import ExpertDashboardPage from "./pages/ExpertDashboardPage";
 import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 import { Toaster } from "./components/ui/sonner";
@@ -134,6 +135,15 @@ function App() {
               element={
                 <ManagementRoute>
                   <ExpertStandbyPage />
+                </ManagementRoute>
+              }
+            />
+
+            <Route
+              path="/expert-dashboard"
+              element={
+                <ManagementRoute>
+                  <ExpertDashboardPage />
                 </ManagementRoute>
               }
             />

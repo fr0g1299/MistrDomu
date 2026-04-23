@@ -81,6 +81,20 @@ export type CallSessionStopRequest = {
   roomName: string;
 };
 
+export type ExpertManualCallRecordRead = {
+  roomName: string;
+  durationSeconds: number;
+  loggedAtUtc: string;
+  counterpartyUserId: number;
+};
+
+export type ExpertManualCallDetailRead = {
+  manualId: number;
+  manualTitle: string;
+  callsCount: number;
+  calls: ExpertManualCallRecordRead[];
+};
+
 const API_BASE_URL = "/api";
 const WAITING_SESSION_TOKEN_STORAGE_KEY = "expert-waiting-session-token";
 const WAITING_SESSION_TOKEN_HEADER = "X-Waiting-Session-Token";
@@ -735,5 +749,32 @@ export const apiService = {
       const text = await response.text();
       throw new Error(text || `Request failed (${response.status})`);
     }
+  },
+
+  async getTotalCallsByExpert(expertId: number): Promise<number> {
+    return requestJson<number>(`/calls/report/expert/${expertId}/calls`);
+  },
+
+  async getTotalCallsByExpertForManual(
+    expertId: number,
+    manualId: number,
+  ): Promise<number> {
+    return requestJson<number>(
+      `/calls/report/expert/${expertId}/manual/${manualId}/calls`,
+    );
+  },
+
+  async getTotalOnlineSecondsByExpert(expertId: number): Promise<number> {
+    return requestJson<number>(
+      `/calls/report/expert/${expertId}/online-seconds`,
+    );
+  },
+
+  async getManualCallDetailsByExpert(
+    expertId: number,
+  ): Promise<ExpertManualCallDetailRead[]> {
+    return requestJson<ExpertManualCallDetailRead[]>(
+      `/calls/report/expert/${expertId}/manual-call-details`,
+    );
   },
 };

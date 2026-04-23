@@ -19,6 +19,7 @@ import type { NotificationListItem } from "@/types/notification";
 type HeaderAccountSectionProps = {
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isExpert: boolean;
   isLoggingOut: boolean;
   user?: User | null;
   initials: string;
@@ -37,6 +38,7 @@ type HeaderAccountSectionProps = {
 export default function HeaderAccountSection({
   isAuthenticated,
   isAdmin,
+  isExpert,
   isLoggingOut,
   user,
   initials,
@@ -51,6 +53,9 @@ export default function HeaderAccountSection({
   onLogout,
   onLoginSuccess,
 }: HeaderAccountSectionProps) {
+  const roleLabel = isAdmin ? "Admin" : isExpert ? "Expert" : "User";
+  const showRoleBadge = isAdmin || isExpert;
+
   if (!isAuthenticated) {
     return (
       <div className="inline-flex">
@@ -168,8 +173,18 @@ export default function HeaderAccountSection({
             className="relative h-10 rounded-full px-2 md:px-3 focus-visible:ring-0 select-none flex items-center gap-2"
             disabled={isLoggingOut}
           >
-            <span className="hidden md:inline text-sm font-medium text-foreground max-w-60 overflow-hidden text-ellipsis whitespace-nowrap">
-              {user?.firstName} {user?.lastName}
+            <span className="hidden md:inline-flex items-center gap-2 max-w-60 overflow-hidden whitespace-nowrap">
+              <span className="text-sm font-medium text-foreground overflow-hidden text-ellipsis">
+                {user?.firstName} {user?.lastName}
+              </span>
+              {showRoleBadge && (
+                <Badge
+                  variant="secondary"
+                  className="h-5 rounded-full border-primary/20 bg-primary/10 px-2 py-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
+                >
+                  {roleLabel}
+                </Badge>
+              )}
             </span>
             <Avatar className="h-10 w-10 border border-accent/20">
               <AvatarFallback className="bg-primary text-primary-foreground text-xs">
@@ -182,7 +197,17 @@ export default function HeaderAccountSection({
         <DropdownMenuContent className="w-56" align="end" sideOffset={10}>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">Můj účet</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium leading-none">Můj účet</p>
+                {showRoleBadge && (
+                  <Badge
+                    variant="secondary"
+                    className="h-5 rounded-full border-primary/20 bg-primary/10 px-2 py-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
+                  >
+                    {roleLabel}
+                  </Badge>
+                )}
+              </div>
               <p className="text-xs leading-none text-muted-foreground truncate">
                 {user?.email}
               </p>

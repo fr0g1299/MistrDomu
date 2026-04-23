@@ -53,6 +53,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IDailyPrebuiltService, DailyPrebuiltService>();
         services.AddScoped<ICallSessionLogService, CallSessionLogService>();
+        services.AddScoped<ICallSessionReportService, CallReportService>();
         services.AddSingleton<ICallPresenceService, CallPresenceService>();
 
         services.AddHttpContextAccessor();

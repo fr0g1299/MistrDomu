@@ -7,10 +7,13 @@ public class CallPresenceService : ICallPresenceService
 {
     // frontend posílá heartbeat každých 10s = 50s rezerva kvůli případným výpadkům sítě/zpožděním kvůli throttlingu 
     private static readonly TimeSpan WaitingTtl = TimeSpan.FromSeconds(60);
+    // aktivní call session bude považována za platnou po dobu 30 minut od startu
     private static readonly TimeSpan CallSessionTtl = TimeSpan.FromMinutes(30);
-    // Keep waiting session state longer than visibility TTL to survive transient heartbeat drops.
+    // po tuto dobu budeme uchovávat waiting session i bez heartbeatů, aby se mohl expert znovu přihlásit a navázat na stejnou session (např. po pádu prohlížeče nebo dočasném výpadku sítě)
     private static readonly TimeSpan WaitingSessionRetentionTtl = TimeSpan.FromMinutes(5);
+    // po tuto dobu bude pozbánky ke callu platná
     private static readonly TimeSpan InvitationTtl = TimeSpan.FromMinutes(2);
+    // 5s interval jako throttling pro aktualizaci heartbeatu
     private static readonly TimeSpan HeartBeatTouchTtl = TimeSpan.FromSeconds(5);
 
     private class ExpertState
@@ -159,21 +162,6 @@ public class CallPresenceService : ICallPresenceService
         }
     }
 
-    private void CleanupExpiredCalls()
-    {
-        var now = DateTimeOffset.UtcNow;
-
-        foreach (var (expertId, state) in _waitingExperts.ToList())
-        {
-            if (state.IsInCall && state.CallStartedAtUtc.HasValue && now - state.CallStartedAtUtc.Value > CallSessionTtl)
-            {
-                state.IsInCall = false;
-                state.CallSessionToken = Guid.Empty;
-                state.CallStartedAtUtc = null;
-            }
-        }
-    }
-
     public Guid StartCallSession(int expertId, int manualId, int counterpartyUserId)
     {
         CleanupExpiredCalls();
@@ -265,5 +253,20 @@ public class CallPresenceService : ICallPresenceService
         callManualId = 0;
         callCounterpartyUserId = 0;
         return false;
+    }
+
+    private void CleanupExpiredCalls()
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var (expertId, state) in _waitingExperts.ToList())
+        {
+            if (state.IsInCall && state.CallStartedAtUtc.HasValue && now - state.CallStartedAtUtc.Value > CallSessionTtl)
+            {
+                state.IsInCall = false;
+                state.CallSessionToken = Guid.Empty;
+                state.CallStartedAtUtc = null;
+            }
+        }
     }
 }
