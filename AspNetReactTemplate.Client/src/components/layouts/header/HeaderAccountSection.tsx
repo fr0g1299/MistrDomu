@@ -77,9 +77,9 @@ export default function HeaderAccountSection({
             className="relative h-10 w-10 rounded-full p-0 focus-visible:ring-0"
             aria-label="Inbox notifikaci"
           >
-            <Bell className="h-4 w-4" />
+            <Bell className="size-5" />
             {unreadCount > 0 && (
-              <Badge className="absolute -right-1 -top-1 h-5 min-w-5 justify-center px-1 py-0 text-[10px] leading-none">
+              <Badge className="absolute -right-1 -top-1 h-4.5 min-w-4.5 justify-center px-1 py-0 text-[12px] leading-none font-extrabold">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </Badge>
             )}
@@ -174,19 +174,20 @@ export default function HeaderAccountSection({
             disabled={isLoggingOut}
           >
             <span className="hidden md:inline-flex items-center gap-2 max-w-60 overflow-hidden whitespace-nowrap">
-              <span className="text-sm font-medium text-foreground overflow-hidden text-ellipsis">
-                {user?.firstName} {user?.lastName}
-              </span>
-              {showRoleBadge && (
+              {/* TODO: IDK about this, maybe uncomment later */}
+              {/* {showRoleBadge && (
                 <Badge
                   variant="secondary"
-                  className="h-5 rounded-full border-primary/20 bg-primary/10 px-2 py-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
+                  className="hidden lg:flex h-5 rounded-full border-primary/20 bg-primary/10 px-2 py-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-primary"
                 >
                   {roleLabel}
                 </Badge>
-              )}
+              )} */}
+              <span className="text-sm font-medium text-foreground overflow-hidden text-ellipsis">
+                {user?.firstName} {user?.lastName}
+              </span>
             </span>
-            <Avatar className="h-10 w-10 border border-accent/20">
+            <Avatar className="h-8 w-8 border border-accent/20">
               <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                 {initials}
               </AvatarFallback>
