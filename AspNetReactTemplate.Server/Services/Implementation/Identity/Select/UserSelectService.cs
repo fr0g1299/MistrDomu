@@ -284,4 +284,51 @@ public class UserSelectService : IUserSelectService
                 : 0;
         }
     }
+    public async Task<User?> SelectAsync(int id, bool trackable = false)
+    {
+        var query = _dbContext.Users.AsQueryable();
+        if (!trackable)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query.FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<IList<User>> GetUsersByRoles(IList<string> roles, int? companyId = null)
+    {
+        if (roles.Count == 0)
+        {
+            return new List<User>();
+        }
+
+        var normalizedRoles = roles
+            .Where(role => !string.IsNullOrWhiteSpace(role))
+            .Select(role => role.Trim().ToUpperInvariant())
+            .Distinct()
+            .ToList();
+
+        if (normalizedRoles.Count == 0)
+        {
+            return new List<User>();
+        }
+
+        var roleIds = await _dbContext.Roles
+            .Where(role => role.NormalizedName != null && normalizedRoles.Contains(role.NormalizedName))
+            .Select(role => role.Id)
+            .ToListAsync();
+
+        if (roleIds.Count == 0)
+        {
+            return new List<User>();
+        }
+
+        var result = await _dbContext.Users
+            .AsNoTracking()
+            .Where(user => _dbContext.UserRoles.Any(userRole => userRole.UserId == user.Id && roleIds.Contains(userRole.RoleId)))
+            .ToListAsync();
+
+        return result;
+    }
+
 }

@@ -5,6 +5,8 @@ using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Models.Calls;
 using AspNetReactTemplate.Server.Models.Manuals;
 using AspNetReactTemplate.Server.Models.Identity;
+using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 using Microsoft.AspNetCore.Identity;
 
 namespace AspNetReactTemplate.Server.Data
@@ -31,6 +33,9 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<ManualCallLog> ManualCallLogs { get; set; }
         public DbSet<ExpertWaitingLog> ExpertWaitingLogs { get; set; }
+        public DbSet<EmailTemplate> EmailTemplates { get; set; }
+        public DbSet<EmailSetting> EmailSettings { get; set; }
+        public DbSet<EmailOutboxMessage> EmailOutboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -51,6 +56,8 @@ namespace AspNetReactTemplate.Server.Data
                 .HasMany(m => m.Steps)
                 .WithOne(s => s.Manual)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EmailTemplate>().HasData(EmailTemplateInit.GetTemplates());
 
             modelBuilder.Entity<Manual>()
                 .HasMany(m => m.Tools)
@@ -136,6 +143,20 @@ namespace AspNetReactTemplate.Server.Data
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EmailOutboxMessage>()
+                .Property(x => x.Status)
+                .HasConversion<string>()
+                .HasMaxLength(32);
+
+            modelBuilder.Entity<EmailOutboxMessage>()
+                .HasIndex(x => new { x.Status, x.NextAttemptAtUtc, x.CreatedAtUtc });
+
+            modelBuilder.Entity<EmailOutboxMessage>()
+                .HasIndex(x => new { x.Status, x.ProcessingStartedAtUtc });
+            
+            modelBuilder.Entity<EmailOutboxMessage>()
+                .HasIndex(x => new { x.Status, x.SentAtUtc });
 
             modelBuilder.Entity<ManualCallLog>()
                 .HasOne(log => log.ParticipantUser)

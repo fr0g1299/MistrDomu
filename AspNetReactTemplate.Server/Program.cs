@@ -1,10 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 using AspNetReactTemplate.Server.Models.Identity.Enums;
 using AspNetReactTemplate.Server.Services.Abstraction.Calls;
 using DotNetEnv;
-
+using Microsoft.EntityFrameworkCore;
 
 LoadEnvFile();
 
@@ -34,6 +33,7 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while migrating the database or loading settings.");
+        throw;
     }
 }
 app.UseAuthentication();
@@ -60,7 +60,6 @@ app.Use(async (context, next) =>
 });
 app.UseDefaultFiles();
 app.UseStaticFiles();
-app.UseHttpsRedirection();
 app.MapControllers();
 app.MapFallbackToFile("/index.html");
 

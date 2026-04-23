@@ -17,13 +17,14 @@ using AspNetReactTemplate.Server.Services.Abstraction.Payments;
 using AspNetReactTemplate.Server.Services.Implementation.Payments;
 using AspNetReactTemplate.Server.Services.Abstraction.Steps;
 using AspNetReactTemplate.Server.Services.Implementation.Steps;
-using AspNetReactTemplate.Server.Services.Abstraction.Identity.RoleRequest;
-using AspNetReactTemplate.Server.Services.Implementation.Identity.RoleRequest;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 
 using AspNetReactTemplate.Server.Services.Abstraction.Calls;
+using AspNetReactTemplate.Server.Services.Abstraction.Identity.Requests;
+using AspNetReactTemplate.Server.Services.Implementation.BackgroundServices.Workers;
 using AspNetReactTemplate.Server.Services.Implementation.Calls;
+using AspNetReactTemplate.Server.Services.Implementation.Identity.Requests;
 
 namespace AspNetReactTemplate.Server.Extensions.ServicesRegistration;
 
@@ -48,13 +49,18 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IExpertManualHelpCommandService, ExpertManualHelpCommandService>();
         services.AddScoped<IExpertManualHelpQueryService, ExpertManualHelpQueryService>();
         services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+        services.AddScoped<IUserContactIdentityService, UserContactIdentityService>();
         services.AddScoped<IUserRoleRequestService, UserRoleRequestService>();
         services.AddScoped<IAdminRoleRequestService, AdminRoleRequestService>();
+        services.AddScoped<IRoleRequestNotificationService, RoleRequestNotificationService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IEmailAppService, EmailService>();
+        services.AddScoped<IEmailNotificationService, EmailNotificationServices>();
         services.AddScoped<IDailyPrebuiltService, DailyPrebuiltService>();
         services.AddScoped<ICallSessionLogService, CallSessionLogService>();
         services.AddScoped<ICallSessionReportService, CallReportService>();
         services.AddSingleton<ICallPresenceService, CallPresenceService>();
+        services.AddHostedService<EmailQueueWorker>();
 
         services.AddHttpContextAccessor();
         services.AddHttpClient();

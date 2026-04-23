@@ -4,13 +4,12 @@ using AspNetReactTemplate.Server.Models.DTOs.System;
 using AspNetReactTemplate.Server.Models.Identity;
 using AspNetReactTemplate.Server.Models.Identity.Enums;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity;
-using AspNetReactTemplate.Server.Services.Abstraction.Identity.RoleRequest;
-using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
+using AspNetReactTemplate.Server.Services.Abstraction.Identity.Requests;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using IdentityRoleRequest = AspNetReactTemplate.Server.Models.Identity.RoleRequest;
 
-namespace AspNetReactTemplate.Server.Services.Implementation.Identity.RoleRequest;
+namespace AspNetReactTemplate.Server.Services.Implementation.Identity.Requests;
 
 public class UserRoleRequestService : IUserRoleRequestService
 {
@@ -24,18 +23,18 @@ public class UserRoleRequestService : IUserRoleRequestService
     private readonly AppDbContext _dbContext;
     private readonly UserManager<User> _userManager;
     private readonly ICurrentUserAccessor _currentUserAccessor;
-    private readonly INotificationService _notificationService;
+    private readonly IRoleRequestNotificationService _roleRequestNotificationService;
 
     public UserRoleRequestService(
         AppDbContext dbContext,
         UserManager<User> userManager,
         ICurrentUserAccessor currentUserAccessor,
-        INotificationService notificationService)
+        IRoleRequestNotificationService roleRequestNotificationService)
     {
         _dbContext = dbContext;
         _userManager = userManager;
         _currentUserAccessor = currentUserAccessor;
-        _notificationService = notificationService;
+        _roleRequestNotificationService = roleRequestNotificationService;
     }
 
     public async Task<ServiceResultDto<RoleRequestSummaryDto>> CreateExpertRequestAsync()
@@ -94,7 +93,7 @@ public class UserRoleRequestService : IUserRoleRequestService
         _dbContext.RoleRequests.Add(request);
         await _dbContext.SaveChangesAsync();
 
-        await NotifyAdminsAboutNewRequestAsync(currentUser);
+        await _roleRequestNotificationService.NotifyNewRequestAsync(currentUser, request.UserNote);
 
         return ServiceResultDto<RoleRequestSummaryDto>.Success(MapSummary(request));
     }
@@ -247,29 +246,5 @@ public class UserRoleRequestService : IUserRoleRequestService
                value.Equals(Roles.Expert.ToString(), StringComparison.OrdinalIgnoreCase)
             ? Roles.Expert.ToString()
             : null;
-    }
-
-
-    private async Task NotifyAdminsAboutNewRequestAsync(User currentUser)
-    {
-        var admins = await _userManager.GetUsersInRoleAsync(Roles.Admin.ToString());
-        var adminIds = admins.Select(x => x.Id).ToList();
-        if (adminIds.Count == 0)
-        {
-            return;
-        }
-
-        var displayName = string.Join(" ", new[] { currentUser.FirstName, currentUser.LastName }
-            .Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
-        if (string.IsNullOrWhiteSpace(displayName))
-        {
-            displayName = currentUser.UserName ?? $"Uživatel #{currentUser.Id}";
-        }
-
-        await _notificationService.CreateForUsersAsync(
-            adminIds,
-            "role_request_admin",
-            "Nová žádost o roli Expert",
-            $"{displayName} podal(a) novou žádost o roli Expert.");
     }
 }

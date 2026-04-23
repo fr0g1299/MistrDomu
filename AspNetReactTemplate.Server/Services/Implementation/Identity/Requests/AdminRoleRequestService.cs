@@ -6,14 +6,12 @@ using AspNetReactTemplate.Server.Models.Identity;
 using AspNetReactTemplate.Server.Models.Identity.Enums;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Edit;
-using AspNetReactTemplate.Server.Services.Abstraction.Identity.RoleRequest;
-using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
+using AspNetReactTemplate.Server.Services.Abstraction.Identity.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using IdentityRoleRequest = AspNetReactTemplate.Server.Models.Identity.RoleRequest;
 
-namespace AspNetReactTemplate.Server.Services.Implementation.Identity.RoleRequest;
+namespace AspNetReactTemplate.Server.Services.Implementation.Identity.Requests;
 
 public class AdminRoleRequestService : IAdminRoleRequestService
 {
@@ -27,7 +25,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
     private readonly ICurrentUserAccessor _currentUserAccessor;
     private readonly IAuthorizationService _authorizationService;
     private readonly IEditUserService _editUserService;
-    private readonly INotificationService _notificationService;
+    private readonly IRoleRequestNotificationService _roleRequestNotificationService;
 
     public AdminRoleRequestService(
         AppDbContext dbContext,
@@ -35,14 +33,14 @@ public class AdminRoleRequestService : IAdminRoleRequestService
         ICurrentUserAccessor currentUserAccessor,
         IAuthorizationService authorizationService,
         IEditUserService editUserService,
-        INotificationService notificationService)
+        IRoleRequestNotificationService roleRequestNotificationService)
     {
         _dbContext = dbContext;
         _signInManager = signInManager;
         _currentUserAccessor = currentUserAccessor;
         _authorizationService = authorizationService;
         _editUserService = editUserService;
-        _notificationService = notificationService;
+        _roleRequestNotificationService = roleRequestNotificationService;
     }
 
     public async Task<ServiceResultDto<RoleRequestAdminPageDto>> GetPendingExpertRequestsAsync(RoleRequestListQueryDto queryDto)
@@ -170,7 +168,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
         request.AdminNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
 
         await _dbContext.SaveChangesAsync();
-        await NotifyRequestUpdatedAsync(request);
+        await _roleRequestNotificationService.NotifyRequestUpdatedAsync(request);
 
         return ServiceResultDto.Success();
     }
@@ -206,7 +204,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
         request.AdminNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
 
         await _dbContext.SaveChangesAsync();
-        await NotifyRequestUpdatedAsync(request);
+        await _roleRequestNotificationService.NotifyRequestUpdatedAsync(request);
 
         return ServiceResultDto.Success();
     }
@@ -234,7 +232,7 @@ public class AdminRoleRequestService : IAdminRoleRequestService
         request.AdminNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
 
         await _dbContext.SaveChangesAsync();
-        await NotifyRequestUpdatedAsync(request);
+        await _roleRequestNotificationService.NotifyRequestUpdatedAsync(request);
 
         return ServiceResultDto.Success();
     }
@@ -246,20 +244,4 @@ public class AdminRoleRequestService : IAdminRoleRequestService
             r.RequestedRole == Roles.Expert.ToString());
     }
 
-    private async Task NotifyRequestUpdatedAsync(IdentityRoleRequest request)
-    {
-
-        var message = request.Status switch
-        {
-            RoleRequestStatus.Approved => "Tvoje žádost o roli Expert byla schválena.",
-            RoleRequestStatus.Rejected => "Tvoje žádost o roli Expert byla zamítnuta.",
-            _ => "Admin upravil tvoji žádost o roli Expert."
-        };
-
-        await _notificationService.CreateForUserAsync(
-            request.UserId,
-            "role_request",
-            "Aktualizace žádosti o roli Expert",
-            message);
-    }
 }

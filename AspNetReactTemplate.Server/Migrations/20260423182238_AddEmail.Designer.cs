@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AspNetReactTemplate.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423182238_AddEmail")]
+    partial class AddEmail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -612,11 +615,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Status", "ProcessingStartedAtUtc");
-
-                    b.HasIndex("Status", "SentAtUtc");
-
-                    b.HasIndex("Status", "NextAttemptAtUtc", "CreatedAtUtc");
+                    b.HasIndex("Status", "NextAttemptAtUtc");
 
                     b.ToTable("EmailOutboxMessages");
                 });
@@ -682,22 +681,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("EmailTemplates");
-
-                    b.HasData(
-                        new
-                        {
-                            Key = "RoleRequest.NewAdminNotification",
-                            Body = "<p>Uživatel <strong>{{DisplayName}}</strong> ({{Email}}) podal novou žádost o roli Expert.</p>\r\n{{NoteSection}}\r\n<p><strong>Počet čekajících žádostí:</strong> {{PendingCount}}</p>\r\n<p>Otevřete administraci a žádost prosím zpracujte.</p>",
-                            Id = 0,
-                            Subject = "Nová žádost o roli Expert"
-                        },
-                        new
-                        {
-                            Key = "RoleRequest.UpdatedUser",
-                            Body = "<p>Dobrý den, <strong>{{DisplayName}}</strong>,</p>\r\n<p>Stav vaší žádosti o roli Expert byl změněn na: <strong>{{Status}}</strong>.</p>\r\n{{AdminNoteSection}}",
-                            Id = 0,
-                            Subject = "Změna stavu žádosti o roli"
-                        });
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.UserCompletedStep", b =>

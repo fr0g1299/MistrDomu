@@ -34,8 +34,4 @@
     <PackageReference Include="Stripe.net" Version="51.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
 </Project>

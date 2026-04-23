@@ -1,7 +1,7 @@
 using AspNetReactTemplate.Server.Models.DTOs.Identity;
 using AspNetReactTemplate.Server.Models.DTOs.System;
 
-namespace AspNetReactTemplate.Server.Services.Abstraction.Identity.RoleRequest;
+namespace AspNetReactTemplate.Server.Services.Abstraction.Identity.Requests;
 
 public interface IUserRoleRequestService
 {
