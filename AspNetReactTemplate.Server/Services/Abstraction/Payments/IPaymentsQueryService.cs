@@ -13,6 +13,13 @@ public interface IPaymentsQueryService
     Task<PaymentStatusResult> CheckPaymentStatus(int manualId, ClaimsPrincipal user);
 
     /// <summary>
+    /// Checks the payment status for expert consultation for a specific manual.
+    /// </summary>
+    /// <param name="manualId"></param>
+    /// <returns></returns>
+    Task<PaymentStatusResult> CheckExpertConsultationPaymentStatus(int manualId, ClaimsPrincipal user);
+
+    /// <summary>
     /// Gets a list of all manuals that the user has paid for, along with their access expiration dates. This allows the frontend to display which manuals the user currently has access to and when that access will expire.
     /// </summary>
     /// <returns></returns>

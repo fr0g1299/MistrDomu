@@ -53,6 +53,28 @@ export function ExpertHelperCard({
   const [callLoading, setCallLoading] = useState(false);
   const [callError, setCallError] = useState<string | null>(null);
 
+  const [hasPaid, setHasPaid] = useState(false);
+  const [paymentCheckLoading, setPaymentCheckLoading] = useState(false);
+
+  useEffect(() => {
+    const parsedManualId = Number(manualId);
+    if (!showCallCard || !Number.isInteger(parsedManualId) || parsedManualId <= 0) return;
+
+    const checkPayment = async () => {
+      setPaymentCheckLoading(true);
+      try {
+        const res = await apiService.checkExpertConsultationPayment(parsedManualId);
+        setHasPaid(res.hasPaid);
+      } catch (err) {
+        // ignore
+      } finally {
+        setPaymentCheckLoading(false);
+      }
+    };
+
+    void checkPayment();
+  }, [manualId, showCallCard]);
+
   useEffect(() => {
     const parsedManualId = Number(manualId);
     if (
@@ -169,6 +191,26 @@ export function ExpertHelperCard({
       setCallError(
         err instanceof Error ? err.message : "Nepodařilo se zahájit hovor.",
       );
+    } finally {
+      setCallLoading(false);
+    }
+  }, [manualId]);
+
+  const handleCheckout = useCallback(async () => {
+    const parsedManualId = Number(manualId);
+    if (!Number.isInteger(parsedManualId) || parsedManualId <= 0) return;
+
+    setCallLoading(true);
+    try {
+      const result = await apiService.checkoutExpertConsultation(parsedManualId);
+      if (result.alreadyPaid) {
+        setHasPaid(true);
+        toast.success("Platbu jsme ověřili, můžete volat.");
+      } else if (result.url) {
+        window.location.href = result.url;
+      }
+    } catch (err: unknown) {
+      toast.error("Nepodařilo se přejít k platbě.");
     } finally {
       setCallLoading(false);
     }
@@ -331,24 +373,41 @@ export function ExpertHelperCard({
             Kontroluji dostupnost expertů...
           </p>
         )}
-        {availableExperts.length > 0 && (
+        {availableExperts.length > 0 && paymentCheckLoading && (
+          <p className="text-xs text-muted-foreground">
+            Ověřuji platbu...
+          </p>
+        )}
+        {availableExperts.length > 0 && !paymentCheckLoading && (
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  onClick={handleStartCall}
-                  disabled={callLoading}
-                  className="w-full"
-                >
-                  <PhoneCall className="mr-2 h-4 w-4" />
-                  {callLoading ? "Vytvářím hovor..." : "Zavolat expertovi"}
-                </Button>
+                {!hasPaid ? (
+                  <Button
+                    type="button"
+                    onClick={handleCheckout}
+                    disabled={callLoading}
+                    className="w-full"
+                  >
+                    {callLoading ? "Přesměrování..." : "Zaplatit konzultaci"}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleStartCall}
+                    disabled={callLoading}
+                    className="w-full"
+                  >
+                    <PhoneCall className="mr-2 h-4 w-4" />
+                    {callLoading ? "Vytvářím hovor..." : "Zavolat expertovi"}
+                  </Button>
+                )}
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-64 wrap-break-word">
                 <p className="text-sm">
-                  Před voláním můžete kliknutím na ikonu otazníku zjistit více
-                  informací o volání s expertem.
+                  {hasPaid
+                    ? "Před voláním můžete kliknutím na ikonu otazníku zjistit více informací o volání s expertem."
+                    : "Pro spojení s expertem je nejprve nutné uhradit konzultaci."}
                 </p>
               </TooltipContent>
             </Tooltip>

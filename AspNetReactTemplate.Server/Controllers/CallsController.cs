@@ -70,6 +70,14 @@ public class CallsController : ControllerBase
             return Unauthorized();
         }
 
+        var hasPaidForConsultation = await _context.ExpertConsultationPayments
+            .AnyAsync(p => p.UserId == callerUserId.Value && p.ManualId == manualId, cancellationToken);
+
+        if (!hasPaidForConsultation)
+        {
+            return StatusCode(StatusCodes.Status402PaymentRequired, "K zahájení hovoru s expertem je vyžadována platba.");
+        }
+
         var manualTitle = await _context.Manuals
             .AsNoTracking()
             .Where(m => m.Id == manualId)

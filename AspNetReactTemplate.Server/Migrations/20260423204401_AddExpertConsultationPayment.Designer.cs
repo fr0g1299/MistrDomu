@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AspNetReactTemplate.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423204401_AddExpertConsultationPayment")]
+    partial class AddExpertConsultationPayment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,12 +108,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         {
                             Key = "StripePriceId",
                             Description = "ID ceny ve Stripe, která se má použít pro platby. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_PRICE_ID.",
-                            Value = ""
-                        },
-                        new
-                        {
-                            Key = "StripeExpertPriceId",
-                            Description = "ID ceny ve Stripe, která se má použít pro platbu za konzultaci s expertem. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_EXPERT_PRICE_ID.",
                             Value = ""
                         });
                 });

@@ -28,6 +28,7 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<UserCompletedStep> UserCompletedSteps { get; set; }
         public DbSet<ManualPayment> ManualPayments { get; set; }
+        public DbSet<ExpertConsultationPayment> ExpertConsultationPayments { get; set; }
         public DbSet<ExpertManualHelp> ExpertManualHelps { get; set; }
         public DbSet<RoleRequest> RoleRequests { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -188,6 +189,11 @@ namespace AspNetReactTemplate.Server.Data
                 .HasIndex(p => new { p.UserId, p.ManualId })
                 .IsUnique();
 
+            // ExpertConsultationPayments: unique per (UserId, ManualId)
+            modelBuilder.Entity<ExpertConsultationPayment>()
+                .HasIndex(p => new { p.UserId, p.ManualId })
+                .IsUnique();
+
             // Seed default AppSettings rows
             modelBuilder.Entity<AppSetting>().HasData(
                 new AppSetting
@@ -219,6 +225,12 @@ namespace AspNetReactTemplate.Server.Data
                     Key = "StripePriceId",
                     Value = "",
                     Description = "ID ceny ve Stripe, která se má použít pro platby. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_PRICE_ID."
+                },
+                new AppSetting
+                {
+                    Key = "StripeExpertPriceId",
+                    Value = "",
+                    Description = "ID ceny ve Stripe, která se má použít pro platbu za konzultaci s expertem. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_EXPERT_PRICE_ID."
                 }
             );
         }

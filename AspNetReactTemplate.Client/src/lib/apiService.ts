@@ -485,6 +485,17 @@ export const apiService = {
     return requestJson<number[]>(`/payment/check/manual-ids`);
   },
 
+  async checkExpertConsultationPayment(manualId: number): Promise<{ hasPaid: boolean }> {
+    return requestJson<{ hasPaid: boolean }>(`/payment/check/expert-consultation/${manualId}`);
+  },
+
+  async checkoutExpertConsultation(manualId: number): Promise<{ url?: string; alreadyPaid?: boolean }> {
+    return requestJson<{ url?: string; alreadyPaid?: boolean }>("/payment/checkout", {
+      method: "POST",
+      body: JSON.stringify({ manualId, paymentType: "ExpertConsultation" }),
+    });
+  },
+
   // Tools
   async getTools(): Promise<Tool[]> {
     return requestJson<Tool[]>(`/tools`);

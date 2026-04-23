@@ -28,6 +28,20 @@ public class PaymentsQueryService : IPaymentsQueryService
         return new PaymentStatusResult(PaymentServiceStatus.Success, HasPaid: alreadyPaid);
     }
 
+    public async Task<PaymentStatusResult> CheckExpertConsultationPaymentStatus(int manualId, ClaimsPrincipal user)
+    {
+        var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return new PaymentStatusResult(PaymentServiceStatus.Unauthorized);
+        }
+
+        var alreadyPaid = await _context.ExpertConsultationPayments
+            .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
+
+        return new PaymentStatusResult(PaymentServiceStatus.Success, HasPaid: alreadyPaid);
+    }
+
     public async Task<PaidManualIdsResult> GetPaidManualIdsForUser(ClaimsPrincipal user)
     {
         var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);

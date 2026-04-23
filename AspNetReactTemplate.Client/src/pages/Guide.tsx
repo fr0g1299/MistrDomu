@@ -56,15 +56,23 @@ export default function Guide() {
     useState<string>("introduction");
   const [isPaymentSuccessDialogOpen, setIsPaymentSuccessDialogOpen] =
     useState(false);
+  const [isExpertPaymentSuccessDialogOpen, setIsExpertPaymentSuccessDialogOpen] =
+    useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get("payment") !== "success") {
+    const hasAiPayment = searchParams.get("payment") === "success";
+    const hasExpertPayment = searchParams.get("expert_payment") === "success";
+
+    if (!hasAiPayment && !hasExpertPayment) {
       return;
     }
 
-    setIsPaymentSuccessDialogOpen(true);
+    if (hasAiPayment) setIsPaymentSuccessDialogOpen(true);
+    if (hasExpertPayment) setIsExpertPaymentSuccessDialogOpen(true);
+
     searchParams.delete("payment");
+    searchParams.delete("expert_payment");
 
     navigate(
       {
@@ -194,6 +202,33 @@ export default function Guide() {
             <Button
               type="button"
               onClick={() => setIsPaymentSuccessDialogOpen(false)}
+            >
+              Pokračovat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isExpertPaymentSuccessDialogOpen}
+        onOpenChange={setIsExpertPaymentSuccessDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <span className="inline-flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                Platba proběhla úspěšně
+              </span>
+            </DialogTitle>
+            <DialogDescription>
+              Děkujeme! Konzultace s expertem byla zaplacena. Nyní můžete zavolat expertovi.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => setIsExpertPaymentSuccessDialogOpen(false)}
             >
               Pokračovat
             </Button>

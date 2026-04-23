@@ -36,17 +36,40 @@ public class PaymentsCommandService : IPaymentsCommandService
             return new PaymentCheckoutResult(PaymentServiceStatus.NotFound, ErrorMessage: $"Manual with id {request.ManualId} was not found.");
         }
 
+        var paymentType = request.PaymentType ?? "AiAccess";
+
         // If user already paid, nothing to do
-        var alreadyPaid = await _context.ManualPayments
-            .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
+        bool alreadyPaid = false;
+        if (paymentType == "ExpertConsultation")
+        {
+            alreadyPaid = await _context.ExpertConsultationPayments
+                .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
+        }
+        else
+        {
+            alreadyPaid = await _context.ManualPayments
+                .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
+        }
 
         if (alreadyPaid)
             return new PaymentCheckoutResult(PaymentServiceStatus.Success, AlreadyPaid: true);
 
-        var priceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripePriceId");
-        var priceId = !string.IsNullOrEmpty(priceIdSetting?.Value)
-            ? priceIdSetting.Value
-            : _configuration["Stripe:PriceId"] ?? _configuration["STRIPE_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
+        string? priceId = null;
+
+        if (paymentType == "ExpertConsultation")
+        {
+            var expertPriceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeExpertPriceId");
+            priceId = !string.IsNullOrEmpty(expertPriceIdSetting?.Value)
+                ? expertPriceIdSetting.Value
+                : _configuration["Stripe:ExpertPriceId"] ?? _configuration["STRIPE_EXPERT_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_EXPERT_PRICE_ID");
+        }
+        else
+        {
+            var priceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripePriceId");
+            priceId = !string.IsNullOrEmpty(priceIdSetting?.Value)
+                ? priceIdSetting.Value
+                : _configuration["Stripe:PriceId"] ?? _configuration["STRIPE_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
+        }
 
         if (string.IsNullOrEmpty(priceId))
             return new PaymentCheckoutResult(PaymentServiceStatus.Error, ErrorMessage: "Stripe Price ID is not configured.");
@@ -62,7 +85,11 @@ public class PaymentsCommandService : IPaymentsCommandService
         // Build absolute success / cancel URLs
         var httpRequest = _httpContextAccessor.HttpContext?.Request;
         var baseUrl = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
-        var successUrl = $"{baseUrl}/guide/{request.ManualId}?payment=success";
+        
+        var successUrl = paymentType == "ExpertConsultation" 
+            ? $"{baseUrl}/guide/{request.ManualId}?expert_payment=success" 
+            : $"{baseUrl}/guide/{request.ManualId}?payment=success";
+            
         var cancelUrl = $"{baseUrl}/guide/{request.ManualId}";
 
         var options = new SessionCreateOptions
@@ -82,7 +109,8 @@ public class PaymentsCommandService : IPaymentsCommandService
             Metadata = new Dictionary<string, string>
                 {
                     { "userId", userId.ToString() },
-                    { "manualId", request.ManualId.ToString() }
+                    { "manualId", request.ManualId.ToString() },
+                    { "paymentType", paymentType }
                 }
         };
 
@@ -138,19 +166,42 @@ public class PaymentsCommandService : IPaymentsCommandService
                     int.TryParse(userIdStr, out var uid) &&
                     int.TryParse(manualIdStr, out var mid))
                 {
-                    var exists = await _context.ManualPayments
-                        .AnyAsync(p => p.UserId == uid && p.ManualId == mid);
+                    session.Metadata.TryGetValue("paymentType", out var paymentType);
+                    paymentType ??= "AiAccess";
 
-                    if (!exists)
+                    if (paymentType == "ExpertConsultation")
                     {
-                        _context.ManualPayments.Add(new ManualPayment
+                        var exists = await _context.ExpertConsultationPayments
+                            .AnyAsync(p => p.UserId == uid && p.ManualId == mid);
+
+                        if (!exists)
                         {
-                            UserId = uid,
-                            ManualId = mid,
-                            StripeSessionId = session.Id,
-                            PaidAt = DateTime.UtcNow
-                        });
-                        await _context.SaveChangesAsync();
+                            _context.ExpertConsultationPayments.Add(new ExpertConsultationPayment
+                            {
+                                UserId = uid,
+                                ManualId = mid,
+                                StripeSessionId = session.Id,
+                                PaidAt = DateTime.UtcNow
+                            });
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    else
+                    {
+                        var exists = await _context.ManualPayments
+                            .AnyAsync(p => p.UserId == uid && p.ManualId == mid);
+
+                        if (!exists)
+                        {
+                            _context.ManualPayments.Add(new ManualPayment
+                            {
+                                UserId = uid,
+                                ManualId = mid,
+                                StripeSessionId = session.Id,
+                                PaidAt = DateTime.UtcNow
+                            });
+                            await _context.SaveChangesAsync();
+                        }
                     }
                 }
             }

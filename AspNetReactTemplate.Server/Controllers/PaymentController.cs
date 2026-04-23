@@ -87,6 +87,27 @@ namespace AspNetReactTemplate.Server.Controllers
             return StatusCode(500, result.ErrorMessage ?? "Unexpected error checking payment status.");
         }
 
+        // ── GET /api/payment/check/expert-consultation/{manualId} ────────────────────────────────
+        /// <summary>Checks if the current user has paid for the expert consultation for the specified manual.</summary>
+        [HttpGet("check/expert-consultation/{manualId}")]
+        [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
+        public async Task<ActionResult> CheckExpertConsultationPaymentStatus(int manualId)
+        {
+            var result = await _queryService.CheckExpertConsultationPaymentStatus(manualId, User);
+
+            if (result.Status == PaymentServiceStatus.Unauthorized)
+            {
+                return Unauthorized();
+            }
+
+            if (result.Status == PaymentServiceStatus.Success)
+            {
+                return Ok(new { hasPaid = result.HasPaid });
+            }
+
+            return StatusCode(500, result.ErrorMessage ?? "Unexpected error checking payment status.");
+        }
+
         // ── GET /api/payment/check/manual-ids ───────────────────────────────────
         /// <summary>Returns manual IDs for which the current user has paid unlimited AI chat access.</summary>
         [HttpGet("check/manual-ids")]
