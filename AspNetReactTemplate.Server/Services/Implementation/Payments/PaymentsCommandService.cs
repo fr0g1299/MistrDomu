@@ -38,46 +38,53 @@ public class PaymentsCommandService : IPaymentsCommandService
 
         var paymentType = request.PaymentType ?? "AiAccess";
 
-        // If user already paid, nothing to do
         bool alreadyPaid = false;
-        if (paymentType == "ExpertConsultation")
-        {
-            alreadyPaid = await _context.ExpertConsultationPayments
-                .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
-        }
-        else
-        {
-            alreadyPaid = await _context.ManualPayments
-                .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
-        }
-
-        if (alreadyPaid)
-            return new PaymentCheckoutResult(PaymentServiceStatus.Success, AlreadyPaid: true);
-
         string? priceId = null;
+        string? secretKey = null;
 
-        if (paymentType == "ExpertConsultation")
+        try
         {
-            var expertPriceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeExpertPriceId");
-            priceId = !string.IsNullOrEmpty(expertPriceIdSetting?.Value)
-                ? expertPriceIdSetting.Value
-                : _configuration["Stripe:ExpertPriceId"] ?? _configuration["STRIPE_EXPERT_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_EXPERT_PRICE_ID");
+            if (paymentType == "ExpertConsultation")
+            {
+                alreadyPaid = await _context.ExpertConsultationPayments
+                    .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
+            }
+            else
+            {
+                alreadyPaid = await _context.ManualPayments
+                    .AnyAsync(p => p.UserId == userId && p.ManualId == request.ManualId);
+            }
+
+            if (alreadyPaid)
+                return new PaymentCheckoutResult(PaymentServiceStatus.Success, AlreadyPaid: true);
+
+            if (paymentType == "ExpertConsultation")
+            {
+                var expertPriceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeExpertPriceId");
+                priceId = !string.IsNullOrEmpty(expertPriceIdSetting?.Value)
+                    ? expertPriceIdSetting.Value
+                    : _configuration["Stripe:ExpertPriceId"] ?? _configuration["STRIPE_EXPERT_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_EXPERT_PRICE_ID");
+            }
+            else
+            {
+                var priceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripePriceId");
+                priceId = !string.IsNullOrEmpty(priceIdSetting?.Value)
+                    ? priceIdSetting.Value
+                    : _configuration["Stripe:PriceId"] ?? _configuration["STRIPE_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
+            }
+
+            var secretKeySetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeSecretKey");
+            secretKey = !string.IsNullOrEmpty(secretKeySetting?.Value)
+                ? secretKeySetting.Value
+                : _configuration["Stripe:SecretKey"] ?? _configuration["STRIPE_SECRET_KEY"] ?? Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
         }
-        else
+        catch (Exception ex)
         {
-            var priceIdSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripePriceId");
-            priceId = !string.IsNullOrEmpty(priceIdSetting?.Value)
-                ? priceIdSetting.Value
-                : _configuration["Stripe:PriceId"] ?? _configuration["STRIPE_PRICE_ID"] ?? Environment.GetEnvironmentVariable("STRIPE_PRICE_ID");
+            return new PaymentCheckoutResult(PaymentServiceStatus.Error, ErrorMessage: $"Database error during checkout init: {ex.Message} {ex.InnerException?.Message}");
         }
 
         if (string.IsNullOrEmpty(priceId))
             return new PaymentCheckoutResult(PaymentServiceStatus.Error, ErrorMessage: "Stripe Price ID is not configured.");
-
-        var secretKeySetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "StripeSecretKey");
-        var secretKey = !string.IsNullOrEmpty(secretKeySetting?.Value)
-            ? secretKeySetting.Value
-            : _configuration["Stripe:SecretKey"] ?? _configuration["STRIPE_SECRET_KEY"] ?? Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
 
         if (string.IsNullOrEmpty(secretKey))
             return new PaymentCheckoutResult(PaymentServiceStatus.Error, ErrorMessage: "Stripe Secret Key is not configured.");

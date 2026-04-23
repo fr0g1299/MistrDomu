@@ -22,10 +22,17 @@ public class PaymentsQueryService : IPaymentsQueryService
             return new PaymentStatusResult(PaymentServiceStatus.Unauthorized);
         }
 
-        var alreadyPaid = await _context.ManualPayments
-            .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
+        try
+        {
+            var alreadyPaid = await _context.ManualPayments
+                .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
 
-        return new PaymentStatusResult(PaymentServiceStatus.Success, HasPaid: alreadyPaid);
+            return new PaymentStatusResult(PaymentServiceStatus.Success, HasPaid: alreadyPaid);
+        }
+        catch (Exception ex)
+        {
+            return new PaymentStatusResult(PaymentServiceStatus.Error, ErrorMessage: $"Database error checking manual payment: {ex.Message} {ex.InnerException?.Message}");
+        }
     }
 
     public async Task<PaymentStatusResult> CheckExpertConsultationPaymentStatus(int manualId, ClaimsPrincipal user)
@@ -36,10 +43,17 @@ public class PaymentsQueryService : IPaymentsQueryService
             return new PaymentStatusResult(PaymentServiceStatus.Unauthorized);
         }
 
-        var alreadyPaid = await _context.ExpertConsultationPayments
-            .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
+        try
+        {
+            var alreadyPaid = await _context.ExpertConsultationPayments
+                .AnyAsync(p => p.UserId == userId && p.ManualId == manualId);
 
-        return new PaymentStatusResult(PaymentServiceStatus.Success, HasPaid: alreadyPaid);
+            return new PaymentStatusResult(PaymentServiceStatus.Success, HasPaid: alreadyPaid);
+        }
+        catch (Exception ex)
+        {
+            return new PaymentStatusResult(PaymentServiceStatus.Error, ErrorMessage: $"Database error checking expert consultation payment: {ex.Message} {ex.InnerException?.Message}");
+        }
     }
 
     public async Task<PaidManualIdsResult> GetPaidManualIdsForUser(ClaimsPrincipal user)
