@@ -55,7 +55,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AiChatInteractions");
+                    b.ToTable("AiChatInteractions", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.AppSetting", b =>
@@ -74,7 +74,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Key");
 
-                    b.ToTable("AppSettings");
+                    b.ToTable("AppSettings", (string)null);
 
                     b.HasData(
                         new
@@ -139,7 +139,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasIndex("ExpertUserId", "StartedAtUtc");
 
-                    b.ToTable("ExpertWaitingLogs");
+                    b.ToTable("ExpertWaitingLogs", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Calls.ManualCallLog", b =>
@@ -178,7 +178,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("RoomName", "ParticipantUserId")
                         .IsUnique();
 
-                    b.ToTable("ManualCallLogs");
+                    b.ToTable("ManualCallLogs", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertConsultationPayment", b =>
@@ -209,7 +209,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("UserId", "ManualId")
                         .IsUnique();
 
-                    b.ToTable("ExpertConsultationPayments");
+                    b.ToTable("ExpertConsultationPayments", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
@@ -245,7 +245,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasIndex("UserId", "IsRead");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Role", b =>
@@ -343,7 +343,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("UserId", "RequestedRole", "Status")
                         .HasFilter("\"Status\" = 0");
 
-                    b.ToTable("RoleRequests");
+                    b.ToTable("RoleRequests", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.User", b =>
@@ -471,7 +471,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("UserId", "ManualId")
                         .IsUnique();
 
-                    b.ToTable("ManualPayments");
+                    b.ToTable("ManualPayments", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.ExpertManualHelp", b =>
@@ -486,7 +486,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasIndex("ManualId");
 
-                    b.ToTable("ExpertManualHelps");
+                    b.ToTable("ExpertManualHelps", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Manual", b =>
@@ -526,7 +526,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Manuals");
+                    b.ToTable("Manuals", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Step", b =>
@@ -563,7 +563,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("ManualId", "OrderNumber")
                         .IsUnique();
 
-                    b.ToTable("Steps");
+                    b.ToTable("Steps", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Manuals.Tool", b =>
@@ -592,7 +592,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Tools");
+                    b.ToTable("Tools", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailOutboxMessage", b =>
@@ -655,7 +655,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasIndex("Status", "NextAttemptAtUtc", "CreatedAtUtc");
 
-                    b.ToTable("EmailOutboxMessages");
+                    b.ToTable("EmailOutboxMessages", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailSetting", b =>
@@ -694,7 +694,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EmailSettings");
+                    b.ToTable("EmailSettings", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailTemplate", b =>
@@ -718,7 +718,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Key");
 
-                    b.ToTable("EmailTemplates");
+                    b.ToTable("EmailTemplates", (string)null);
 
                     b.HasData(
                         new
@@ -757,7 +757,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasIndex("StepId");
 
-                    b.ToTable("UserCompletedSteps");
+                    b.ToTable("UserCompletedSteps", (string)null);
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.WaitlistEmail", b =>
@@ -778,7 +778,7 @@ namespace AspNetReactTemplate.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WaitlistEmails");
+                    b.ToTable("WaitlistEmails", (string)null);
                 });
 
             modelBuilder.Entity("ManualTools", b =>
