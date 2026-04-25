@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,34 @@ export default function MyRoleRequestCreate({
   const navigate = useNavigate();
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
+  const [hasRejectedRequest, setHasRejectedRequest] = useState(false);
+
+  const loadEligibility = useCallback(async () => {
+    setIsCheckingEligibility(true);
+
+    try {
+      const result = await apiService.getMyRoleRequests({
+        page: 1,
+        pageSize: 1,
+        status: "rejected",
+      });
+
+      setHasRejectedRequest(result.totalItems > 0);
+    } catch {
+      setHasRejectedRequest(false);
+    } finally {
+      setIsCheckingEligibility(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    void loadEligibility();
+  }, [loadEligibility, open]);
 
   const closeCreate = () => {
     if (onOpenChange) {
@@ -38,6 +66,10 @@ export default function MyRoleRequestCreate({
   };
 
   const handleSubmit = async () => {
+    if (hasRejectedRequest || isCheckingEligibility) {
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       await apiService.createRoleRequest({
@@ -77,6 +109,10 @@ export default function MyRoleRequestCreate({
             Vyplň krátké odůvodnění a odešli žádost ke schválení
             administrátorem.
           </DialogDescription>
+          <p className="mt-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary">
+            Pokud bude žádost zamítnuta, další žádost o roli Expert už nebude
+            možné podat.
+          </p>
         </DialogHeader>
 
         <div className="space-y-6 p-6">
@@ -109,14 +145,20 @@ export default function MyRoleRequestCreate({
             <Button
               type="button"
               onClick={handleSubmit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || hasRejectedRequest || isCheckingEligibility}
             >
               {isSubmitting ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : isCheckingEligibility ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <Send className="size-4" />
               )}
-              Odeslat žádost
+              {hasRejectedRequest
+                ? "Není možné odeslat"
+                : isCheckingEligibility
+                  ? "Ověřuji..."
+                  : "Odeslat žádost"}
             </Button>
           </DialogFooter>
         </div>

@@ -64,10 +64,10 @@ const NonAdminAuthenticatedRoute = ({
 }: {
   children: JSX.Element;
 }) => {
-  const { loading, isAuthenticated, isAdmin } = useAuth();
+  const { loading, isAuthenticated, isAdmin, isExpert } = useAuth();
 
   if (loading) return null;
-  if (!isAuthenticated || isAdmin) return <Navigate to="/" replace />;
+  if (!isAuthenticated || isAdmin || isExpert) return <Navigate to="/" replace />;
 
   return children;
 };

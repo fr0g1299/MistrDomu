@@ -19,6 +19,7 @@ import HeaderManagementActions from "@/components/layouts/header/HeaderManagemen
 import type { ManagementNavAction } from "@/components/layouts/header/types";
 import { useExpertStandbyVisibility } from "@/components/layouts/header/useExpertStandbyVisibility";
 import { useHeaderNotifications } from "@/components/layouts/header/useHeaderNotifications";
+import { apiService } from "@/lib/apiService";
 import { cn } from "@/lib/utils";
 
 type HeaderProps = {
@@ -78,6 +79,24 @@ export default function Header({ onNavigateHome }: HeaderProps) {
       setIsLoggingOut(false);
     }
   }, [logout, onNavigateHome]);
+
+  const handleNavigateExpertRoleRequest = useCallback(async () => {
+    if (!isAuthenticated || isAdmin || isExpert) {
+      return;
+    }
+
+    try {
+      const existingRequest = await apiService.getMyExpertRoleRequest();
+      if (existingRequest) {
+        navigateTo("/my-requests");
+        return;
+      }
+    } catch {
+      // Fallback to request creation when the quick check fails.
+    }
+
+    navigateTo("/my-requests/new");
+  }, [isAdmin, isAuthenticated, isExpert, navigateTo]);
 
   const initials =
     `${user?.firstName?.charAt(0) ?? ""}${user?.lastName?.charAt(0) ?? ""}`.toUpperCase() ||
@@ -222,7 +241,7 @@ export default function Header({ onNavigateHome }: HeaderProps) {
               onOpenInboxItem={openInboxItem}
               onDeleteInboxItem={deleteInboxItem}
               onDeleteAllInboxItems={deleteAllInboxItems}
-              onNavigateMyRequests={() => navigateTo("/my-requests")}
+              onNavigateMyRequests={handleNavigateExpertRoleRequest}
               onLogout={handleLogout}
               onLoginSuccess={async () => {
                 await fetchUser();

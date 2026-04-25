@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { apiService } from "@/lib/apiService";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -12,14 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type {
-  RoleRequestFilter,
-  UserRoleRequestItem,
-} from "@/types/roleRequest";
+import type { UserRoleRequestDetail } from "@/types/roleRequest";
 import { useAuth } from "@/hooks/useAuth";
-import MyRoleRequestCreate from "./MyRoleRequestCreate";
-
-const PAGE_SIZE = 10;
 
 const formatStatus = (status: string) => {
   if (status === "Approved") return "Schváleno";
@@ -46,333 +40,163 @@ const formatType = (type: string) => {
 
 export default function MyRoleRequests() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { isAdmin, isExpert } = useAuth();
 
-  const [items, setItems] = useState<UserRoleRequestItem[]>([]);
+  const [detail, setDetail] = useState<UserRoleRequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-  const [recentlyUpdatedIds, setRecentlyUpdatedIds] = useState<number[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<RoleRequestFilter>("all");
-  const [createRequestOpen, setCreateRequestOpen] = useState(false);
-  const previousSnapshotRef = useRef<Map<number, string>>(new Map());
-  const highlightTimeoutsRef = useRef<number[]>([]);
-
-  const buildSnapshotKey = (item: UserRoleRequestItem) =>
-    `${item.status}|${item.reviewedAtUtc ?? ""}`;
 
   const load = useCallback(
-    async (targetPage: number) => {
+    async () => {
+      if (isAdmin || isExpert) {
+        navigate("/", { replace: true });
+        return;
+      }
+
       try {
-        if (!hasLoadedOnce) {
-          setLoading(true);
-        } else {
-          setIsRefreshing(true);
+        setLoading(true);
+
+        const latestRequest = await apiService.getMyExpertRoleRequest();
+        if (!latestRequest) {
+          navigate("/my-requests/new", { replace: true });
+          return;
         }
 
-        const data = await apiService.getMyRoleRequests({
-          page: targetPage,
-          pageSize: PAGE_SIZE,
-          status: statusFilter,
-        });
-
-        const nextSnapshot = new Map<number, string>();
-        for (const item of data.items) {
-          nextSnapshot.set(item.id, buildSnapshotKey(item));
-        }
-
-        if (hasLoadedOnce) {
-          const changedIds = data.items
-            .filter((item) => {
-              const previous = previousSnapshotRef.current.get(item.id);
-              return (
-                previous !== undefined && previous !== buildSnapshotKey(item)
-              );
-            })
-            .map((item) => item.id);
-
-          if (changedIds.length > 0) {
-            setRecentlyUpdatedIds((prev) =>
-              Array.from(new Set([...prev, ...changedIds])),
-            );
-
-            const timeoutId = window.setTimeout(() => {
-              setRecentlyUpdatedIds((prev) =>
-                prev.filter((id) => !changedIds.includes(id)),
-              );
-            }, 4000);
-
-            highlightTimeoutsRef.current.push(timeoutId);
-          }
-        }
-
-        previousSnapshotRef.current = nextSnapshot;
-
-        setItems(data.items);
-        setPage(data.currentPage || 1);
-        setTotalItems(data.totalItems);
-        setTotalPages(Math.max(1, data.totalPages || 1));
-        setHasLoadedOnce(true);
+        const requestDetail = await apiService.getMyRoleRequestDetail(
+          latestRequest.id,
+        );
+        setDetail(requestDetail);
       } catch (error) {
         toast.error(
           error instanceof Error
             ? error.message
             : "Nepodařilo se načíst žádosti.",
         );
-      } finally {
-        if (!hasLoadedOnce) {
-          setLoading(false);
-        } else {
-          setIsRefreshing(false);
-        }
+        navigate("/", { replace: true });
       }
+
+      setLoading(false);
     },
-    [hasLoadedOnce, statusFilter],
+    [isAdmin, isExpert, navigate],
   );
 
   useEffect(() => {
-    void load(page);
-  }, [load, page]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      void load(page);
-    }, 30000);
-
-    return () => window.clearInterval(intervalId);
-  }, [load, page]);
+    void load();
+  }, [load]);
 
   useEffect(() => {
     const handleUserUpdate = () => {
-      void load(page);
+      void load();
     };
 
     window.addEventListener("role-request-user-updated", handleUserUpdate);
     return () =>
       window.removeEventListener("role-request-user-updated", handleUserUpdate);
-  }, [load, page]);
+  }, [load]);
 
-  useEffect(() => {
-    return () => {
-      highlightTimeoutsRef.current.forEach((timeoutId) =>
-        window.clearTimeout(timeoutId),
-      );
-      highlightTimeoutsRef.current = [];
-    };
-  }, []);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground antialiased">
+        <main className="mx-auto max-w-5xl px-6 py-8">
+          <div className="inline-flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" /> Načítám detail...
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-  const hasActiveFilters = statusFilter !== "all";
+  if (!detail) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <main className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+      <main className="mx-auto max-w-5xl space-y-6 px-6 py-8">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <div>
-              <CardTitle>Mé žádosti o roli Expert</CardTitle>
-              <CardDescription>
-                Zde můžete vidět všechny své žádosti o roli Expert. Pokud roli
-                již máte, není možné vytvořit novou žádost.
+              <CardTitle>Žádost o roli Expert</CardTitle>
+              <CardDescription className="mt-1 text-sm text-muted-foreground">
+                Přehled podané žádosti a všech poznámek.
               </CardDescription>
-              {isAdmin && (
-                <CardDescription className="mt-1 text-amber-500">
-                  Admin nemůže žádat o roli Expert.
-                </CardDescription>
-              )}
             </div>
-            <Button
-              type="button"
-              disabled={isExpert || isAdmin}
-              onClick={() => setCreateRequestOpen(true)}
-              title={
-                isAdmin
-                  ? "Admin nemůže žádat o roli Expert"
-                  : isExpert
-                    ? "Již máte roli Expert"
-                    : ""
-              }
-            >
-              <Plus className="size-4" />
-              Vytvořit žádost
-            </Button>
           </CardHeader>
-        </Card>
+          <CardContent className="space-y-6 border-t border-border/70 pt-6">
+            <div className="flex justify-start">
+              <Badge className={`border ${getStatusClasses(detail.status)}`}>
+                {formatStatus(detail.status)}
+              </Badge>
+            </div>
 
-        <Card>
-          <CardHeader className="border-b border-border">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              <CardTitle className="md:mr-auto">
-                Výpis žádostí
-                {isRefreshing && (
-                  <span className="ml-2 inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
-                    <Loader2 className="size-3.5 animate-spin" />
-                    Aktualizuji...
-                  </span>
-                )}
-              </CardTitle>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-md border border-border/70 bg-muted/10 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  ID žádosti
+                </p>
+                <p className="mt-1 text-sm font-medium">#{detail.id}</p>
+              </div>
 
-              <div className="flex w-full justify-end md:w-auto">
-                <select
-                  value={statusFilter}
-                  onChange={(event) => {
-                    setStatusFilter(event.target.value as RoleRequestFilter);
-                    setPage(1);
-                  }}
-                  style={{ colorScheme: "dark" }}
-                  className="h-9 min-w-40 rounded-md border border-input bg-background px-3 text-sm text-foreground"
-                >
-                  <option value="all">Všechny stavy</option>
-                  <option value="pending">Čeká</option>
-                  <option value="approved">Schváleno</option>
-                  <option value="rejected">Zamítnuto</option>
-                </select>
+              <div className="rounded-md border border-border/70 bg-muted/10 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Typ
+                </p>
+                <p className="mt-1 text-sm font-medium">
+                  {formatType(detail.requestType)}
+                </p>
+              </div>
+
+              <div className="rounded-md border border-border/70 bg-muted/10 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Podáno
+                </p>
+                <p className="mt-1 text-sm font-medium">
+                  {new Date(detail.requestedAtUtc).toLocaleString("cs-CZ")}
+                </p>
+              </div>
+
+              <div className="rounded-md border border-border/70 bg-muted/10 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Vyřízeno
+                </p>
+                <p className="mt-1 text-sm font-medium">
+                  {detail.reviewedAtUtc
+                    ? new Date(detail.reviewedAtUtc).toLocaleString("cs-CZ")
+                    : "Nevyřízeno"}
+                </p>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40">
-                  <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                      Typ
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                      Stav
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                      Podáno
-                    </th>
-                    <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
-                      Vyřízeno
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading && !hasLoadedOnce && (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-4 py-8 text-center text-muted-foreground"
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <Loader2 className="size-4 animate-spin" /> Načítám...
-                        </span>
-                      </td>
-                    </tr>
-                  )}
 
-                  {!loading && items.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-4 py-8 text-center text-muted-foreground"
-                      >
-                        {statusFilter === "pending"
-                          ? "Aktuálně nemáš žádné čekající žádosti."
-                          : statusFilter === "approved"
-                            ? "Aktuálně nemáš žádné schválené žádosti."
-                            : statusFilter === "rejected"
-                              ? "Aktuálně nemáš žádné zamítnuté žádosti."
-                              : "Zatím nemáš žádné žádosti."}
-                      </td>
-                    </tr>
-                  )}
-
-                  {items.map((item, index) => (
-                    <tr
-                      key={item.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Otevřít detail žádosti ${item.id}`}
-                      className={`border-b border-border transition-colors focus:outline-none focus-visible:bg-muted/35 hover:bg-muted/25 ${
-                        recentlyUpdatedIds.includes(item.id)
-                          ? "bg-primary/10"
-                          : index % 2 === 0
-                            ? ""
-                            : "bg-muted/10"
-                      } cursor-pointer`}
-                      onClick={() =>
-                        navigate(`/my-requests/${item.id}`, {
-                          state: { backgroundLocation: location },
-                        })
-                      }
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          navigate(`/my-requests/${item.id}`, {
-                            state: { backgroundLocation: location },
-                          });
-                        }
-                      }}
-                    >
-                      <td className="px-4 py-3 font-medium">
-                        {formatType(item.requestType)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        <span
-                          className={`inline-flex rounded-md border px-2 py-1 text-xs font-medium ${getStatusClasses(item.status)}`}
-                        >
-                          {formatStatus(item.status)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {new Date(item.requestedAtUtc).toLocaleString("cs-CZ")}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {item.reviewedAtUtc
-                          ? new Date(item.reviewedAtUtc).toLocaleString("cs-CZ")
-                          : "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold">Můj popis</p>
+              <div className="rounded-md border border-border/70 bg-muted/10 p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Odeslaná poznámka
+                </p>
+                <p className="mt-2 max-h-40 overflow-y-auto pr-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap break-all">
+                  {detail.description?.trim() ||
+                    "Uživatel žádný popis nepřidal"}
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3 border-t border-border px-4 py-3 text-sm md:flex-row md:items-center md:justify-between">
-              <span className="text-muted-foreground">
-                Na stránce zobrazeno {items.length}
-                {hasActiveFilters ? " (filtrováno)" : ""} • Celkem {totalItems}
-              </span>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page <= 1 || loading || isRefreshing}
-                >
-                  <ChevronLeft className="size-4" />
-                  Předchozí
-                </Button>
-                <span className="min-w-24 text-center text-muted-foreground">
-                  Strana {page} / {totalPages}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page >= totalPages || loading || isRefreshing}
-                >
-                  Další
-                  <ChevronRight className="size-4" />
-                </Button>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold">Poznámka administrátora</p>
+              <div className="rounded-md border border-border/70 bg-muted/10 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Aktuální poznámka
+                  </p>
+                  <span className="text-xs text-muted-foreground">
+                    {detail.adminNote?.trim() ? "Vyplněno" : "Bez poznámky"}
+                  </span>
+                </div>
+                <p className="mt-2 max-h-40 overflow-y-auto pr-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap break-all">
+                  {detail.adminNote?.trim() || "Zatím bez poznámky"}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        <MyRoleRequestCreate
-          open={createRequestOpen}
-          onOpenChange={setCreateRequestOpen}
-        />
       </main>
     </div>
   );

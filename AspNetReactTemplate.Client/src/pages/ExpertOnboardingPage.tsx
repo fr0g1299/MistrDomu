@@ -1,16 +1,50 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthRequiredDialog } from "@/components/identity/AuthRequiredDialog";
+import { apiService } from "@/lib/apiService";
 import MyRoleRequestCreate from "./MyRoleRequestCreate";
 
 export default function ExpertOnboardingPage() {
   const { isAuthenticated, isExpert, isAdmin } = useAuth();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [createRequestOpen, setCreateRequestOpen] = useState(false);
+  const [hasRejectedRequest, setHasRejectedRequest] = useState(false);
+  const [isCheckingRejectedStatus, setIsCheckingRejectedStatus] =
+    useState(false);
+
+  const loadRejectedRequestStatus = useCallback(async () => {
+    if (!isAuthenticated || isExpert || isAdmin) {
+      setHasRejectedRequest(false);
+      setIsCheckingRejectedStatus(false);
+      return false;
+    }
+
+    setIsCheckingRejectedStatus(true);
+
+    try {
+      const result = await apiService.getMyRoleRequests({
+        page: 1,
+        pageSize: 1,
+        status: "rejected",
+      });
+
+      const rejected = result.totalItems > 0;
+      setHasRejectedRequest(rejected);
+      return rejected;
+    } catch {
+      return false;
+    } finally {
+      setIsCheckingRejectedStatus(false);
+    }
+  }, [isAdmin, isAuthenticated, isExpert]);
+
+  useEffect(() => {
+    void loadRejectedRequestStatus();
+  }, [loadRejectedRequestStatus]);
 
   const handleCreateRequestClick = useCallback(() => {
     if (!isAuthenticated) {
@@ -18,13 +52,23 @@ export default function ExpertOnboardingPage() {
       return;
     }
 
-    setCreateRequestOpen(true);
-  }, [isAuthenticated]);
+    if (hasRejectedRequest || isCheckingRejectedStatus) {
+      return;
+    }
 
-  const handleAuthSuccess = useCallback(() => {
-    setAuthDialogOpen(false);
     setCreateRequestOpen(true);
-  }, []);
+  }, [hasRejectedRequest, isAuthenticated, isCheckingRejectedStatus]);
+
+  const handleAuthSuccess = useCallback(async () => {
+    setAuthDialogOpen(false);
+
+    const rejected = await loadRejectedRequestStatus();
+    if (rejected) {
+      return;
+    }
+
+    setCreateRequestOpen(true);
+  }, [loadRejectedRequestStatus]);
 
   return (
     <>
@@ -85,6 +129,10 @@ export default function ExpertOnboardingPage() {
                 <li>
                   U svých přiřazených návodů se dá své zapojení kdykoliv změnit.
                 </li>
+                <li>
+                  Možnost zapnou aktivní režim, kdy budete dostupní pro pomoc u
+                  přiřazených návodů.
+                </li>
             </ul>
 
             <Button
@@ -124,6 +172,11 @@ export default function ExpertOnboardingPage() {
                   </span>
               </li>
             </ol>
+
+            <p className="mt-3 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary">
+              Poznámka: Pokud bude žádost zamítnuta, další žádost o roli Expert
+              už nebude možné podat.
+            </p>
           </div>
         </div>
 
@@ -148,12 +201,18 @@ export default function ExpertOnboardingPage() {
             type="button"
             className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={handleCreateRequestClick}
-            disabled={isExpert || isAdmin}
+            disabled={
+              isExpert || isAdmin || hasRejectedRequest || isCheckingRejectedStatus
+            }
               title={
                 isAdmin
                   ? "Admin nemůže žádat o roli Expert"
                   : isExpert
                     ? "Již máte roli Expert"
+                    : hasRejectedRequest
+                      ? "Žádost už byla jednou zamítnuta"
+                      : isCheckingRejectedStatus
+                        ? "Ověřuji možnost podání žádosti"
                     : ""
               }
           >
@@ -162,6 +221,10 @@ export default function ExpertOnboardingPage() {
                 ? "Admin nemůže žádat o roli"
                 : isExpert
                   ? "Již máte roli Expert"
+                  : hasRejectedRequest
+                    ? "Žádost byla zamítnuta"
+                    : isCheckingRejectedStatus
+                      ? "Ověřuji..."
                   : "Vytvořit žádost"}
           </Button>
         </div>

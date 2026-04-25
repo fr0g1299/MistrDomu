@@ -215,13 +215,13 @@ export default function HeaderAccountSection({
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {!isAdmin && (
+          {!isAdmin && !isExpert && (
             <>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={onNavigateMyRequests}
               >
-                Mé žádosti
+                Žádost o roli expert
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>

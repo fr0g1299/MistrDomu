@@ -15,6 +15,7 @@ public class UserRoleRequestService : IUserRoleRequestService
 {
     private const string MustBeSignedInMessage = "Pro tuto akci musíte být přihlášen.";
     private const string RequestAlreadyPendingMessage = "Žádost o roli Expert už čeká na vyřízení.";
+    private const string RequestAlreadyRejectedMessage = "Žádost o roli Expert už byla jednou zamítnuta. Další žádost už není možné podat.";
     private const string AlreadyExpertMessage = "Roli Expert už máte přidělenou.";
     private const string AdminCannotRequestExpertRoleMessage = "Administrátor nemůže žádat o roli Expert.";
     private const string RequestNotFoundMessage = "Žádost nebyla nalezena.";
@@ -79,6 +80,16 @@ public class UserRoleRequestService : IUserRoleRequestService
         if (hasPendingRequest)
         {
             return ServiceResultDto<RoleRequestSummaryDto>.Failure(ServiceErrorType.Validation, RequestAlreadyPendingMessage);
+        }
+
+        var hasRejectedRequest = await _dbContext.RoleRequests.AnyAsync(r =>
+            r.UserId == currentUser.Id &&
+            r.Status == RoleRequestStatus.Rejected &&
+            r.RequestedRole == normalizedType);
+
+        if (hasRejectedRequest)
+        {
+            return ServiceResultDto<RoleRequestSummaryDto>.Failure(ServiceErrorType.Validation, RequestAlreadyRejectedMessage);
         }
 
         var request = new IdentityRoleRequest
