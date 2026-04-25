@@ -82,7 +82,9 @@ export function AdminDataTable({
 }: AdminDataTableProps) {
   return (
     <div className={cn("overflow-x-auto solid-scrollbar", className)}>
-      <table className={cn("w-full text-sm", tableClassName)}>{children}</table>
+      <table className={cn("w-full table-fixed text-sm", tableClassName)}>
+        {children}
+      </table>
     </div>
   );
 }

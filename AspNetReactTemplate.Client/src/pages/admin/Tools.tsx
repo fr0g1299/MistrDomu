@@ -49,7 +49,7 @@ export default function AdminTools() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortBy>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   const handleEditClick = (tool: ToolWithManuals) => {
     setSelectedTool(tool);
@@ -123,11 +123,12 @@ export default function AdminTools() {
           {getSortIcon("manuals")}
         </Button>
       ),
+      className: "w-[28%]",
     },
     {
       key: "actions",
       label: <span className="font-bold">Akce</span>,
-      className: "text-right pr-5",
+      className: "w-20 min-w-20 whitespace-nowrap text-right pr-5",
     },
   ];
 
@@ -168,10 +169,10 @@ export default function AdminTools() {
 
       const aManualsCount = a.manuals?.length ?? 0;
       const bManualsCount = b.manuals?.length ?? 0;
-      return aManualsCount - bManualsCount;
+      return bManualsCount - aManualsCount;
     });
 
-    if (sortDirection === "desc") {
+    if (sortDirection === "asc") {
       next.reverse();
     }
 
@@ -291,10 +292,9 @@ export default function AdminTools() {
                           href={tool.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          // className="inline-flex max-w-full items-center gap-1 truncate text-sky-400 hover:text-sky-300 hover:underline"
-                          className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                          className="inline-flex max-w-full items-center gap-1 font-medium text-primary hover:underline"
                         >
-                          <span className="truncate">{tool.url}</span>
+                          <span className="truncate min-w-0">{tool.url}</span>
                           <ExternalLink className="size-3 shrink-0" />
                         </a>
                       ) : (
