@@ -37,7 +37,7 @@ public class DailyPrebuiltService : IDailyPrebuiltService
 
         var roomPrefix = _configuration["Daily:RoomPrefix"] ?? "manual-call";
         var roomName = $"{roomPrefix}-{manualId}-{callerUserId}-{Guid.NewGuid():N}".ToLowerInvariant();
-        var roomExpiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+        var roomExpiry = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeSeconds();
 
         var payload = new
         {
