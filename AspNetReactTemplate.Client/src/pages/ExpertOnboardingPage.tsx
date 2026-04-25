@@ -94,18 +94,7 @@ export default function ExpertOnboardingPage() {
             >
               <Link to="/?flow=expert#jak-to-funguje">CHCI VÍCE INFA</Link>
             </Button>
-
-            <div className="mt-4 rounded-xl border border-zinc-500/35 bg-zinc-900/35 px-3 py-3 text-zinc-400">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                Připravujeme:
-              </h3>
-              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm marker:text-zinc-500">
-                  <li>
-                    Možnost zapnout aktivní režim, kdy budete dostupní pro pomoc
-                    u přiřazených návodů.
-                  </li>
-              </ul>
-            </div>
+              
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-4 animate-[fadeInUp_1.7s_ease-out]">

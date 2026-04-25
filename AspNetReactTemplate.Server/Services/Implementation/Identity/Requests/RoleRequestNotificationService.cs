@@ -51,7 +51,7 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
         {
             await _notificationService.CreateForUsersAsync(
                 adminIds,
-                RoleRequestNotificationTexts.NotificationType,
+                RoleRequestNotificationTexts.RoleRequestAdmin,
                 RoleRequestNotificationTexts.NewRequestTitle,
                 RoleRequestNotificationTexts.BuildNewRequestMessage(displayName));
         }
@@ -101,7 +101,7 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
         {
             await _notificationService.CreateForUserAsync(
                 request.UserId,
-                RoleRequestNotificationTexts.NotificationType,
+                RoleRequestNotificationTexts.RoleRequestUser,
                 RoleRequestNotificationTexts.UserUpdatedTitle,
                 message);
         }

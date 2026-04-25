@@ -5,12 +5,12 @@ namespace AspNetReactTemplate.Server.Extensions.Notification;
 
 public static class RoleRequestNotificationTexts
 {
-    public const string NotificationType = "role_request";
+    public const string RoleRequestUser = "role_request";
+    public const string RoleRequestAdmin = "role_request_admin";
     public const string UserUpdatedTitle = "Aktualizace žádosti o roli Expert";
     public const string NewRequestTitle = "Nová žádost o roli Expert";
     public const string NewRequestSubject = "Nová žádost o roli Expert";
     public const string UpdatedUserSubject = "Změna stavu žádosti o roli";
-    public const string UpdatedAdminSubject = "Aktualizace stavu žádosti o roli";
 
     public static string GetStatusCzech(RoleRequestStatus status)
     {
