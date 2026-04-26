@@ -253,8 +253,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("ExpertConsultationPayments");
-<<<<<<< HEAD
-=======
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertWithdrawal", b =>
@@ -285,7 +283,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("ExpertUserId", "WithdrawnAtUtc");
 
                     b.ToTable("ExpertWithdrawals");
->>>>>>> 2339158 (added money withdrawal and history of withdrawals)
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
@@ -834,8 +831,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("StepId");
 
                     b.ToTable("UserCompletedSteps");
-<<<<<<< HEAD
-=======
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.WaitlistEmail", b =>
@@ -857,7 +852,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WaitlistEmails");
->>>>>>> 2339158 (added money withdrawal and history of withdrawals)
                 });
 
             modelBuilder.Entity("ManualTools", b =>
