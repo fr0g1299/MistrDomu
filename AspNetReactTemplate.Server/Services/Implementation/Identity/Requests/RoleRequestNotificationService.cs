@@ -15,20 +15,24 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
     private readonly UserManager<User> _userManager;
     private readonly IEmailNotificationService _emailNotificationService;
     private readonly INotificationService _notificationService;
+    private readonly IRoleRequestNotificationTexts _notificationTexts;
     private readonly ILogger<RoleRequestNotificationService> _logger;
 
     public RoleRequestNotificationService(
         AppDbContext dbContext,
         UserManager<User> userManager,
         IEmailNotificationService emailNotificationService,
-        INotificationService notificationService,
-        ILogger<RoleRequestNotificationService> logger)
+        ILogger<RoleRequestNotificationService> logger,
+        IRoleRequestNotificationTexts notificationTexts,
+        INotificationService notificationService
+        )
     {
         _dbContext = dbContext;
         _userManager = userManager;
         _emailNotificationService = emailNotificationService;
-        _notificationService = notificationService;
+        _notificationTexts = notificationTexts;
         _logger = logger;
+        _notificationService = notificationService;
     }
 
     public async Task NotifyNewRequestAsync(User currentUser, string? userNote)
@@ -95,7 +99,7 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
             return;
         }
 
-        var message = RoleRequestNotificationTexts.BuildUserUpdatedMessage(request.Status);
+        var  message = await _notificationTexts.BuildUserUpdatedMessage(request.Status);
 
         try
         {
@@ -103,7 +107,7 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
                 request.UserId,
                 RoleRequestNotificationTexts.RoleRequestUser,
                 RoleRequestNotificationTexts.UserUpdatedTitle,
-                message);
+                 message);
         }
         catch (Exception exception)
         {

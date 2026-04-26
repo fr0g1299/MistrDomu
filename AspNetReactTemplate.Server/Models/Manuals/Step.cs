@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using AspNetReactTemplate.Server.Models.Entity;
 
 namespace AspNetReactTemplate.Server.Models.Manuals
 {

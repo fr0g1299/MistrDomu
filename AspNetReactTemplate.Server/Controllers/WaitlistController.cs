@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models;
+using AspNetReactTemplate.Server.Models.Entity;
 using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Controllers

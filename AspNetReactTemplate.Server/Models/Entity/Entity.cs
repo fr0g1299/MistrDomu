@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using AspNetReactTemplate.Server.Models.Interfaces;
 
-namespace AspNetReactTemplate.Server.Models
+namespace AspNetReactTemplate.Server.Models.Entity
 {
     public abstract class Entity<Tkey> : IEntity<Tkey>
     {

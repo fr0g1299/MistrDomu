@@ -15,7 +15,9 @@ public static class EmailTemplateInit
                    <p>Uživatel <strong>{DisplayName}</strong> ({Email}) podal novou žádost o roli Expert.</p>
                    {NoteSection}
                    <p><strong>Počet čekajících žádostí:</strong> {PendingCount}</p>
-                   <p>Otevřete administraci a žádost prosím zpracujte.</p>
+                   <p>
+                       <a href="{AdminUrl}">Otevřete administraci a žádost prosím zpracujte.</a>
+                   </p>
                    <p>Zasláno z aplikace Mistr domu.</p>
                    """
         },

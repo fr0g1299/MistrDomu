@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using AspNetReactTemplate.Server.Models.DTOs.Notifications;
+using AspNetReactTemplate.Server.Models.Entity;
 
 namespace AspNetReactTemplate.Server.Models.Notifiactions;
 

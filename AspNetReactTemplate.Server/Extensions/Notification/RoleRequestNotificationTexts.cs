@@ -1,9 +1,12 @@
 using System.Net;
+using System.Text;
 using AspNetReactTemplate.Server.Models.Identity.Enums;
+using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AspNetReactTemplate.Server.Extensions.Notification;
 
-public static class RoleRequestNotificationTexts
+public class RoleRequestNotificationTexts : IRoleRequestNotificationTexts
 {
     public const string RoleRequestUser = "role_request";
     public const string RoleRequestAdmin = "role_request_admin";
@@ -11,8 +14,14 @@ public static class RoleRequestNotificationTexts
     public const string NewRequestTitle = "Nová žádost o roli Expert";
     public const string NewRequestSubject = "Nová žádost o roli Expert";
     public const string UpdatedUserSubject = "Změna stavu žádosti o roli";
+    private readonly IConfiguration _configuration;
 
-    public static string GetStatusCzech(RoleRequestStatus status)
+    public RoleRequestNotificationTexts(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
+    private string GetStatusCzech(RoleRequestStatus status)
     {
         return status switch
         {
@@ -23,7 +32,7 @@ public static class RoleRequestNotificationTexts
         };
     }
 
-    public static string BuildUserUpdatedMessage(RoleRequestStatus status)
+    public async Task<string>  BuildUserUpdatedMessage(RoleRequestStatus status)
     {
         return status switch
         {
@@ -38,29 +47,38 @@ public static class RoleRequestNotificationTexts
         return $"{displayName} podal(a) novou žádost o roli Expert.";
     }
 
-    public static string RenderNewRequestBody(string templateBody, string? requesterDisplayName, string? requesterEmail, string? userNote, int pendingCount)
+    public async Task<string> RenderNewRequestBody(string templateBody, string? requesterDisplayName, string? requesterEmail, string? userNote, int pendingCount)
     {
         var noteSection = string.IsNullOrWhiteSpace(userNote)
             ? string.Empty
             : $"<p><strong>Poznámka:</strong> {WebUtility.HtmlEncode(userNote)}</p>";
+        
+            var adminUrl = _configuration["Url:PublicBaseUrl"] + _configuration["Url:RequestAdministration"];
 
-        return templateBody
-            .Replace("{DisplayName}", WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(requesterDisplayName) ? "Neznámý uživatel" : requesterDisplayName))
-            .Replace("{Email}", WebUtility.HtmlEncode(requesterEmail ?? "Neznámý uživatel"))
-            .Replace("{RequesterEmail}", WebUtility.HtmlEncode(requesterEmail ?? "Neznámý uživatel"))
-            .Replace("{UserNote}", string.IsNullOrWhiteSpace(userNote) ? "Žádná poznámka" : WebUtility.HtmlEncode(userNote))
-            .Replace("{PendingCount}", pendingCount.ToString())
-            .Replace("{NoteSection}", noteSection);
+
+            return templateBody
+                .Replace("{DisplayName}",
+                    WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(requesterDisplayName)
+                        ? "Neznámý uživatel"
+                        : requesterDisplayName))
+                .Replace("{Email}", WebUtility.HtmlEncode(requesterEmail ?? "Neznámý uživatel"))
+                .Replace("{RequesterEmail}", WebUtility.HtmlEncode(requesterEmail ?? "Neznámý uživatel"))
+                .Replace("{UserNote}",
+                    string.IsNullOrWhiteSpace(userNote) ? "Žádná poznámka" : WebUtility.HtmlEncode(userNote))
+                .Replace("{PendingCount}", pendingCount.ToString())
+                .Replace("{NoteSection}", noteSection)
+                .Replace("{AdminUrl}", adminUrl);   
+
     }
 
-    public static string RenderUserUpdatedBody(string templateBody, string? displayName, RoleRequestStatus status, string? adminNote)
+    async Task<string> IRoleRequestNotificationTexts.RenderUserUpdatedBody(string templateBody, string? displayName, RoleRequestStatus status, string? adminNote)
     {
         var statusCz = GetStatusCzech(status);
         var adminNoteSection = string.IsNullOrWhiteSpace(adminNote)
             ? string.Empty
             : $"<p><strong>Poznámka administrátora:</strong> {WebUtility.HtmlEncode(adminNote)}</p>";
-
-        return templateBody
+            
+            return templateBody
             .Replace("{Status}", statusCz)
             .Replace("{AdminNote}", string.IsNullOrWhiteSpace(adminNote) ? string.Empty : WebUtility.HtmlEncode(adminNote))
             .Replace("{AdminNoteSection}", adminNoteSection);

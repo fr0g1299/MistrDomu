@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AspNetReactTemplate.Server.Models.Entity;
 using AspNetReactTemplate.Server.Models.Manuals.Enums;
 
 namespace AspNetReactTemplate.Server.Models.Manuals

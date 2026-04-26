@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace AspNetReactTemplate.Server.Models
+namespace AspNetReactTemplate.Server.Models.Entity
 {
     public class WaitlistEmail : Entity<int>
     {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Models.Calls;
+using AspNetReactTemplate.Server.Models.Entity;
 using AspNetReactTemplate.Server.Models.Manuals;
 using AspNetReactTemplate.Server.Models.Identity;
 using AspNetReactTemplate.Server.Models.Notifiactions;
