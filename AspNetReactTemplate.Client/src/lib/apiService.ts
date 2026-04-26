@@ -95,6 +95,14 @@ export type ExpertManualCallDetailRead = {
   calls: ExpertManualCallRecordRead[];
 };
 
+export type ExpertWithdrawalRead = {
+  id: number;
+  amountCzk: number;
+  balanceBeforeCzk: number;
+  balanceAfterCzk: number;
+  withdrawnAtUtc: string;
+};
+
 const API_BASE_URL = "/api";
 const WAITING_SESSION_TOKEN_STORAGE_KEY = "expert-waiting-session-token";
 const WAITING_SESSION_TOKEN_HEADER = "X-Waiting-Session-Token";
@@ -485,15 +493,24 @@ export const apiService = {
     return requestJson<number[]>(`/payment/check/manual-ids`);
   },
 
-  async checkExpertConsultationPayment(manualId: number): Promise<{ hasPaid: boolean }> {
-    return requestJson<{ hasPaid: boolean }>(`/payment/check/expert-consultation/${manualId}`);
+  async checkExpertConsultationPayment(
+    manualId: number,
+  ): Promise<{ hasPaid: boolean }> {
+    return requestJson<{ hasPaid: boolean }>(
+      `/payment/check/expert-consultation/${manualId}`,
+    );
   },
 
-  async checkoutExpertConsultation(manualId: number): Promise<{ url?: string; alreadyPaid?: boolean }> {
-    return requestJson<{ url?: string; alreadyPaid?: boolean }>("/payment/checkout", {
-      method: "POST",
-      body: JSON.stringify({ manualId, paymentType: "ExpertConsultation" }),
-    });
+  async checkoutExpertConsultation(
+    manualId: number,
+  ): Promise<{ url?: string; alreadyPaid?: boolean }> {
+    return requestJson<{ url?: string; alreadyPaid?: boolean }>(
+      "/payment/checkout",
+      {
+        method: "POST",
+        body: JSON.stringify({ manualId, paymentType: "ExpertConsultation" }),
+      },
+    );
   },
 
   // Tools
@@ -764,6 +781,27 @@ export const apiService = {
 
   async getTotalCallsByExpert(expertId: number): Promise<number> {
     return requestJson<number>(`/calls/report/expert/${expertId}/calls`);
+  },
+
+  async getTotalEarningsCzkByExpert(expertId: number): Promise<number> {
+    return requestJson<number>(`/calls/report/expert/${expertId}/earnings-czk`);
+  },
+
+  async withdrawExpertBalance(amountCzk?: number): Promise<{
+    newBalanceCzk: number;
+    withdrawal: ExpertWithdrawalRead;
+  }> {
+    return requestJson<{
+      newBalanceCzk: number;
+      withdrawal: ExpertWithdrawalRead;
+    }>("/payment/expert/withdraw", {
+      method: "POST",
+      body: JSON.stringify({ amountCzk }),
+    });
+  },
+
+  async getExpertWithdrawalHistory(): Promise<ExpertWithdrawalRead[]> {
+    return requestJson<ExpertWithdrawalRead[]>("/payment/expert/withdrawals");
   },
 
   async getTotalCallsByExpertForManual(

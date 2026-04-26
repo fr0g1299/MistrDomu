@@ -11,6 +11,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+// Using the custom Dialog components provided
 import {
   Dialog,
   DialogContent,
@@ -20,10 +21,12 @@ import {
 } from "@/components/ui/dialog";
 import {
   apiService,
+  type ExpertWithdrawalRead,
   type ExpertManualCallDetailRead,
   type ManualForExpertRead,
 } from "@/lib/apiService";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 type ManualCallsForDashboard = {
   manualId: number;
@@ -70,12 +73,14 @@ export default function ExpertDashboardPage() {
   const [manuals, setManuals] = useState<ManualForExpertRead[]>([]);
   const [totalCalls, setTotalCalls] = useState(0);
   const [totalOnlineSeconds, setTotalOnlineSeconds] = useState(0);
+  const [expertBalanceCzk, setExpertBalanceCzk] = useState(0);
   const [manualCallRows, setManualCallRows] = useState<ManualCallsForDashboard[]>([]);
   const [callBreakdownOpen, setCallBreakdownOpen] = useState(false);
   const [expandedManualIds, setExpandedManualIds] = useState<Set<number>>(new Set());
-
-  // Placeholder for future payout integration.
-  const expertBalanceCzk = 0;
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawHistoryLoading, setWithdrawHistoryLoading] = useState(false);
+  const [withdrawHistoryOpen, setWithdrawHistoryOpen] = useState(false);
+  const [withdrawals, setWithdrawals] = useState<ExpertWithdrawalRead[]>([]);
 
   useEffect(() => {
     if (!expertId || !isExpert) {
@@ -90,12 +95,13 @@ export default function ExpertDashboardPage() {
         setLoading(true);
         setError(null);
 
-        const [assignedManuals, callsCount, onlineSeconds, callDetails] =
+        const [assignedManuals, callsCount, onlineSeconds, callDetails, earningsCzk] =
           await Promise.all([
             apiService.getManualsForExpert(expertId),
             apiService.getTotalCallsByExpert(expertId),
             apiService.getTotalOnlineSecondsByExpert(expertId),
             apiService.getManualCallDetailsByExpert(expertId),
+            apiService.getTotalEarningsCzkByExpert(expertId),
           ]);
 
         if (isCancelled) {
@@ -127,6 +133,7 @@ export default function ExpertDashboardPage() {
         setManuals(assignedManuals);
         setTotalCalls(callsCount);
         setTotalOnlineSeconds(onlineSeconds);
+        setExpertBalanceCzk(earningsCzk);
         setManualCallRows(mergedRows);
       } catch (err) {
         if (!isCancelled) {
@@ -156,6 +163,50 @@ export default function ExpertDashboardPage() {
       }
       return next;
     });
+  };
+
+  const loadWithdrawalHistory = async () => {
+    setWithdrawHistoryLoading(true);
+    try {
+      const rows = await apiService.getExpertWithdrawalHistory();
+      setWithdrawals(rows);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Nepodařilo se načíst historii výběrů.");
+    } finally {
+      setWithdrawHistoryLoading(false);
+    }
+  };
+
+  const handleWithdrawAll = async () => {
+    if (expertBalanceCzk <= 0) {
+      toast.error("Nemáte žádné prostředky k výběru.");
+      return;
+    }
+
+    const shouldWithdraw = window.confirm(
+      `Opravdu chcete vybrat celý zůstatek ${expertBalanceCzk.toLocaleString("cs-CZ")} Kč?`,
+    );
+
+    if (!shouldWithdraw) {
+      return;
+    }
+
+    setWithdrawLoading(true);
+    try {
+      const result = await apiService.withdrawExpertBalance();
+      setExpertBalanceCzk(result.newBalanceCzk);
+      setWithdrawals((current) => [result.withdrawal, ...current]);
+      toast.success("Výběr byl úspěšně vytvořen.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Nepodařilo se vybrat peníze.");
+    } finally {
+      setWithdrawLoading(false);
+    }
+  };
+
+  const openWithdrawalHistory = () => {
+    setWithdrawHistoryOpen(true);
+    void loadWithdrawalHistory();
   };
 
   if (!isExpert) {
@@ -263,11 +314,11 @@ export default function ExpertDashboardPage() {
                   {expertBalanceCzk.toLocaleString("cs-CZ")} Kč
                 </div>
                 <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Button variant="outline" disabled>
+                  <Button variant="outline" onClick={handleWithdrawAll} disabled={withdrawLoading || expertBalanceCzk <= 0}>
                     <Wallet className="mr-2 h-4 w-4" />
-                    Vybrat peníze
+                    {withdrawLoading ? "Probíhá výběr..." : "Vybrat peníze"}
                   </Button>
-                  <Button variant="ghost" disabled>
+                  <Button variant="ghost" onClick={openWithdrawalHistory}>
                     <Coins className="mr-2 h-4 w-4" />
                     Historie výběrů
                   </Button>
@@ -277,7 +328,7 @@ export default function ExpertDashboardPage() {
           </div>
 
           <Dialog open={callBreakdownOpen} onOpenChange={setCallBreakdownOpen}>
-            <DialogContent className="max-h-[85vh] max-w-4xl overflow-hidden p-0 sm:max-w-4xl">
+            <DialogContent className="max-h-[85vh] max-w-4xl overflow-hidden p-0 sm:max-w-4xl" showCloseButton={true}>
               <DialogHeader className="border-b px-6 py-4">
                 <DialogTitle>Rozpis hovorů podle návodů</DialogTitle>
                 <DialogDescription>
@@ -327,6 +378,41 @@ export default function ExpertDashboardPage() {
                       )}
                     </div>
                   ))
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={withdrawHistoryOpen} onOpenChange={setWithdrawHistoryOpen}>
+            <DialogContent className="max-h-[80vh] max-w-2xl overflow-hidden p-0 sm:max-w-2xl" showCloseButton={true}>
+              <DialogHeader className="border-b px-6 py-4">
+                <DialogTitle>Historie výběrů</DialogTitle>
+                <DialogDescription>
+                  Přehled všech vašich výběrů z expertního zůstatku.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3 overflow-y-auto px-6 py-4">
+                {withdrawHistoryLoading ? (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Načítám historii výběrů...
+                  </div>
+                ) : withdrawals.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Zatím nemáte žádný výběr.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {withdrawals.map((withdrawal) => (
+                      <li key={withdrawal.id} className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
+                        <div className="font-medium">
+                          -{withdrawal.amountCzk.toLocaleString("cs-CZ")} Kč
+                        </div>
+                        <div className="text-muted-foreground">
+                          {formatDateTime(withdrawal.withdrawnAtUtc)}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             </DialogContent>

@@ -153,7 +153,10 @@ export default function Guide() {
         {stepsError && (
           <p className="mb-4 text-sm text-destructive">{stepsError}</p>
         )}
-        <ExpertHelperCard manualId={manualId} variant="helper" />
+        <ExpertHelperCard
+          manualId={manualId}
+          variant="helper"
+        />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-32 3xl:gap-6 4xl:gap-8">
           <TableOfContents
             tableOfContents={tableOfContents}

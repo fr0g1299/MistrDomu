@@ -31,4 +31,11 @@ public interface IPaymentsQueryService
     /// <param name="user"></param>
     /// <returns></returns>
     Task<PaidManualIdsResult> GetPaidManualIdsForUser(ClaimsPrincipal user);
+
+    /// <summary>
+    /// Returns withdrawal history records for the authenticated expert user.
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns></returns>
+    Task<ExpertWithdrawalHistoryResult> GetExpertWithdrawalsForUser(ClaimsPrincipal user);
 }

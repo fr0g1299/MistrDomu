@@ -1,7 +1,9 @@
 using AspNetReactTemplate.Server.Data;
+using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Models.Calls;
 using AspNetReactTemplate.Server.Models.DTOs.Calls;
 using AspNetReactTemplate.Server.Services.Abstraction.Calls;
+using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.Calls;
 
@@ -70,6 +72,36 @@ public class CallSessionLogService : ICallSessionLogService
         };
 
         _dbContext.ManualCallLogs.Add(callLog);
+
+        var payoutSetting = await _dbContext.AppSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(setting => setting.Key == "ExpertCallPayoutCzk", cancellationToken);
+
+        if (!int.TryParse(payoutSetting?.Value, out var payoutPerCallCzk) || payoutPerCallCzk < 0)
+        {
+            payoutPerCallCzk = 100;
+        }
+
+        var expertBalance = await _dbContext.ExpertBalances
+            .FirstOrDefaultAsync(balance => balance.ExpertUserId == participantUserId, cancellationToken);
+
+        if (expertBalance is null)
+        {
+            expertBalance = new ExpertBalance
+            {
+                ExpertUserId = participantUserId,
+                BalanceCzk = payoutPerCallCzk,
+                UpdatedAtUtc = DateTimeOffset.UtcNow
+            };
+
+            _dbContext.ExpertBalances.Add(expertBalance);
+        }
+        else
+        {
+            expertBalance.BalanceCzk += payoutPerCallCzk;
+            expertBalance.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -1,5 +1,7 @@
 using AspNetReactTemplate.Server.Data;
+using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Services.Abstraction.Calls;
+using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.Calls;
 
@@ -24,5 +26,19 @@ public class CallReportService : ICallSessionReportService
         var totalCalls = _dbContext.ManualCallLogs.Count(log => log.ParticipantUserId == expertId && log.ManualId == manualId);
 
         return Task.FromResult(totalCalls);
+    }
+
+    public async Task<int> GetTotalEarningsCzkByExpertAsync(int expertUserId, CancellationToken cancellationToken = default)
+    {
+        var expertBalance = await _dbContext.ExpertBalances
+            .AsNoTracking()
+            .FirstOrDefaultAsync(balance => balance.ExpertUserId == expertUserId, cancellationToken);
+
+        if (expertBalance is null)
+        {
+            return 0;
+        }
+
+        return expertBalance.BalanceCzk;
     }
 }

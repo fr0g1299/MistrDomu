@@ -35,6 +35,8 @@ namespace AspNetReactTemplate.Server.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<ManualCallLog> ManualCallLogs { get; set; }
         public DbSet<ExpertWaitingLog> ExpertWaitingLogs { get; set; }
+        public DbSet<ExpertBalance> ExpertBalances { get; set; }
+        public DbSet<ExpertWithdrawal> ExpertWithdrawals { get; set; }
         public DbSet<EmailTemplate> EmailTemplates { get; set; }
         public DbSet<EmailSetting> EmailSettings { get; set; }
         public DbSet<EmailOutboxMessage> EmailOutboxMessages { get; set; }
@@ -156,7 +158,7 @@ namespace AspNetReactTemplate.Server.Data
 
             modelBuilder.Entity<EmailOutboxMessage>()
                 .HasIndex(x => new { x.Status, x.ProcessingStartedAtUtc });
-            
+
             modelBuilder.Entity<EmailOutboxMessage>()
                 .HasIndex(x => new { x.Status, x.SentAtUtc });
 
@@ -184,6 +186,21 @@ namespace AspNetReactTemplate.Server.Data
 
             modelBuilder.Entity<ExpertWaitingLog>()
                 .HasIndex(log => new { log.ExpertUserId, log.StartedAtUtc });
+
+            modelBuilder.Entity<ExpertBalance>()
+                .HasOne(balance => balance.ExpertUser)
+                .WithMany()
+                .HasForeignKey(balance => balance.ExpertUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExpertWithdrawal>()
+                .HasOne(withdrawal => withdrawal.ExpertUser)
+                .WithMany()
+                .HasForeignKey(withdrawal => withdrawal.ExpertUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExpertWithdrawal>()
+                .HasIndex(withdrawal => new { withdrawal.ExpertUserId, withdrawal.WithdrawnAtUtc });
 
             // ManualPayments: unique per (UserId, ManualId)
             modelBuilder.Entity<ManualPayment>()
@@ -232,6 +249,12 @@ namespace AspNetReactTemplate.Server.Data
                     Key = "StripeExpertPriceId",
                     Value = "",
                     Description = "ID ceny ve Stripe, která se má použít pro platbu za konzultaci s expertem. Pokud je nastaven, má přednost před proměnnou prostředí STRIPE_EXPERT_PRICE_ID."
+                },
+                new AppSetting
+                {
+                    Key = "ExpertCallPayoutCzk",
+                    Value = "100",
+                    Description = "Částka v CZK, která se připíše expertovi za dokončený hovor. Pokud je nastaven, má přednost před proměnnou prostředí EXPERT_CALL_PAYOUT_CZK."
                 }
             );
         }

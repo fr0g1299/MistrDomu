@@ -17,4 +17,12 @@ public interface IPaymentsCommandService
     /// </summary>
     /// <returns></returns>
     Task<PaymentsWebhookResultDto> PaymentsWebhook();
+
+    /// <summary>
+    /// Withdraws money from the currently authenticated expert balance and stores a withdrawal history record.
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    Task<ExpertWithdrawalCommandResult> WithdrawExpertBalance(ClaimsPrincipal user, ExpertWithdrawalRequestDto request);
 }

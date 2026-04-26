@@ -18,4 +18,11 @@ public interface ICallSessionReportService
     /// <param name="manualId"></param>
     /// <param name="cancellationToken"></param>
     Task<int> GetTotalCallsByExpertForManualAsync(int expertId, int manualId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the total earnings in CZK for a given expert based on completed calls.
+    /// </summary>
+    /// <param name="expertUserId"></param>
+    /// <param name="cancellationToken"></param>
+    Task<int> GetTotalEarningsCzkByExpertAsync(int expertUserId, CancellationToken cancellationToken = default);
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AspNetReactTemplate.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260426160135_AddExpertBalances")]
+    partial class AddExpertBalances
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,27 +190,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("ManualCallLogs");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Entity.WaitlistEmail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WaitlistEmails");
-=======
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertBalance", b =>
                 {
                     b.Property<int>("ExpertUserId")
@@ -222,7 +204,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("ExpertUserId");
 
                     b.ToTable("ExpertBalances");
->>>>>>> 2339158 (added money withdrawal and history of withdrawals)
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertConsultationPayment", b =>
@@ -254,39 +235,6 @@ namespace AspNetReactTemplate.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("ExpertConsultationPayments");
-<<<<<<< HEAD
-=======
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertWithdrawal", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AmountCzk")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("BalanceAfterCzk")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("BalanceBeforeCzk")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ExpertUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("WithdrawnAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpertUserId", "WithdrawnAtUtc");
-
-                    b.ToTable("ExpertWithdrawals");
->>>>>>> 2339158 (added money withdrawal and history of withdrawals)
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>
@@ -801,7 +749,7 @@ namespace AspNetReactTemplate.Server.Migrations
                         new
                         {
                             Key = "RoleRequest.NewAdminNotification",
-                            Body = "<p>Uživatel <strong>{DisplayName}</strong> ({Email}) podal novou žádost o roli Expert.</p>\r\n{NoteSection}\r\n<p><strong>Počet čekajících žádostí:</strong> {PendingCount}</p>\r\n<p>\r\n    <a href=\"{AdminUrl}\">Otevřete administraci a žádost prosím zpracujte.</a>\r\n</p>\r\n<p>Zasláno z aplikace Mistr domu.</p>",
+                            Body = "<p>Uživatel <strong>{DisplayName}</strong> ({Email}) podal novou žádost o roli Expert.</p>\r\n{NoteSection}\r\n<p><strong>Počet čekajících žádostí:</strong> {PendingCount}</p>\r\n<p>Otevřete administraci a žádost prosím zpracujte.</p>\r\n<p>Zasláno z aplikace Mistr domu.</p>",
                             Id = 0,
                             Subject = "Nová žádost o roli Expert"
                         },
@@ -835,8 +783,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasIndex("StepId");
 
                     b.ToTable("UserCompletedSteps");
-<<<<<<< HEAD
-=======
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.WaitlistEmail", b =>
@@ -858,7 +804,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WaitlistEmails");
->>>>>>> 2339158 (added money withdrawal and history of withdrawals)
                 });
 
             modelBuilder.Entity("ManualTools", b =>
@@ -1063,17 +1008,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.Navigation("Manual");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertWithdrawal", b =>
-                {
-                    b.HasOne("AspNetReactTemplate.Server.Models.Identity.User", "ExpertUser")
-                        .WithMany()
-                        .HasForeignKey("ExpertUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ExpertUser");
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Identity.Notification", b =>

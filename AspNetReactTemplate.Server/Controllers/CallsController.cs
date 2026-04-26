@@ -467,6 +467,22 @@ public class CallsController : ControllerBase
         return Ok(numberOfCalls);
     }
 
+    [HttpGet("report/expert/{expertId:int}/earnings-czk")]
+    public async Task<ActionResult<int>> GetTotalEarningsCzkByExpertAsync(
+        int expertId,
+        [FromServices] ICallSessionReportService callSessionReportService,
+        CancellationToken cancellationToken)
+    {
+        var authorization = await _authorizationService.AuthorizeAsync(User, expertId, AuthorizationPolicies.AdminOrSelfExpert);
+        if (!authorization.Succeeded)
+        {
+            return Forbid();
+        }
+
+        var totalEarningsCzk = await callSessionReportService.GetTotalEarningsCzkByExpertAsync(expertId, cancellationToken);
+        return Ok(totalEarningsCzk);
+    }
+
     [HttpGet("report/expert/{expertId:int}/manual/{manualId:int}/calls")]
     public async Task<ActionResult<int>> GetTotalCallsByExpertForManualAsync(
         int expertId,

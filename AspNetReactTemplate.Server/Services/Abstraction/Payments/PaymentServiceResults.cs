@@ -42,3 +42,20 @@ public sealed record PaidManualIdsResult(
 {
     public bool IsSuccess => Status == PaymentServiceStatus.Success;
 }
+
+public sealed record ExpertWithdrawalCommandResult(
+    PaymentServiceStatus Status,
+    ExpertWithdrawalDto? Withdrawal = null,
+    int NewBalanceCzk = 0,
+    string? ErrorMessage = null)
+{
+    public bool IsSuccess => Status == PaymentServiceStatus.Success;
+}
+
+public sealed record ExpertWithdrawalHistoryResult(
+    PaymentServiceStatus Status,
+    IReadOnlyList<ExpertWithdrawalDto>? Records = null,
+    string? ErrorMessage = null)
+{
+    public bool IsSuccess => Status == PaymentServiceStatus.Success;
+}

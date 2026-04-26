@@ -144,5 +144,51 @@ namespace AspNetReactTemplate.Server.Controllers
 
             return StatusCode(500, result.ErrorMessage ?? "Unexpected error retrieving paid access records.");
         }
+
+        // ── POST /api/payment/expert/withdraw ───────────────────────────────
+        /// <summary>Withdraws money from the current expert's balance.</summary>
+        [HttpPost("expert/withdraw")]
+        [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
+        public async Task<ActionResult> WithdrawExpertBalance([FromBody] ExpertWithdrawalRequestDto? request)
+        {
+            var result = await _commandService.WithdrawExpertBalance(User, request ?? new ExpertWithdrawalRequestDto());
+
+            if (result.Status == PaymentServiceStatus.Unauthorized)
+            {
+                return Unauthorized();
+            }
+
+            if (result.Status == PaymentServiceStatus.Success)
+            {
+                return Ok(new
+                {
+                    newBalanceCzk = result.NewBalanceCzk,
+                    withdrawal = result.Withdrawal
+                });
+            }
+
+            return BadRequest(result.ErrorMessage ?? "Nepodařilo se provést výběr.");
+        }
+
+        // ── GET /api/payment/expert/withdrawals ─────────────────────────────
+        /// <summary>Returns withdrawal history for the current expert.</summary>
+        [HttpGet("expert/withdrawals")]
+        [Authorize(Policy = AuthorizationPolicies.ExpertOnly)]
+        public async Task<ActionResult<IEnumerable<ExpertWithdrawalDto>>> GetExpertWithdrawalHistory()
+        {
+            var result = await _queryService.GetExpertWithdrawalsForUser(User);
+
+            if (result.Status == PaymentServiceStatus.Unauthorized)
+            {
+                return Unauthorized();
+            }
+
+            if (result.Status == PaymentServiceStatus.Success)
+            {
+                return Ok(result.Records ?? Array.Empty<ExpertWithdrawalDto>());
+            }
+
+            return StatusCode(500, result.ErrorMessage ?? "Nepodařilo se načíst historii výběrů.");
+        }
     }
 }

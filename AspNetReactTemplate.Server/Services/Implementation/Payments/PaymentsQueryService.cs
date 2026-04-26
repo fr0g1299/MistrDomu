@@ -94,4 +94,38 @@ public class PaymentsQueryService : IPaymentsQueryService
 
         return new PaidAccessResult(PaymentServiceStatus.Success, records);
     }
+
+    public async Task<ExpertWithdrawalHistoryResult> GetExpertWithdrawalsForUser(ClaimsPrincipal user)
+    {
+        var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return new ExpertWithdrawalHistoryResult(PaymentServiceStatus.Unauthorized);
+        }
+
+        try
+        {
+            var records = await _context.ExpertWithdrawals
+                .AsNoTracking()
+                .Where(withdrawal => withdrawal.ExpertUserId == userId)
+                .OrderByDescending(withdrawal => withdrawal.WithdrawnAtUtc)
+                .Select(withdrawal => new ExpertWithdrawalDto
+                {
+                    Id = withdrawal.Id,
+                    AmountCzk = withdrawal.AmountCzk,
+                    BalanceBeforeCzk = withdrawal.BalanceBeforeCzk,
+                    BalanceAfterCzk = withdrawal.BalanceAfterCzk,
+                    WithdrawnAtUtc = withdrawal.WithdrawnAtUtc
+                })
+                .ToListAsync();
+
+            return new ExpertWithdrawalHistoryResult(PaymentServiceStatus.Success, records);
+        }
+        catch (Exception ex)
+        {
+            return new ExpertWithdrawalHistoryResult(
+                PaymentServiceStatus.Error,
+                ErrorMessage: $"Database error getting withdrawal history: {ex.Message} {ex.InnerException?.Message}");
+        }
+    }
 }

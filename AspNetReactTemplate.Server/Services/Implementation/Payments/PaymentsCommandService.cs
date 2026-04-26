@@ -92,11 +92,11 @@ public class PaymentsCommandService : IPaymentsCommandService
         // Build absolute success / cancel URLs
         var httpRequest = _httpContextAccessor.HttpContext?.Request;
         var baseUrl = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
-        
-        var successUrl = paymentType == "ExpertConsultation" 
-            ? $"{baseUrl}/guide/{request.ManualId}?expert_payment=success" 
+
+        var successUrl = paymentType == "ExpertConsultation"
+            ? $"{baseUrl}/guide/{request.ManualId}?expert_payment=success"
             : $"{baseUrl}/guide/{request.ManualId}?payment=success";
-            
+
         var cancelUrl = $"{baseUrl}/guide/{request.ManualId}";
 
         var options = new SessionCreateOptions
@@ -218,6 +218,78 @@ public class PaymentsCommandService : IPaymentsCommandService
         catch (StripeException ex)
         {
             return new PaymentsWebhookResultDto { Success = false, ErrorMessage = $"Webhook error: {ex.Message}" };
+        }
+    }
+
+    public async Task<ExpertWithdrawalCommandResult> WithdrawExpertBalance(ClaimsPrincipal user, ExpertWithdrawalRequestDto request)
+    {
+        var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            return new ExpertWithdrawalCommandResult(PaymentServiceStatus.Unauthorized);
+        }
+
+        try
+        {
+            var expertBalance = await _context.ExpertBalances
+                .FirstOrDefaultAsync(balance => balance.ExpertUserId == userId);
+
+            if (expertBalance is null || expertBalance.BalanceCzk <= 0)
+            {
+                return new ExpertWithdrawalCommandResult(
+                    PaymentServiceStatus.Error,
+                    ErrorMessage: "Nemáte žádné prostředky k výběru.");
+            }
+
+            var amountToWithdraw = request.AmountCzk.GetValueOrDefault(expertBalance.BalanceCzk);
+            if (amountToWithdraw <= 0)
+            {
+                amountToWithdraw = expertBalance.BalanceCzk;
+            }
+
+            if (amountToWithdraw > expertBalance.BalanceCzk)
+            {
+                return new ExpertWithdrawalCommandResult(
+                    PaymentServiceStatus.Error,
+                    NewBalanceCzk: expertBalance.BalanceCzk,
+                    ErrorMessage: "Požadovaná částka je vyšší než dostupný zůstatek.");
+            }
+
+            var balanceBeforeCzk = expertBalance.BalanceCzk;
+            expertBalance.BalanceCzk -= amountToWithdraw;
+            expertBalance.UpdatedAtUtc = DateTimeOffset.UtcNow;
+
+            var withdrawal = new ExpertWithdrawal
+            {
+                ExpertUserId = userId,
+                AmountCzk = amountToWithdraw,
+                BalanceBeforeCzk = balanceBeforeCzk,
+                BalanceAfterCzk = expertBalance.BalanceCzk,
+                WithdrawnAtUtc = DateTimeOffset.UtcNow
+            };
+
+            _context.ExpertWithdrawals.Add(withdrawal);
+            await _context.SaveChangesAsync();
+
+            var withdrawalDto = new ExpertWithdrawalDto
+            {
+                Id = withdrawal.Id,
+                AmountCzk = withdrawal.AmountCzk,
+                BalanceBeforeCzk = withdrawal.BalanceBeforeCzk,
+                BalanceAfterCzk = withdrawal.BalanceAfterCzk,
+                WithdrawnAtUtc = withdrawal.WithdrawnAtUtc
+            };
+
+            return new ExpertWithdrawalCommandResult(
+                PaymentServiceStatus.Success,
+                Withdrawal: withdrawalDto,
+                NewBalanceCzk: expertBalance.BalanceCzk);
+        }
+        catch (Exception ex)
+        {
+            return new ExpertWithdrawalCommandResult(
+                PaymentServiceStatus.Error,
+                ErrorMessage: $"Chyba při zpracování výběru: {ex.Message} {ex.InnerException?.Message}");
         }
     }
 }
