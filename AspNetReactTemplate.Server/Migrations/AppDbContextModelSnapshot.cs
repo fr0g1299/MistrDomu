@@ -187,7 +187,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("ManualCallLogs");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.Entity.WaitlistEmail", b =>
                 {
                     b.Property<int>("Id")
@@ -207,7 +206,8 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WaitlistEmails");
-=======
+                });
+
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertBalance", b =>
                 {
                     b.Property<int>("ExpertUserId")
@@ -222,7 +222,6 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.HasKey("ExpertUserId");
 
                     b.ToTable("ExpertBalances");
->>>>>>> 2339158 (added money withdrawal and history of withdrawals)
                 });
 
             modelBuilder.Entity("AspNetReactTemplate.Server.Models.ExpertConsultationPayment", b =>
