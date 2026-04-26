@@ -2,21 +2,25 @@ using AspNetReactTemplate.Server.Models.Identity.Enums;
 
 namespace AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 
-public interface IRoleRequestNotificationTexts
+public interface IRoleRequestNotificationTextsService
 {
 
-   Task<string> RenderNewRequestBody(
+   string RenderNewRequestBody(
         string templateBody,
         string? requesterDisplayName,
         string? requesterEmail,
         string? userNote,
         int pendingCount);
 
-   Task<string> RenderUserUpdatedBody(
+   string RenderUserUpdatedBody(
         string templateBody,
-        string? displayName,
         RoleRequestStatus status,
         string? adminNote);
-   Task<string> BuildUserUpdatedMessage(
-        RoleRequestStatus status);
+   
+   string BuildUserUpdatedMessage(
+       RoleRequestStatus status);
+
+   string BuildNewRequestMessage(
+       string displayName);
+
 }

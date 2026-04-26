@@ -1,22 +1,14 @@
 using System.Net;
-using System.Text;
 using AspNetReactTemplate.Server.Models.Identity.Enums;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
-using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace AspNetReactTemplate.Server.Extensions.Notification;
+namespace AspNetReactTemplate.Server.Services.Implementation.Notifications;
 
-public class RoleRequestNotificationTexts : IRoleRequestNotificationTexts
+public class RoleRequestNotificationTextsService : IRoleRequestNotificationTextsService
 {
-    public const string RoleRequestUser = "role_request";
-    public const string RoleRequestAdmin = "role_request_admin";
-    public const string UserUpdatedTitle = "Aktualizace žádosti o roli Expert";
-    public const string NewRequestTitle = "Nová žádost o roli Expert";
-    public const string NewRequestSubject = "Nová žádost o roli Expert";
-    public const string UpdatedUserSubject = "Změna stavu žádosti o roli";
     private readonly IConfiguration _configuration;
 
-    public RoleRequestNotificationTexts(IConfiguration configuration)
+    public RoleRequestNotificationTextsService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
@@ -32,7 +24,7 @@ public class RoleRequestNotificationTexts : IRoleRequestNotificationTexts
         };
     }
 
-    public async Task<string>  BuildUserUpdatedMessage(RoleRequestStatus status)
+    public string  BuildUserUpdatedMessage(RoleRequestStatus status)
     {
         return status switch
         {
@@ -42,12 +34,12 @@ public class RoleRequestNotificationTexts : IRoleRequestNotificationTexts
         };
     }
 
-    public static string BuildNewRequestMessage(string displayName)
+    public string BuildNewRequestMessage(string displayName)
     {
         return $"{displayName} podal(a) novou žádost o roli Expert.";
     }
 
-    public async Task<string> RenderNewRequestBody(string templateBody, string? requesterDisplayName, string? requesterEmail, string? userNote, int pendingCount)
+    public string RenderNewRequestBody(string templateBody, string? requesterDisplayName, string? requesterEmail, string? userNote, int pendingCount)
     {
         var noteSection = string.IsNullOrWhiteSpace(userNote)
             ? string.Empty
@@ -71,7 +63,7 @@ public class RoleRequestNotificationTexts : IRoleRequestNotificationTexts
 
     }
 
-    async Task<string> IRoleRequestNotificationTexts.RenderUserUpdatedBody(string templateBody, string? displayName, RoleRequestStatus status, string? adminNote)
+    public string RenderUserUpdatedBody(string templateBody, RoleRequestStatus status, string? adminNote)
     {
         var statusCz = GetStatusCzech(status);
         var adminNoteSection = string.IsNullOrWhiteSpace(adminNote)

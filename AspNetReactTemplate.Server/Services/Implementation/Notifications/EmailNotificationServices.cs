@@ -14,9 +14,9 @@ namespace AspNetReactTemplate.Server.Services.Implementation.Notifications
         private readonly ILogger<EmailService> _logger;
         private readonly AppDbContext _appDbContext;
         private readonly IUserSelectService _userSelectService;
-        private readonly IRoleRequestNotificationTexts _roleRequestNotificationTexts;
+        private readonly IRoleRequestNotificationTextsService _roleRequestNotificationTexts;
         public EmailNotificationService (ILogger<EmailService> logger, AppDbContext appDbContext,
-            IUserSelectService userSelectService,  IRoleRequestNotificationTexts roleRequestNotificationTexts)
+            IUserSelectService userSelectService,  IRoleRequestNotificationTextsService roleRequestNotificationTexts)
         {
             _logger = logger;
             _appDbContext = appDbContext;
@@ -58,7 +58,7 @@ namespace AspNetReactTemplate.Server.Services.Implementation.Notifications
             await QueueOutboxEmailAsync(
                 recipientEmails,
                 template.Subject.Trim(),
-                await _roleRequestNotificationTexts.RenderNewRequestBody(template.Body, requesterDisplayName,
+                 _roleRequestNotificationTexts.RenderNewRequestBody(template.Body, requesterDisplayName,
                     requesterEmail, userNote, pendingCount));
             }
 
@@ -96,7 +96,7 @@ namespace AspNetReactTemplate.Server.Services.Implementation.Notifications
             }
 
             var subject = string.IsNullOrWhiteSpace(template.Subject)
-                ? RoleRequestNotificationTexts.UpdatedUserSubject
+                ? NotificationTypes.UpdatedUserSubject
                 : template.Subject.Trim();
             var displayName = string.Join(" ", new[] { user?.FirstName, user?.LastName }
                 .Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
@@ -108,7 +108,7 @@ namespace AspNetReactTemplate.Server.Services.Implementation.Notifications
             await QueueOutboxEmailAsync(
                 new List<string> { userEmail },
                 subject,
-                await _roleRequestNotificationTexts.RenderUserUpdatedBody(template.Body, displayName, status, adminNote));
+                 _roleRequestNotificationTexts.RenderUserUpdatedBody(template.Body, status, adminNote));
             }
 
         private async Task QueueOutboxEmailAsync(IList<string> recipients, string subject, string body)

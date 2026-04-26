@@ -1,5 +1,7 @@
 using AspNetReactTemplate.Server.Extensions.Notification;
 using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Services.Implementation.Identity.Requests;
+using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 
 namespace AspNetReactTemplate.Server.Data.Seeding;
 
@@ -10,7 +12,7 @@ public static class EmailTemplateInit
         new EmailTemplate
         {
             Key = EmailTemplateKeys.NewRoleRequestAdmin,
-            Subject = RoleRequestNotificationTexts.NewRequestSubject,
+            Subject = NotificationTypes.NewRequestSubject,
             Body = """
                    <p>Uživatel <strong>{DisplayName}</strong> ({Email}) podal novou žádost o roli Expert.</p>
                    {NoteSection}
@@ -24,7 +26,7 @@ public static class EmailTemplateInit
         new EmailTemplate
         {
             Key = EmailTemplateKeys.RoleRequestUpdatedUser,
-            Subject = RoleRequestNotificationTexts.UpdatedUserSubject,
+            Subject = NotificationTypes.UpdatedUserSubject,
             Body = """
                    <p>Dobrý den,</p>
                    <p>Stav vaší žádosti o roli Expert byl změněn na: <strong>{Status}</strong>.</p>

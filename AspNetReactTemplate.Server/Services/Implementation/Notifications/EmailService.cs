@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using AspNetReactTemplate.Server.Models.Notifiactions;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models.DTOs.Notifications;

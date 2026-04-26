@@ -1,4 +1,3 @@
-using AspNetReactTemplate.Server.Extensions.Notification;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Auth;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Register;
 using AspNetReactTemplate.Server.Services.Abstraction.Manuals;
@@ -58,7 +57,7 @@ public static class ApplicationServicesExtensions
         services.AddScoped<IEmailAppService, EmailService>();
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<IDailyPrebuiltService, DailyPrebuiltService>();
-        services.AddScoped<IRoleRequestNotificationTexts, RoleRequestNotificationTexts>();
+        services.AddScoped<IRoleRequestNotificationTextsService, RoleRequestNotificationTextsService>();
         services.AddScoped<ICallSessionLogService, CallSessionLogService>();
         services.AddScoped<ICallSessionReportService, CallReportService>();
         services.AddSingleton<ICallPresenceService, CallPresenceService>();

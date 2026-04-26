@@ -1,10 +1,11 @@
 using AspNetReactTemplate.Server.Data;
-using AspNetReactTemplate.Server.Extensions.Notification;
 using AspNetReactTemplate.Server.Models.Identity;
 using AspNetReactTemplate.Server.Models.Identity.Enums;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Requests;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
+using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 using Microsoft.AspNetCore.Identity;
+using AspNetReactTemplate.Server.Extensions.Notification;
 using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.Identity.Requests;
@@ -15,7 +16,7 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
     private readonly UserManager<User> _userManager;
     private readonly IEmailNotificationService _emailNotificationService;
     private readonly INotificationService _notificationService;
-    private readonly IRoleRequestNotificationTexts _notificationTexts;
+    private readonly IRoleRequestNotificationTextsService _notificationTexts;
     private readonly ILogger<RoleRequestNotificationService> _logger;
 
     public RoleRequestNotificationService(
@@ -23,7 +24,7 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
         UserManager<User> userManager,
         IEmailNotificationService emailNotificationService,
         ILogger<RoleRequestNotificationService> logger,
-        IRoleRequestNotificationTexts notificationTexts,
+        IRoleRequestNotificationTextsService notificationTexts,
         INotificationService notificationService
         )
     {
@@ -55,9 +56,9 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
         {
             await _notificationService.CreateForUsersAsync(
                 adminIds,
-                RoleRequestNotificationTexts.RoleRequestAdmin,
-                RoleRequestNotificationTexts.NewRequestTitle,
-                RoleRequestNotificationTexts.BuildNewRequestMessage(displayName));
+                NotificationTypes.RoleRequestAdmin,
+                NotificationTypes.NewRequestTitle,
+                _notificationTexts.BuildNewRequestMessage(displayName));
         }
         catch (Exception exception)
         {
@@ -99,14 +100,14 @@ public class RoleRequestNotificationService : IRoleRequestNotificationService
             return;
         }
 
-        var  message = await _notificationTexts.BuildUserUpdatedMessage(request.Status);
+        var  message =  _notificationTexts.BuildUserUpdatedMessage(request.Status);
 
         try
         {
             await _notificationService.CreateForUserAsync(
                 request.UserId,
-                RoleRequestNotificationTexts.RoleRequestUser,
-                RoleRequestNotificationTexts.UserUpdatedTitle,
+                NotificationTypes.RoleRequestUser,
+                NotificationTypes.UserUpdatedTitle,
                  message);
         }
         catch (Exception exception)
