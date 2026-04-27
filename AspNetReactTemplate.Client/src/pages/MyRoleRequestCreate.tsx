@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Loader2, Send } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import { apiService } from "@/lib/apiService";
@@ -17,11 +17,13 @@ import {
 type MyRoleRequestCreateProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  showCloseButton?: boolean;
 };
 
 export default function MyRoleRequestCreate({
   open = true,
   onOpenChange,
+  showCloseButton = false,
 }: MyRoleRequestCreateProps) {
   const navigate = useNavigate();
   const [description, setDescription] = useState("");
@@ -100,7 +102,10 @@ export default function MyRoleRequestCreate({
         }
       }}
     >
-      <DialogContent className="max-w-3xl overflow-hidden border-border/70 bg-card p-0 shadow-xl">
+      <DialogContent
+        showCloseButton={showCloseButton}
+        className="max-w-3xl overflow-hidden border-border/70 bg-card p-0 shadow-xl"
+      >
         <DialogHeader className="border-b border-border px-6 py-5 text-left sm:text-left">
           <DialogTitle className="text-2xl font-bold">
             Vytvořit žádost o roli Expert
@@ -138,14 +143,25 @@ export default function MyRoleRequestCreate({
           </div>
 
           <DialogFooter className="border-t border-border pt-4 sm:justify-between">
-            <Button type="button" variant="outline" onClick={closeCreate}>
-              Zrušit
-            </Button>
+            {showCloseButton ? (
+              <Button type="button" variant="outline" onClick={closeCreate}>
+                Zrušit
+              </Button>
+            ) : (
+              <Button asChild type="button" variant="outline">
+                <Link to="/">
+                  <ArrowLeft className="size-4" />
+                  Zpět na hlavní stránku
+                </Link>
+              </Button>
+            )}
 
             <Button
               type="button"
               onClick={handleSubmit}
-              disabled={isSubmitting || hasRejectedRequest || isCheckingEligibility}
+              disabled={
+                isSubmitting || hasRejectedRequest || isCheckingEligibility
+              }
             >
               {isSubmitting ? (
                 <Loader2 className="size-4 animate-spin" />
