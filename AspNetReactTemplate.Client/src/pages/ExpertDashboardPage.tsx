@@ -16,6 +16,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -78,6 +79,7 @@ export default function ExpertDashboardPage() {
   const [callBreakdownOpen, setCallBreakdownOpen] = useState(false);
   const [expandedManualIds, setExpandedManualIds] = useState<Set<number>>(new Set());
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
   const [withdrawHistoryLoading, setWithdrawHistoryLoading] = useState(false);
   const [withdrawHistoryOpen, setWithdrawHistoryOpen] = useState(false);
   const [withdrawals, setWithdrawals] = useState<ExpertWithdrawalRead[]>([]);
@@ -95,13 +97,14 @@ export default function ExpertDashboardPage() {
         setLoading(true);
         setError(null);
 
-        const [assignedManuals, callsCount, onlineSeconds, callDetails, earningsCzk] =
+        const [assignedManuals, callsCount, onlineSeconds, callDetails, earningsCzk, withdrawalHistory] =
           await Promise.all([
             apiService.getManualsForExpert(expertId),
             apiService.getTotalCallsByExpert(expertId),
             apiService.getTotalOnlineSecondsByExpert(expertId),
             apiService.getManualCallDetailsByExpert(expertId),
             apiService.getTotalEarningsCzkByExpert(expertId),
+            apiService.getExpertWithdrawalHistory(),
           ]);
 
         if (isCancelled) {
@@ -135,6 +138,7 @@ export default function ExpertDashboardPage() {
         setTotalOnlineSeconds(onlineSeconds);
         setExpertBalanceCzk(earningsCzk);
         setManualCallRows(mergedRows);
+        setWithdrawals(withdrawalHistory);
       } catch (err) {
         if (!isCancelled) {
           setError(err instanceof Error ? err.message : "Nepodařilo se načíst dashboard experta.");
@@ -177,25 +181,22 @@ export default function ExpertDashboardPage() {
     }
   };
 
-  const handleWithdrawAll = async () => {
+  const handleWithdrawAll = () => {
     if (expertBalanceCzk <= 0) {
       toast.error("Nemáte žádné prostředky k výběru.");
       return;
     }
 
-    const shouldWithdraw = window.confirm(
-      `Opravdu chcete vybrat celý zůstatek ${expertBalanceCzk.toLocaleString("cs-CZ")} Kč?`,
-    );
+    setWithdrawConfirmOpen(true);
+  };
 
-    if (!shouldWithdraw) {
-      return;
-    }
-
+  const confirmWithdrawAll = async () => {
     setWithdrawLoading(true);
     try {
       const result = await apiService.withdrawExpertBalance();
       setExpertBalanceCzk(result.newBalanceCzk);
       setWithdrawals((current) => [result.withdrawal, ...current]);
+      setWithdrawConfirmOpen(false);
       toast.success("Výběr byl úspěšně vytvořen.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Nepodařilo se vybrat peníze.");
@@ -208,6 +209,13 @@ export default function ExpertDashboardPage() {
     setWithdrawHistoryOpen(true);
     void loadWithdrawalHistory();
   };
+
+  const totalWithdrawnCzk = withdrawals.reduce(
+    (sum, withdrawal) => sum + withdrawal.amountCzk,
+    0,
+  );
+  const totalEarnedAllTimeCzk = expertBalanceCzk + totalWithdrawnCzk;
+  const totalWithdrawalsCount = withdrawals.length;
 
   if (!isExpert) {
     return (
@@ -318,11 +326,40 @@ export default function ExpertDashboardPage() {
                     <Wallet className="mr-2 h-4 w-4" />
                     {withdrawLoading ? "Probíhá výběr..." : "Vybrat peníze"}
                   </Button>
-                  <Button variant="ghost" onClick={openWithdrawalHistory}>
-                    <Coins className="mr-2 h-4 w-4" />
-                    Historie výběrů
-                  </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-primary/15">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Celkem vyděláno
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-1">
+                <div className="text-5xl font-black leading-none tracking-tight text-primary sm:text-6xl">
+                  {totalEarnedAllTimeCzk.toLocaleString("cs-CZ")} Kč
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Součet všech výběrů a aktuálního zůstatku.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-primary/15">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Počet výběrů
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-1">
+                <div className="text-5xl font-black leading-none tracking-tight text-primary sm:text-6xl">
+                  {totalWithdrawalsCount}
+                </div>
+                <Button className="mt-4" variant="outline" onClick={openWithdrawalHistory}>
+                  <Coins className="mr-2 h-4 w-4" />
+                  Historie výběrů
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -388,7 +425,7 @@ export default function ExpertDashboardPage() {
               <DialogHeader className="border-b px-6 py-4">
                 <DialogTitle>Historie výběrů</DialogTitle>
                 <DialogDescription>
-                  Přehled všech vašich výběrů z expertního zůstatku.
+                  Přehled všech vašich výběrů.
                 </DialogDescription>
               </DialogHeader>
 
@@ -415,6 +452,48 @@ export default function ExpertDashboardPage() {
                   </ul>
                 )}
               </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog
+            open={withdrawConfirmOpen}
+            onOpenChange={(open) => {
+              if (!withdrawLoading) {
+                setWithdrawConfirmOpen(open);
+              }
+            }}
+          >
+            <DialogContent className="max-w-xl" showCloseButton={!withdrawLoading}>
+              <DialogHeader>
+                <DialogTitle>Potvrdit výběr zůstatku</DialogTitle>
+                <DialogDescription>
+                  Opravdu chcete vybrat celý zůstatek {expertBalanceCzk.toLocaleString("cs-CZ")} Kč?
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setWithdrawConfirmOpen(false)}
+                  disabled={withdrawLoading}
+                >
+                  Zrušit
+                </Button>
+                <Button
+                  type="button"
+                  onClick={confirmWithdrawAll}
+                  disabled={withdrawLoading}
+                >
+                  {withdrawLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Probíhá výběr...
+                    </>
+                  ) : (
+                    "Ano, vybrat"
+                  )}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </>
