@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AspNetReactTemplate.Server.Controllers
 {
     [ApiController]
-    [Authorize(Policy = AuthorizationPolicies.AuthenticatedUser)]
+    [Authorize(Policy = AuthorizationPolicies.AuthenticatedUserExceptRestrictedUser)]
     [Route("api/[controller]")]
     public class AiChatController : ControllerBase
     {

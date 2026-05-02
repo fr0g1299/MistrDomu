@@ -7,6 +7,7 @@ namespace AspNetReactTemplate.Server.Infrastracture.Identity
     public static class AuthorizationPolicies
     {
         public const string AuthenticatedUser = "AuthenticatedUser";
+        public const string AuthenticatedUserExceptRestrictedUser = "AuthenticatedUserExceptRestrictedUser";
         public const string AdminOnly = "AdminOnly";
         public const string UserOnly = "UserOnly";
         public const string ExpertOnly = "ExpertOnly";
@@ -18,6 +19,10 @@ namespace AspNetReactTemplate.Server.Infrastracture.Identity
         {
             options.AddPolicy(AuthenticatedUser, policy =>
                 policy.AddRequirements(new AuthenticatedUserRequirement()));
+
+            options.AddPolicy(AuthenticatedUserExceptRestrictedUser, policy =>
+                policy.RequireAuthenticatedUser()
+                    .RequireAssertion(context => !context.User.IsInRole(Roles.RestrictedUser.ToString())));
 
             // Admin policies
             options.AddPolicy(AdminOnly, policy =>

@@ -21,6 +21,7 @@ import {
 import { CheckCircle2 } from "lucide-react";
 import NotFound from "./NotFound";
 import { AiAssistantCard } from "@/components/domains/guide/AiAssistantCard";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Guide() {
   const { manualId } = useParams<{ manualId: string }>();
@@ -42,6 +43,7 @@ export default function Guide() {
     toggleCompletedStep,
     resetCompletedSteps,
   } = useGuidePageData({ manualId, manualFromState });
+  const { loading: authLoading, isAuthenticated, isRestricted } = useAuth();
 
   const stepSectionIds = useMemo(
     () => steps.map((step) => `step-${step.id}`),
@@ -130,6 +132,8 @@ export default function Guide() {
     return <NotFound />;
   }
 
+  const canShowAiAssistant = !authLoading && isAuthenticated && !isRestricted;
+
   return (
     <div className="min-h-screen bg-background text-zinc-950 dark:text-zinc-50 antialiased">
       <Introduction manual={manual} tools={manualTools} />
@@ -180,7 +184,7 @@ export default function Guide() {
             onToggleStep={toggleCompletedStep}
           />
 
-          <AiAssistantCard manualId={Number(manualId)} />
+          {canShowAiAssistant && <AiAssistantCard manualId={Number(manualId)} />}
         </div>
       </main>
 

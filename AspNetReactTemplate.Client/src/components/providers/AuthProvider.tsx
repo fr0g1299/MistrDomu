@@ -6,6 +6,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isExpert: boolean;
+  isRestricted: boolean;
   isAuthenticated: boolean;
   setUser: (user: User | null) => void;
   logout: () => Promise<boolean>;
@@ -55,6 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isAdmin = user?.roles?.includes(Role.Admin) ?? false;
   const isExpert = user?.roles?.includes(Role.Expert) ?? false;
+  const isRestricted = user?.roles?.includes(Role.RestrictedUser) ?? false;
   const isAuthenticated = !!user && user.isAuthenticated;
 
   const logout = async () => {
@@ -78,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     isAdmin,
     isExpert,
+    isRestricted,
     isAuthenticated,
     setUser,
     logout,

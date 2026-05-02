@@ -324,7 +324,19 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
 
         if (!response.ok) {
           const serverMessage = (await response.text()).trim();
-          throw new Error(serverMessage || "Failed to get AI response");
+          const errorText = serverMessage || "Failed to get AI response";
+          setIsAwaitingReply(false);
+          setIsSending(false);
+
+          const errorMessageId = nextMessageIdRef.current;
+          const errorMessage: ChatMessage = {
+            id: errorMessageId,
+            role: "assistant",
+            text: errorText,
+          };
+          nextMessageIdRef.current += 1;
+          setMessages((prev) => [...prev, errorMessage]);
+          return;
         }
 
         const data = await response.json();
@@ -380,7 +392,7 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
             : "Omlouvám se, došlo k chybě při komunikaci se serverem.";
 
         const userFacingError = errorText.includes("API key is not configured")
-          ? "AI není nakonfigurovaná: chybí Gemini API klíč na backendu."
+          ? "AI není nakonfigurovaná: chybí API klíč na backendu."
           : errorText;
 
         const errorMessageId = nextMessageIdRef.current;

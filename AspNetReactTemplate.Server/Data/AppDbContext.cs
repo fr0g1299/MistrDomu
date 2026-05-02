@@ -216,15 +216,15 @@ namespace AspNetReactTemplate.Server.Data
             modelBuilder.Entity<AppSetting>().HasData(
                 new AppSetting
                 {
-                    Key = "GeminiApiKey",
+                    Key = "AiApiKey",
                     Value = "",
-                    Description = "API klíč pro Google Gemini. Pokud je nastaven, má přednost před proměnnou prostředí GEMINI_API_KEY."
+                    Description = "API klíč pro AI. Pokud je nastaven, má přednost před proměnnou prostředí AI_API_KEY."
                 },
                 new AppSetting
                 {
-                    Key = "GeminiModel",
-                    Value = "gemini-2.5-flash-lite",
-                    Description = "Název modelu Gemini, který se má používat (např. gemini-2.5-flash-lite, gemini-1.5-pro)."
+                    Key = "AiModel",
+                    Value = "gpt-5.4-mini",
+                    Description = "Název modelu AI, který se má používat (např. gemini-2.5-flash-lite, gemini-1.5-pro)."
                 },
                 new AppSetting
                 {

@@ -29,5 +29,5 @@ export interface AdminUsersPage {
   totalPages: number;
 }
 
-export const editableRoles = [Role.User, Role.Admin, Role.Expert] as const;
+export const editableRoles = [Role.User, Role.Admin, Role.Expert, Role.RestrictedUser] as const;
 

@@ -9,5 +9,6 @@ namespace AspNetReactTemplate.Server.Models.Identity.Enums
       User,
       Admin,
       Expert,
+      RestrictedUser,
     }
 }

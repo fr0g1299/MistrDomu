@@ -15,6 +15,7 @@ export const useAuth = () => {
     logout,
     isAdmin,
     isExpert,
+    isRestricted,
     isAuthenticated,
     fetchUser,
   } = context;
@@ -29,6 +30,7 @@ export const useAuth = () => {
     isAuthenticated,
     isAdmin,
     isExpert,
+    isRestricted,
     hasRole,
     logout,
     fetchUser,

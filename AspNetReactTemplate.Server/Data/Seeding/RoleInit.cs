@@ -31,10 +31,19 @@ namespace AspNetReactTemplate.Server.Data.Seeding
                 NormalizedName = "USER",
                 ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f188"
             };
+
+            Role roleRestrictedUser = new Role()
+            {
+                Id = 9,
+                Name = "RestrictedUser",
+                NormalizedName = "RESTRICTEDUSER",
+                ConcurrencyStamp = "b8633391-766e-44e2-8874-39851720f189"
+            };
             
             roles.Add(roleUser);
             roles.Add(roleAdmin);
             roles.Add(roleExpert);
+            roles.Add(roleRestrictedUser);
 
             return roles;
         }

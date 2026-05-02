@@ -2,27 +2,22 @@ using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models.DTOs.AiChat;
 using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Services.Abstraction.AiChat;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
+using Azure.AI.OpenAI;
+using OpenAI.Chat;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.AiChat;
 
 public class AiChatCommandService : IAiChatCommandService
 {
     private readonly AppDbContext _context;
-    private readonly IAuthorizationService _authorizationService;
     private readonly IConfiguration _configuration;
-    private readonly HttpClient _httpClient;
 
-    public AiChatCommandService(AppDbContext context, IAuthorizationService authorizationService, IConfiguration configuration, HttpClient httpClient)
+    public AiChatCommandService(AppDbContext context, IConfiguration configuration)
     {
         _context = context;
-        _authorizationService = authorizationService;
         _configuration = configuration;
-        _httpClient = httpClient;
     }
 
     public async Task<AiChatMessageResult> PostMessage(AiChatRequestDto request, ClaimsPrincipal user)
@@ -49,11 +44,11 @@ public class AiChatCommandService : IAiChatCommandService
         }
 
         // ── API key: DB setting takes precedence, fall back to env / appsettings ──
-        var dbApiKey = (await _context.AppSettings.FindAsync("GeminiApiKey"))?.Value;
+        var dbApiKey = (await _context.AppSettings.FindAsync("AiApiKey"))?.Value;
 
         var apiKey = !string.IsNullOrWhiteSpace(dbApiKey)
             ? dbApiKey
-            : (Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? _configuration["GEMINI_API_KEY"]);
+            : (Environment.GetEnvironmentVariable("AI_API_KEY") ?? _configuration["AI_API_KEY"]);
 
         if (string.IsNullOrEmpty(apiKey))
         {
@@ -61,9 +56,9 @@ public class AiChatCommandService : IAiChatCommandService
         }
 
         // ── Model: read from DB, default to gemini-2.5-flash-lite ──────────────
-        var geminiModel = (await _context.AppSettings.FindAsync("GeminiModel"))?.Value;
-        if (string.IsNullOrWhiteSpace(geminiModel))
-            geminiModel = "gemini-2.5-flash-lite";
+        var aiModel = (await _context.AppSettings.FindAsync("AiModel"))?.Value;
+        if (string.IsNullOrWhiteSpace(aiModel))
+            aiModel = "gpt-5.4-mini";
 
         // ── 1. Load manual context ──────────────────────────────────────────
         var manual = await _context.Manuals
@@ -101,62 +96,49 @@ public class AiChatCommandService : IAiChatCommandService
             .OrderBy(i => i.CreatedAt)
             .ToListAsync();
 
-        // ── 4. Build multi-turn contents array ──────────────────────────────
-        //    Gemini alternates: user → model → user → model …
-        var contentsTurns = new List<object>();
+        // ── 4. Build Azure/OpenAI chat messages ─────────────────────────────
+        var messages = new List<ChatMessage>
+        {
+            new SystemChatMessage(systemPrompt)
+        };
 
         foreach (var turn in history)
         {
-            contentsTurns.Add(new
-            {
-                role = "user",
-                parts = new[] { new { text = turn.UserMessage } }
-            });
-            contentsTurns.Add(new
-            {
-                role = "model",
-                parts = new[] { new { text = turn.AiResponse } }
-            });
+            messages.Add(new UserChatMessage(turn.UserMessage));
+
+            if (!string.IsNullOrWhiteSpace(turn.AiResponse))
+                messages.Add(new AssistantChatMessage(turn.AiResponse));
         }
 
-        // Append the current user message as the final turn
-        contentsTurns.Add(new
+        messages.Add(new UserChatMessage(request.Message));
+
+        // ── 5. Call Azure OpenAI ────────────────────────────────────────────
+        var endpoint = new Uri("https://tjuri-moiwxfn6-eastus2.cognitiveservices.azure.com/");
+
+        AzureOpenAIClient azureClient = new(
+            endpoint,
+            new System.ClientModel.ApiKeyCredential(apiKey)
+        );
+        
+        ChatClient chatClient = azureClient.GetChatClient(aiModel);
+
+        ChatCompletion completion;
+
+        try
         {
-            role = "user",
-            parts = new[] { new { text = request.Message } }
-        });
-
-        // ── 5. Call Gemini ──────────────────────────────────────────────────
-        var geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{geminiModel}:generateContent?key={apiKey}";
-
-        var geminiRequest = new
+            completion = await chatClient.CompleteChatAsync(messages);
+        }
+        catch (Exception ex)
         {
-            systemInstruction = new
-            {
-                parts = new[] { new { text = systemPrompt } }
-            },
-            contents = contentsTurns
-        };
-
-        var content = new StringContent(JsonSerializer.Serialize(geminiRequest), Encoding.UTF8, "application/json");
-
-        var response = await _httpClient.PostAsync(geminiUrl, content);
-        var responseString = await response.Content.ReadAsStringAsync();
-
-        if (!response.IsSuccessStatusCode)
-        {
-            return new AiChatMessageResult(AiChatStatus.Error, ErrorMessage: "Error from Gemini API: " + responseString);
+            return new AiChatMessageResult(
+                AiChatStatus.Error,
+                ErrorMessage: "Error from Azure OpenAI: " + ex.Message
+            );
         }
 
         // ── 6. Parse response ───────────────────────────────────────────────
-        using var jsonDocument = JsonDocument.Parse(responseString);
-        var aiResponseText = jsonDocument.RootElement
-            .GetProperty("candidates")[0]
-            .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
-            .GetString() ?? "Omlouvám se, nepodařilo se mi vygenerovat odpověď.";
-
+        var aiResponseText = completion.Content.FirstOrDefault()?.Text
+                             ?? "Omlouvám se, nepodařilo se mi vygenerovat odpověď.";
         // ── 7. Persist interaction ──────────────────────────────────────────
         var interaction = new AiChatInteraction
         {
@@ -179,12 +161,14 @@ public class AiChatCommandService : IAiChatCommandService
     {
         var sb = new System.Text.StringBuilder();
         var completedSet = new HashSet<int>(completedStepIds ?? Enumerable.Empty<int>());
-
-        sb.AppendLine("Jsi expertní a sebevědomý AI asistent specializovaný na technické návody a manuály. Odpovídej stručně, přesně a vždy česky.");
-        sb.AppendLine("Vystupuj sebevědomě. Nepoužívej fráze jako 'dle návodu', 'podle manuálu' nebo 'zde je uvedeno'. Místo např. 'Podle návodu je další krok XY' řekni přímo a autoritativně 'Další krok je XY'.");
-        sb.AppendLine("Pokud uživatel položí otázku, která nesouvisí s tímto návodem, přátelsky ho nasměruj zpět k tématu.");
-        sb.AppendLine("Pokud by odpověd měla obsahovat informace o zásahu do elektrického zařízení, upozorni uživatele na riziko úrazu elektrickým proudem a doporuč mu, aby se obrátil na kvalifikovaného elektrikáře. Nikdy neposkytuj návod na zásah do elektrického zařízení.");
-        sb.AppendLine();
+        sb.AppendLine("Jsi AI asistent pro konkrétní technický návod. Odpovídej vždy česky, stručně, prakticky a sebevědomě.");
+        sb.AppendLine("Odpovídej na vše, co prakticky souvisí s provedením tohoto návodu: kroky, nástroje, materiály, bezpečnost, kontrola výsledku, časté chyby, řešení problémů, vhodné a nevhodné alternativy, kdy zavolat odborníka a kdo může uživateli bezpečně pomoct.");
+        sb.AppendLine("Otázka se považuje za související i tehdy, když se uživatel ptá neformálně, například na instalatéra, souseda, pomocníka, náhradní materiál, jiný nástroj, co dělat když něco nejde, nebo jestli může postup udělat jednodušším způsobem.");
+        sb.AppendLine("Pokud uživatel navrhne alternativu, která souvisí s návodem, neodmítej ji automaticky. Posuď ji: pokud je vhodná, potvrď ji; pokud je nevhodná nebo riziková, vysvětli krátce proč a doporuč bezpečnější postup.");
+        sb.AppendLine("Pokud se uživatel ptá, jestli může pomoct soused nebo jiná osoba, odpověz prakticky. U jednoduchých bezpečných činností může pomoct šikovná dospělá osoba. U odborných, rizikových nebo nejasných situací doporuč kvalifikovaného odborníka.");
+        sb.AppendLine("Odmítej pouze otázky, které s návodem opravdu nesouvisí, například programování, politika, zábava, obecné znalosti nebo jiné téma mimo aktuální manuál. V takovém případě krátce řekni, že to nesouvisí s tímto návodem, a nabídni pomoc s aktuálním postupem.");
+        sb.AppendLine("Pokud by odpověď měla obsahovat zásah do elektrického zařízení, upozorni na riziko úrazu elektrickým proudem a doporuč kvalifikovaného elektrikáře. Neposkytuj návod na zásah do elektrického zařízení.");
+        sb.AppendLine("Nepoužívej Markdown formátování. Nepoužívej hvězdičky pro tučný text, Markdown nadpisy ani Markdown tabulky. Odpovídej čistým textem.");
 
         if (manual is null)
         {
