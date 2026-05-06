@@ -11,6 +11,7 @@ type StepsProps = {
   sectionId?: string;
   steps: GuideStep[];
   completedStepIds: Set<number>;
+  isAiChatVisible?: boolean;
   onToggleStep: (stepId: number) => void;
 };
 
@@ -18,10 +19,14 @@ export function Steps({
   sectionId = "steps",
   steps,
   completedStepIds,
+  isAiChatVisible,
   onToggleStep,
 }: StepsProps) {
   return (
-    <section id={sectionId} className="space-y-6 lg:col-span-23 xl:col-span-20">
+    <section
+      id={sectionId}
+      className={`space-y-6 xl:col-span-20 ${isAiChatVisible ? "lg:col-span-23" : "lg:col-span-25"}`}
+    >
       {steps.map((step) => {
         const isCompleted = completedStepIds.has(step.id);
         const cardClassName = isCompleted

@@ -35,6 +35,16 @@ type HeaderAccountSectionProps = {
   onLoginSuccess: () => unknown | Promise<unknown>;
 };
 
+const formatName = (firstName = "", lastName = "", max = 20) => {
+  const fullLength = firstName.length + lastName.length;
+
+  if (fullLength > max) {
+    return firstName.length > max ? firstName.slice(0, max) + "…" : firstName;
+  }
+
+  return `${firstName} ${lastName}`.trim();
+};
+
 export default function HeaderAccountSection({
   isAuthenticated,
   isAdmin,
@@ -55,6 +65,7 @@ export default function HeaderAccountSection({
 }: HeaderAccountSectionProps) {
   const roleLabel = isAdmin ? "Admin" : isExpert ? "Expert" : "User";
   const showRoleBadge = isAdmin || isExpert;
+  const displayName = formatName(user?.firstName, user?.lastName);
 
   if (!isAuthenticated) {
     return (
@@ -184,7 +195,7 @@ export default function HeaderAccountSection({
                 </Badge>
               )} */}
               <span className="text-sm font-medium text-foreground overflow-hidden text-ellipsis">
-                {user?.firstName} {user?.lastName}
+                {displayName}
               </span>
             </span>
             <Avatar className="h-8 w-8 border border-accent/20">
@@ -195,7 +206,11 @@ export default function HeaderAccountSection({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent className="w-56" align="end" sideOffset={10}>
+        <DropdownMenuContent
+          className="w-56 selection:text-primary selection:bg-primary/5"
+          align="end"
+          sideOffset={10}
+        >
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <div className="flex items-center gap-2">

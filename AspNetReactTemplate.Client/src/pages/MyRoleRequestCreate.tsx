@@ -104,7 +104,7 @@ export default function MyRoleRequestCreate({
     >
       <DialogContent
         showCloseButton={showCloseButton}
-        className="max-w-3xl overflow-hidden border-border/70 bg-card p-0 shadow-xl"
+        className="max-w-3xl overflow-hidden border-border/70 bg-card p-0 shadow-xl selection:text-primary selection:bg-primary/5"
       >
         <DialogHeader className="border-b border-border px-6 py-5 text-left sm:text-left">
           <DialogTitle className="text-2xl font-bold">
@@ -134,7 +134,7 @@ export default function MyRoleRequestCreate({
               rows={5}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              className="min-h-28 w-full solid-scrollbar selection:bg-primary! selection:text-primary-foreground! rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
               placeholder="Napiš, proč o roli žádáš."
             />
             <div className="text-right text-xs text-muted-foreground">
@@ -162,6 +162,7 @@ export default function MyRoleRequestCreate({
               disabled={
                 isSubmitting || hasRejectedRequest || isCheckingEligibility
               }
+              className="selection:text-black!"
             >
               {isSubmitting ? (
                 <Loader2 className="size-4 animate-spin" />

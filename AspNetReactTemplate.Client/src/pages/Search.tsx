@@ -34,7 +34,7 @@ export default function SearchPage() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Např. pračka, zásuvka, sifon..."
-              className="pl-10 h-11"
+              className="pl-10 h-11 selection:bg-primary! selection:text-primary-foreground!"
             />
           </div>
         </Card>

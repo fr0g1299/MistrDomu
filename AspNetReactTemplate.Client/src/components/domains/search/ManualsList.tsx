@@ -9,6 +9,9 @@ interface Props {
   searchQuery: string;
 }
 
+const truncate = (str: string, max = 100) =>
+  str.length > max ? str.slice(0, max) + "…" : str;
+
 export const ManualsList = ({ searchQuery }: Props) => {
   const [manuals, setManuals] = useState<Manual[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -115,8 +118,8 @@ export const ManualsList = ({ searchQuery }: Props) => {
         !isShortQuery &&
         trimmedQuery.length >= 3 &&
         manuals.length === 0 && (
-          <div className="text-center py-10 text-muted-foreground">
-            Pro "{trimmedQuery}" jsme nic nenašli. Zkuste jiné slovo.
+          <div className="text-center py-10 text-muted-foreground wrap-break-word">
+            Pro "{truncate(trimmedQuery)}" jsme nic nenašli. Zkuste jiné slovo.
           </div>
         )}
     </div>

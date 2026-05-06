@@ -38,7 +38,7 @@ export default function HeaderManagementActions({
       <div
         className={cn(
           forceInline
-            ? "flex items-center gap-1"
+            ? "hidden lg:flex items-center gap-1"
             : "hidden xl:flex items-center gap-1",
         )}
       >
@@ -58,7 +58,7 @@ export default function HeaderManagementActions({
                 <span className="hidden md:inline">{action.label}</span>
               </span>
               {(action.badgeCount ?? 0) > 0 && (
-                <Badge className="ml-1 h-5 min-w-5 justify-center px-1 py-0 text-[10px] leading-none">
+                <Badge className="ml-1 h-4.5 min-w-4.5 justify-center px-1 py-0 text-[12px] leading-none font-extrabold">
                   {action.badgeCount}
                 </Badge>
               )}
@@ -67,7 +67,7 @@ export default function HeaderManagementActions({
         ))}
       </div>
 
-      <div className={cn(forceInline ? "hidden" : "xl:hidden")}>
+      <div className={cn(forceInline ? "lg:hidden" : "xl:hidden")}>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -77,7 +77,7 @@ export default function HeaderManagementActions({
               <Settings className="h-4 w-4" />
               <span className="hidden md:inline">Správa</span>
               {pendingExpertRequestCount > 0 && (
-                <Badge className="ml-1 h-5 min-w-5 justify-center px-1 py-0 text-[10px] leading-none">
+                <Badge className="ml-1 h-4.5 min-w-4.5 justify-center px-1 py-0 text-[12px] leading-none font-extrabold">
                   {pendingExpertRequestCount}
                 </Badge>
               )}

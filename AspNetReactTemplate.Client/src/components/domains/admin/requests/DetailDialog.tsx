@@ -167,7 +167,7 @@ export function DetailDialog({
                   onChange={(event) => onNoteDraftChange(event.target.value)}
                   rows={5}
                   maxLength={NOTE_MAX_LENGTH}
-                  className="mt-2 max-h-40 min-h-24 w-full resize-y overflow-y-auto rounded-md border border-border/70 bg-background/40 p-3 text-sm leading-relaxed outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  className="mt-2 max-h-40 min-h-24 w-full solid-scrollbar selection:bg-primary! selection:text-primary-foreground! resize-y overflow-y-auto rounded-md border border-border/70 bg-background/40 p-3 text-sm leading-relaxed outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="Zatím bez poznámky"
                 />
                 <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">

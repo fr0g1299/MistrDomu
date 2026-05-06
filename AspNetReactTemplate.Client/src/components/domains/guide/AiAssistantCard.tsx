@@ -410,7 +410,7 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
   };
 
   return (
-    <aside className="hidden h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-9 xl:col-span-7 lg:flex">
+    <aside className="h-fit max-h-[90vh] flex-col gap-4 lg:sticky lg:top-24 lg:col-span-9 xl:col-span-7 lg:flex">
       {isExpandedModalOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm"
@@ -464,7 +464,7 @@ export function AiAssistantCard({ manualId }: { manualId: number }) {
           className={`space-y-3 overflow-y-auto rounded-md solid-scrollbar bg-transparent py-2 px-1 ${
             isExpandedModalOpen
               ? "h-[calc(88vh-13.5rem)]"
-              : "h-[calc(75vh-13.5rem)]"
+              : "min-h-88 max-h-[calc(75vh-13.5rem)] lg:h-[calc(75vh-13.5rem)]"
             // TODO: It can be expanding with the code below
             // : "min-h-128 max-h-[calc(75vh-13.5rem)]"
           }`}

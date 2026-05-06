@@ -58,8 +58,10 @@ export default function Guide() {
     useState<string>("introduction");
   const [isPaymentSuccessDialogOpen, setIsPaymentSuccessDialogOpen] =
     useState(false);
-  const [isExpertPaymentSuccessDialogOpen, setIsExpertPaymentSuccessDialogOpen] =
-    useState(false);
+  const [
+    isExpertPaymentSuccessDialogOpen,
+    setIsExpertPaymentSuccessDialogOpen,
+  ] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -157,11 +159,11 @@ export default function Guide() {
         {stepsError && (
           <p className="mb-4 text-sm text-destructive">{stepsError}</p>
         )}
-        <ExpertHelperCard
-          manualId={manualId}
-          variant="helper"
-        />
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-32 3xl:gap-6 4xl:gap-8">
+        <ExpertHelperCard manualId={manualId} variant="helper" />
+        <div
+          // TODO: Looks bad on dimensions wider than 1920
+          className={`grid grid-cols-1 gap-4 3xl:gap-6 4xl:gap-8 ${canShowAiAssistant ? "lg:grid-cols-32" : "lg:grid-cols-25"}`}
+        >
           <TableOfContents
             tableOfContents={tableOfContents}
             steps={steps}
@@ -181,10 +183,13 @@ export default function Guide() {
           <Steps
             steps={steps}
             completedStepIds={completedStepIds}
+            isAiChatVisible={canShowAiAssistant}
             onToggleStep={toggleCompletedStep}
           />
 
-          {canShowAiAssistant && <AiAssistantCard manualId={Number(manualId)} />}
+          {canShowAiAssistant && (
+            <AiAssistantCard manualId={Number(manualId)} />
+          )}
         </div>
       </main>
 
@@ -229,7 +234,8 @@ export default function Guide() {
               </span>
             </DialogTitle>
             <DialogDescription>
-              Děkujeme! Konzultace s expertem byla zaplacena. Nyní můžete zavolat expertovi.
+              Děkujeme! Konzultace s expertem byla zaplacena. Nyní můžete
+              zavolat expertovi.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -199,7 +199,7 @@ export default function ExpertOnboardingPage() {
 
             <Button
               type="button"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 selection:text-black!"
               onClick={handleCreateRequestClick}
               disabled={
                 isExpert ||
