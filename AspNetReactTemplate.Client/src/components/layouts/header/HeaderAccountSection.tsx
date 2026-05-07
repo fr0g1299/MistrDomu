@@ -35,14 +35,16 @@ type HeaderAccountSectionProps = {
   onLoginSuccess: () => unknown | Promise<unknown>;
 };
 
-const formatName = (firstName = "", lastName = "", max = 20) => {
-  const fullLength = firstName.length + lastName.length;
+const formatName = (firstName?: string | null, lastName?: string | null, max = 20) => {
+  const fn = firstName ?? "";
+  const ln = lastName ?? "";
+  const fullLength = fn.length + ln.length;
 
   if (fullLength > max) {
-    return firstName.length > max ? firstName.slice(0, max) + "…" : firstName;
+    return fn.length > max ? fn.slice(0, max) + "…" : fn;
   }
 
-  return `${firstName} ${lastName}`.trim();
+  return `${fn} ${ln}`.trim();
 };
 
 export default function HeaderAccountSection({
@@ -65,7 +67,7 @@ export default function HeaderAccountSection({
 }: HeaderAccountSectionProps) {
   const roleLabel = isAdmin ? "Admin" : isExpert ? "Expert" : "User";
   const showRoleBadge = isAdmin || isExpert;
-  const displayName = formatName(user?.firstName, user?.lastName);
+  const displayName = formatName(user?.firstName ?? "", user?.lastName ?? "");
 
   if (!isAuthenticated) {
     return (
