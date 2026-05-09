@@ -115,8 +115,22 @@ function App() {
             />
 
             {/* Authenticated Routes */}
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/guide/:manualId" element={<GuidePage />} />
+            <Route
+              path="/search"
+              element={
+                <AuthenticatedRoute>
+                  <SearchPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/guide/:manualId"
+              element={
+                <AuthenticatedRoute>
+                  <GuidePage />
+                </AuthenticatedRoute>
+              }
+            />
             <Route
               path="/my-requests"
               element={

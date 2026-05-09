@@ -40,44 +40,41 @@ const formatType = (type: string) => {
 
 export default function MyRoleRequests() {
   const navigate = useNavigate();
-  const { isAdmin, isExpert } = useAuth();
+  const { isAdmin } = useAuth();
 
   const [detail, setDetail] = useState<UserRoleRequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(
-    async () => {
-      if (isAdmin || isExpert) {
-        navigate("/", { replace: true });
+  const load = useCallback(async () => {
+    if (isAdmin) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const latestRequest = await apiService.getMyExpertRoleRequest();
+      if (!latestRequest) {
+        navigate("/my-requests/new", { replace: true });
         return;
       }
 
-      try {
-        setLoading(true);
+      const requestDetail = await apiService.getMyRoleRequestDetail(
+        latestRequest.id,
+      );
+      setDetail(requestDetail);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Nepodařilo se načíst žádosti.",
+      );
+      navigate("/", { replace: true });
+    }
 
-        const latestRequest = await apiService.getMyExpertRoleRequest();
-        if (!latestRequest) {
-          navigate("/my-requests/new", { replace: true });
-          return;
-        }
-
-        const requestDetail = await apiService.getMyRoleRequestDetail(
-          latestRequest.id,
-        );
-        setDetail(requestDetail);
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Nepodařilo se načíst žádosti.",
-        );
-        navigate("/", { replace: true });
-      }
-
-      setLoading(false);
-    },
-    [isAdmin, isExpert, navigate],
-  );
+    setLoading(false);
+  }, [isAdmin, navigate]);
 
   useEffect(() => {
     void load();
