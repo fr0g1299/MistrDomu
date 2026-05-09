@@ -21,6 +21,7 @@ type AuthRequiredDialogProps = {
   defaultView?: AuthView;
 };
 
+// TODO: There are two Auth dialogs, that are practically the same, idk how that happened
 export function AuthRequiredDialog({
   open,
   onOpenChange,

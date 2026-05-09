@@ -15,6 +15,7 @@ interface AuthDialogProps {
   onLoginSuccess: () => void;
 }
 
+// TODO: There are two Auth dialogs, that are practically the same, idk how that happened
 export function AuthDialog({ onLoginSuccess }: AuthDialogProps) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"login" | "register">("login");
