@@ -22,7 +22,7 @@ namespace AspNetReactTemplate.Server.Infrastracture.Identity
 
             options.AddPolicy(AuthenticatedUserExceptRestrictedUser, policy =>
                 policy.RequireAuthenticatedUser()
-                    .RequireAssertion(context => !context.User.IsInRole(Roles.RestrictedUser.ToString())));
+                      .AddRequirements(new ExcludeRoleRequirement(Roles.RestrictedUser.ToString())));
 
             // Admin policies
             options.AddPolicy(AdminOnly, policy =>

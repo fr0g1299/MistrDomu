@@ -19,6 +19,7 @@ public static class IdentityExtensions
         services.AddAuthorization(options => options.AddCustomPolicies());
         services.AddScoped<IAuthorizationHandler, AuthenticatedUserHandler>();
         services.AddScoped<IAuthorizationHandler, RoleRequirementHandler>();
+        services.AddScoped<IAuthorizationHandler, ExcludeRoleRequirementHandler>();
         services.AddScoped<IAuthorizationHandler, AdminOnlyHandler>();
         services.AddScoped<IAuthorizationHandler, ExpertOnlyHandler>();
         services.AddScoped<IAuthorizationHandler, AdminOrExpertOnlyHandler>();
