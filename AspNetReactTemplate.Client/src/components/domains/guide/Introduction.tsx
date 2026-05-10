@@ -31,7 +31,7 @@ export function Introduction({
 
   const handleBack = (e: MouseEvent) => {
     e.preventDefault();
-    navigate(-1);
+    navigate("/search");
   };
 
   const title = manual?.title || "Detail návodu";

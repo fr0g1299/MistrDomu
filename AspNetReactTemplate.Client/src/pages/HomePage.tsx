@@ -100,7 +100,7 @@ export default function HomePage() {
       />
 
       <div className="relative isolate">
-        <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="pointer-events-none fixed inset-0 -z-10 w-screen h-svh">
           <img
             alt="Craftsman background"
             className="h-full w-full object-cover object-[center_65%]"
@@ -113,7 +113,7 @@ export default function HomePage() {
             }}
           />
         </div>
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-black/75" />
+        <div className="pointer-events-none fixed inset-0 -z-10 bg-black/75 w-screen h-svh" />
 
         {/* Hero Section */}
         <div className="relative min-h-[calc(100vh-76px)] pt-10 md:pt-12 pb-6 md:pb-8 px-4 flex flex-col items-center justify-start text-center">
