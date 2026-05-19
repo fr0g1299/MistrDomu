@@ -1,5 +1,5 @@
 ﻿using AspNetReactTemplate.Server.Models.DTOs.Notifications;
-using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Models.Notifications;
 
 namespace AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 

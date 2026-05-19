@@ -4,7 +4,7 @@ using System.Text.Json;
 using AspNetReactTemplate.Server.Models.DTOs.Notifications;
 using AspNetReactTemplate.Server.Models.Entity;
 
-namespace AspNetReactTemplate.Server.Models.Notifiactions;
+namespace AspNetReactTemplate.Server.Models.Notifications;
 
 public class EmailOutboxMessage : Entity<int>
 {

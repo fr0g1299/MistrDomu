@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AspNetReactTemplate.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260423204659_EditTempleate")]
-    partial class EditTempleate
+    [Migration("20260423204659_EditTemplate")]
+    partial class EditTemplate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -561,7 +561,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("Tools");
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailOutboxMessage", b =>
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifications.EmailOutboxMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -624,7 +624,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("EmailOutboxMessages");
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailSetting", b =>
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifications.EmailSetting", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -663,7 +663,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("EmailSettings");
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailTemplate", b =>
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifications.EmailTemplate", b =>
                 {
                     b.Property<string>("Key")
                         .HasMaxLength(100)

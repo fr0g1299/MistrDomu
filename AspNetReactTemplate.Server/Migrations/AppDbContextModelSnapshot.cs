@@ -675,7 +675,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("Tools");
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailOutboxMessage", b =>
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifications.EmailOutboxMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -738,7 +738,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("EmailOutboxMessages");
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailSetting", b =>
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifications.EmailSetting", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -777,7 +777,7 @@ namespace AspNetReactTemplate.Server.Migrations
                     b.ToTable("EmailSettings");
                 });
 
-            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifiactions.EmailTemplate", b =>
+            modelBuilder.Entity("AspNetReactTemplate.Server.Models.Notifications.EmailTemplate", b =>
                 {
                     b.Property<string>("Key")
                         .HasMaxLength(100)

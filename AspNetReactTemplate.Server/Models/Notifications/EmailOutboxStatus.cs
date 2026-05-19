@@ -1,4 +1,4 @@
-namespace AspNetReactTemplate.Server.Models.Notifiactions;
+namespace AspNetReactTemplate.Server.Models.Notifications;
 
 public enum  EmailOutboxStatus 
 {

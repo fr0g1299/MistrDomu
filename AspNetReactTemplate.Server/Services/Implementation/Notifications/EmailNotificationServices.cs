@@ -1,7 +1,7 @@
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Extensions.Notification;
 using AspNetReactTemplate.Server.Models.Identity.Enums;
-using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Models.Notifications;
 using AspNetReactTemplate.Server.Services.Abstraction.Identity.Select;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 using Microsoft.EntityFrameworkCore;

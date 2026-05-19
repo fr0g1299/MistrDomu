@@ -1,5 +1,5 @@
 using AspNetReactTemplate.Server.Data;
-using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Models.Notifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace AspNetReactTemplate.Server.Services.Implementation.BackgroundServices;

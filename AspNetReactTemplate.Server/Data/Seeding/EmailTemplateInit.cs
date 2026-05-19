@@ -1,5 +1,5 @@
 using AspNetReactTemplate.Server.Extensions.Notification;
-using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Models.Notifications;
 using AspNetReactTemplate.Server.Services.Implementation.Identity.Requests;
 using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 

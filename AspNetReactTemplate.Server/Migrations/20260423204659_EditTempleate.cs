@@ -5,7 +5,7 @@
 namespace AspNetReactTemplate.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class EditTempleate : Migration
+    public partial class EditTemplate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

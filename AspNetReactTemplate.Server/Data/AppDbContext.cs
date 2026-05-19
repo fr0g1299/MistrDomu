@@ -6,7 +6,7 @@ using AspNetReactTemplate.Server.Models.Calls;
 using AspNetReactTemplate.Server.Models.Entity;
 using AspNetReactTemplate.Server.Models.Manuals;
 using AspNetReactTemplate.Server.Models.Identity;
-using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Models.Notifications;
 using AspNetReactTemplate.Server.Services.Implementation.Notifications;
 using Microsoft.AspNetCore.Identity;
 

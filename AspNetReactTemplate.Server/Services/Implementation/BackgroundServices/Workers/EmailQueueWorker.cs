@@ -2,7 +2,7 @@ using System.Net.Mail;
 using AspNetReactTemplate.Server.Data;
 using AspNetReactTemplate.Server.Models;
 using AspNetReactTemplate.Server.Models.DTOs.Notifications;
-using AspNetReactTemplate.Server.Models.Notifiactions;
+using AspNetReactTemplate.Server.Models.Notifications;
 using AspNetReactTemplate.Server.Services.Abstraction.Notifications;
 using Microsoft.EntityFrameworkCore;
 
