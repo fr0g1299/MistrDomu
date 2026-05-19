@@ -1,38 +1,10 @@
 import { useContext } from "react";
-import { Role } from "@/types/auth";
-import { AuthContext } from "@/components/providers/AuthProvider";
+import { AuthContext } from "@/contexts/AuthContext";
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
 
-  if (!context) {
-    throw new Error("useAuth musí být použit uvnitř AuthProvideru");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
 
-  const {
-    user,
-    loading,
-    logout,
-    isAdmin,
-    isExpert,
-    isRestricted,
-    isAuthenticated,
-    fetchUser,
-  } = context;
-
-  const hasRole = (role: Role) => {
-    return user?.roles?.includes(role) ?? false;
-  };
-
-  return {
-    user,
-    loading,
-    isAuthenticated,
-    isAdmin,
-    isExpert,
-    isRestricted,
-    hasRole,
-    logout,
-    fetchUser,
-  };
+  return context;
 };
