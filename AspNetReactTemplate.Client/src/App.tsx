@@ -1,6 +1,5 @@
-import { JSX, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import {
-  Navigate,
   Route,
   Routes,
   useNavigate,
@@ -26,51 +25,16 @@ import MyRoleRequestDetail from "./pages/MyRoleRequestDetail";
 import ExpertOnboardingPage from "./pages/ExpertOnboardingPage";
 import ExpertStandbyPage from "./pages/ExpertStandbyPage";
 import ExpertDashboardPage from "./pages/ExpertDashboardPage";
-import { useAuth } from "./hooks/useAuth";
 import { AuthProvider } from "./components/providers/AuthProvider";
 import { Toaster } from "./components/ui/sonner";
 import NotFound from "./pages/NotFound";
 
-const AdminRoute = ({ children }: { children: JSX.Element }) => {
-  const { isAdmin, loading, isAuthenticated } = useAuth();
-
-  if (loading) return null;
-  if (!isAuthenticated || !isAdmin) return <Navigate to="/" replace />;
-
-  return children;
-};
-
-const ManagementRoute = ({ children }: { children: JSX.Element }) => {
-  const { isAdmin, isExpert, loading, isAuthenticated } = useAuth();
-
-  if (loading) return null;
-  if (!isAuthenticated || (!isAdmin && !isExpert))
-    return <Navigate to="/" replace />;
-
-  return children;
-};
-
-const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
-  const { loading, isAuthenticated } = useAuth();
-
-  if (loading) return null;
-  if (!isAuthenticated) return <Navigate to="/" replace />;
-
-  return children;
-};
-
-const NonAdminAuthenticatedRoute = ({
-  children,
-}: {
-  children: JSX.Element;
-}) => {
-  const { loading, isAuthenticated, isAdmin, isExpert } = useAuth();
-
-  if (loading) return null;
-  if (!isAuthenticated || isAdmin || isExpert) return <Navigate to="/" replace />;
-
-  return children;
-};
+import {
+  AuthenticatedRoute,
+  AdminRoute,
+  ManagementRoute,
+  NonAdminAuthenticatedRoute,
+} from "@/components/routing/AuthGuards";
 
 function App() {
   const navigate = useNavigate();
@@ -86,7 +50,6 @@ function App() {
   useDynamicScrollbar();
 
   // Prevent browser from restoring scroll position automatically
-  // ! Remove if things break
   useEffect(() => {
     try {
       if ("scrollRestoration" in history) {
@@ -108,142 +71,80 @@ function App() {
 
         <main className="flex-1">
           <Routes location={backgroundLocation || location}>
+            {/* Public routes */}
             <Route path="/" element={<HomePage />} />
             <Route
               path="/expert-onboarding"
               element={<ExpertOnboardingPage />}
             />
 
-            {/* Authenticated Routes */}
-            <Route
-              path="/search"
-              element={
-                <AuthenticatedRoute>
-                  <SearchPage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/guide/:manualId"
-              element={
-                <AuthenticatedRoute>
-                  <GuidePage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
-              path="/my-requests"
-              element={
-                <AuthenticatedRoute>
-                  <MyRoleRequests />
-                </AuthenticatedRoute>
-              }
-            />
+            {/* Authenticated routes (Users only) */}
+            <Route element={<AuthenticatedRoute />}>
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/guide/:manualId" element={<GuidePage />} />
+              <Route path="/my-requests" element={<MyRoleRequests />} />
+            </Route>
 
-            {/* Expert Routes */}
-            <Route
-              path="/manual-help-management"
-              element={
-                <ManagementRoute>
-                  <ManualHelpManagement />
-                </ManagementRoute>
-              }
-            />
-            <Route
-              path="/expert-standby"
-              element={
-                <ManagementRoute>
-                  <ExpertStandbyPage />
-                </ManagementRoute>
-              }
-            />
-            <Route
-              path="/expert-dashboard"
-              element={
-                <ManagementRoute>
-                  <ExpertDashboardPage />
-                </ManagementRoute>
-              }
-            />
-            <Route
-              path="/my-requests/new"
-              element={
-                <NonAdminAuthenticatedRoute>
-                  <MyRoleRequestCreate />
-                </NonAdminAuthenticatedRoute>
-              }
-            />
+            {/* Non-Admin routes */}
+            <Route element={<NonAdminAuthenticatedRoute />}>
+              <Route
+                path="/my-requests/new"
+                element={<MyRoleRequestCreate />}
+              />
+            </Route>
 
-            {/* Admin Routes */}
-            <Route
-              path="/admin/tools"
-              element={
-                <AdminRoute>
-                  <AdminTools />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/manual-help-management"
-              element={
-                <AdminRoute>
-                  <AdminExpertAssignment />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/paid-access"
-              element={
-                <AdminRoute>
-                  <AdminPayments />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <AdminRoute>
-                  <AdminUsers />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/expert-role-requests"
-              element={
-                <AdminRoute>
-                  <AdminExpertRoleRequests />
-                </AdminRoute>
-              }
-            />
+            {/* Management routes (Experts & Admins) */}
+            <Route element={<ManagementRoute />}>
+              <Route
+                path="/manual-help-management"
+                element={<ManualHelpManagement />}
+              />
+              <Route path="/expert-standby" element={<ExpertStandbyPage />} />
+              <Route
+                path="/expert-dashboard"
+                element={<ExpertDashboardPage />}
+              />
+            </Route>
 
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminRoute />}>
+              <Route path="tools" element={<AdminTools />} />
+              <Route
+                path="manual-help-management"
+                element={<AdminExpertAssignment />}
+              />
+              <Route path="paid-access" element={<AdminPayments />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route
+                path="expert-role-requests"
+                element={<AdminExpertRoleRequests />}
+              />
+            </Route>
+
+            {/* Catch All */}
             <Route path="*" element={<NotFound />} />
           </Routes>
 
+          {/* Background modal routes */}
           {backgroundLocation && (
             <Routes>
-              <Route
-                path="/my-requests/new"
-                element={
-                  <NonAdminAuthenticatedRoute>
-                    <MyRoleRequestCreate />
-                  </NonAdminAuthenticatedRoute>
-                }
-              />
-
-              <Route
-                path="/my-requests/:requestId"
-                element={
-                  <AuthenticatedRoute>
-                    <MyRoleRequestDetail />
-                  </AuthenticatedRoute>
-                }
-              />
+              <Route element={<NonAdminAuthenticatedRoute />}>
+                <Route
+                  path="/my-requests/new"
+                  element={<MyRoleRequestCreate />}
+                />
+              </Route>
+              <Route element={<AuthenticatedRoute />}>
+                <Route
+                  path="/my-requests/:requestId"
+                  element={<MyRoleRequestDetail />}
+                />
+              </Route>
             </Routes>
           )}
         </main>
 
         <Toaster position="bottom-right" />
-
         <Footer />
       </div>
     </AuthProvider>
